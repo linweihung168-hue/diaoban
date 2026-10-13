@@ -96,6 +96,23 @@ details.q p{margin:8px 0 0;color:var(--mut)}
 .who div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-weight:700}
 .who small{display:block;font-weight:400;color:var(--mut)}
 .fine{margin-top:36px;color:var(--mut);font-size:13px}
+
+/* 手機：說明文字放大、按鈕加大 */
+@media (max-width:720px){
+  body{font-size:17px}
+  .lead{font-size:17px}
+  .cap-n{font-size:15px}
+  .cap-t{font-size:24px;margin:4px 0 8px}
+  .cap-d{font-size:18px;line-height:1.85;min-height:0}
+  .btn{min-height:50px;font-size:17px;padding:10px 18px}
+  .ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ctl .pri{grid-column:1/-1;order:-1}
+  .dot{width:30px;height:10px}
+  .card h3{font-size:18px}.card p,.card ol{font-size:17px}
+  .rules li{grid-template-columns:1fr;gap:2px}
+  details.q summary{font-size:17px}details.q p{font-size:16.5px}
+  .notice{font-size:17px}
+}
 </style>
 
 <div class="wrap">
@@ -116,7 +133,7 @@ details.q p{margin:8px 0 0;color:var(--mut)}
     <div class="card"><h3>三星手機</h3><ol><li>用 <b>Chrome</b> 打開網址</li><li>按右上角「⋮」選單</li><li>選「安裝應用程式」（或「加到主畫面」），按「安裝」</li></ol></div>
     <div class="card"><h3>電腦（Chrome 或 Edge）</h3><ol><li>打開上面的網址</li><li>按網址列<b>最右邊</b>的「安裝」圖示（小螢幕加向下箭頭）</li><li>按「安裝」。會開出獨立的「調班表」視窗</li></ol></div>
   </div>
-  <p class="lead" style="margin-top:14px">電腦安裝後，工作列會出現圖示，可以按右鍵選「釘選到工作列」。想放在桌面的話，在 Chrome 網址列輸入 <b>chrome://apps</b>，把「調班表」圖示拖到桌面即可。</p>
+  <p class="lead" style="margin-top:14px">電腦安裝後，<b>桌面會自動出現「調班表」圖示</b>，之後雙擊就能開。想固定在工作列，開啟後在工作列的圖示上按右鍵，選「釘選到工作列」。</p>
 </section>
 
 <section>
