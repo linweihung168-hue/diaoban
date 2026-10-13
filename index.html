@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><base target="_top"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>調班表</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#1d2330;--card:#fff;--bd:#d9dde5;--ac:#1f6feb;--mut:#6b7385;--ok:#17803d;--warn:#b45309;--danger:#c0392b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#14171d;--fg:#e8ebf2;--card:#1d222b;--bd:#323946;--ac:#5b9dff;--mut:#98a1b3;--ok:#4cc27a;--warn:#f0b35a}}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+main{max-width:780px;margin:0 auto;padding:14px}h1{font-size:20px;margin:4px 0 10px}h2{font-size:16px;margin:0 0 10px}
+.note{color:var(--mut);font-size:13px;margin:0 0 10px}.warn{color:var(--warn)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 3px}
+input,select,textarea,button{font:inherit;width:100%;padding:10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--fg)}
+input,select{height:44px;line-height:1.2}
+input[type=date],input[type=time],input[type=month]{display:block;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.row>div{min-width:0}
+button.go{background:var(--ac);color:#fff;border:0;margin-top:14px;font-weight:600}
+button.x{width:auto;padding:4px 10px;height:auto;background:transparent;color:var(--fg)}
+button:disabled{opacity:.4}
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:8px}.seg button{height:44px;padding:6px}
+.seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.calc{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:14px}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:left}th{color:var(--mut)}
+td input{width:84px;height:36px;padding:4px 8px}td input.auto{color:var(--mut)}
+details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bottom:8px}
+.ec{border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:14px;line-height:1.7}.ec summary{font-weight:600;margin:0!important}
+.ec .bt{display:flex;gap:8px;margin-top:6px}.ec .bt button{border:1px solid var(--bd)}
+.big{font-size:22px;font-weight:700}
+.mask{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:20;align-items:center;justify-content:center;padding:16px}
+.mask>.card{max-width:440px;width:100%;margin:0;max-height:92%;overflow:auto}
+#toast{display:none;position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;z-index:40}
+#bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:18px}
+.ic{width:18px;height:18px;vertical-align:middle}
+</style></head><body><main>
+
+<section id="login" class="card" style="display:none"><h1>調班表</h1>
+<label>員工代號</label><input id="code" inputmode="numeric" autocomplete="off">
+<p class="warn" id="lerr" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgin" style="margin-top:6px">登入</button></section>
+
+<div id="app" style="display:none">
+<div id="bar"><b id="who"></b><button type="button" id="out" class="x">登出</button></div>
+<div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">D2694</button><button type="button" id="tabB">後台管理</button></div>
+
+<section id="fill">
+<div id="pbtns" class="seg" style="margin-bottom:14px;display:none"></div>
+<div class="card">
+<div class="row"><div><label>日期</label><input type="date" id="d"></div>
+<div><label>類型</label><select id="ty"><option value="OT">加班</option><option value="LV">請假</option><option value="OTH">其他</option></select></div></div>
+<div id="shW"><label>班別</label><select id="s"></select></div>
+<div id="lvk" style="display:none"><label>請假種類</label><div class="seg"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button><button type="button" data-k="DAY">整天</button></div></div>
+<div class="row" id="ab"><div id="aW"><label id="aL">原下班時間</label><input id="a" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="bL">實際下班時間</label><input id="b" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
+<div class="row" id="dk"><div><label>醫師</label><select id="doc"></select></div><div><label>最後一張領藥號</label><input id="k" autocomplete="off"></div></div>
+<label id="nL">備註（選填）</label><input id="nt" maxlength="200" autocomplete="off">
+<div class="calc" id="c" style="display:none"></div>
+<button type="button" class="go" id="go">送出</button></div>
+<div class="card"><h2 id="mineH">我的未休分鐘</h2><div id="mine"></div></div>
+<div class="card"><details><summary>本月登記查詢</summary><div id="myList"></div></details></div>
+<div class="card"><details><summary>本月每日明細</summary><div class="scroll"><table id="myDays"></table></div></details></div>
+</section>
+
+<section id="back" style="display:none">
+<div class="card"><label style="margin-top:0">月份</label><input type="month" id="bm"></div>
+<div class="card"><h2>每日彙總</h2><div id="dpb" class="seg" style="margin-bottom:10px"></div><div class="scroll"><table id="bDays"></table></div></div>
+<div class="card"><h2>需人工核對</h2><div class="scroll"><table id="bMan"></table></div></div>
+<div class="card"><h2>月結</h2><div class="scroll"><table id="bStat"></table></div></div>
+<div class="card"><details id="dAll"><summary>所有登記</summary>
+<div class="row" style="margin-top:8px"><div><label>人員</label><select id="fp"></select></div><div><label>類型</label><select id="ft"><option value="">全部</option><option value="OT">加班</option><option value="AM">請假/AM</option><option value="PM">請假/PM</option><option value="LV">小時假</option><option value="DAY">請假/整天</option><option value="OTH">其他</option></select></div></div>
+<p class="note" id="fcnt" style="margin:8px 0"></p><div id="bList"></div></details></div>
+<div class="card"><details id="dTrash"><summary>已刪除</summary><div class="scroll"><table id="bTrash"></table></div></details></div>
+<div class="card"><details id="dEdits"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits"></table></div></details></div>
+<div class="card"><details id="dLogins"><summary>登入紀錄</summary>
+<p><button type="button" id="clrLog" class="x" title="清空登入紀錄" aria-label="清空登入紀錄" style="border:1px solid var(--bd)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></p>
+<div class="scroll"><table id="bLogins"></table></div></details></div>
+</section>
+</div>
+</main>
+
+<div id="toast">已送出</div>
+<div id="gm" class="mask"><div class="card"><h2 id="gt"></h2><div id="gb" style="font-size:14px;line-height:1.7"></div><div class="row" id="gbtn" style="margin-top:12px"></div></div></div>
+<div id="em" class="mask"><div class="card"><h2>編輯登記</h2><p class="note" id="einfo"></p>
+<div class="row"><div><label>日期</label><input type="date" id="ed"></div><div><label>班別</label><select id="es"></select></div></div>
+<div class="row" id="eab"><div><label>開始／原下班時間</label><input id="ea" inputmode="numeric" maxlength="5"></div><div><label>結束時間</label><input id="eb" inputmode="numeric" maxlength="5"></div></div>
+<div class="row" id="edk"><div><label>醫師</label><select id="edoc"></select></div><div><label>最後一張領藥號</label><input id="ek"></div></div>
+<label>備註</label><input id="ent" maxlength="200">
+<div class="row" style="margin-top:12px"><button type="button" id="ecancel">取消</button><button type="button" class="go" id="esave" style="margin:0">儲存修改</button></div></div></div>
+<div id="lockm" class="mask" style="z-index:50"><div class="card"><h2>已鎖定</h2><p class="note">閒置時間較長，請輸入員工代號繼續使用。</p>
+<input id="lcode" inputmode="numeric" autocomplete="off"><p class="warn" id="lerr2" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgo" style="margin-top:6px">繼續</button></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TY={OT:'加班',AM:'請假/AM',PM:'請假/PM',LV:'小時假',DAY:'請假/整天',OTH:'其他'};
+const touch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||navigator.maxTouchPoints>0;
+const store=(()=>{try{const s=touch?localStorage:sessionStorage;s.getItem('x');return s}catch(e){const m={};return{getItem:k=>m[k]||null,setItem:(k,v)=>{m[k]=v},removeItem:k=>{delete m[k]}}}})(), TK='diaoban_tok';
+const ymNow=()=>{const t=new Date(Date.now()+8*36e5).toISOString();return t.slice(0,7)};
+const dayNow=()=>new Date(Date.now()+8*36e5).toISOString().slice(0,10);
+let S={token:null,me:null,cfg:null,tab:'fill',target:'',month:ymNow(),lk:null,fv:null,bv:null,dp:'',lockAt:Date.now()};
+const V=x=>/^([01]\d|2[0-3]):[0-5]\d$/.test(x||'');
+const tm=x=>{const p=String(x).split(':');return +p[0]*60+ +p[1]};
+const half=m=>Math.floor(m/30)/2;
+const hm=m=>{const h=Math.floor(m/60),r=m%60;return (h?h+'h':'')+(r||!h?r+'m':'')};
+const fm=n=>Math.round(n*100)/100;
+const dev=()=>{const u=navigator.userAgent;return /iPhone|iPad/.test(u)?'iPhone/iPad':/Android/.test(u)?'Android':/Windows/.test(u)?'Windows 電腦':/Mac/.test(u)?'Mac':'其他裝置'};
+const shiftOf=n=>(S.cfg?S.cfg.shifts:[]).find(s=>s.name===n);
+const isAdmin=()=>S.me&&S.me.role==='管理者';
+
+/* ---- 與後端溝通 ---- */
+const API='https://moljaswicnyuapldqvfz.supabase.co/functions/v1/api';   // ← 部署時只要改這一行（見部署說明）
+async function rpc(action,token,payload){
+  let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:action,token:token,payload:payload||{}})});r=await r.json()}
+  catch(e){throw new Error('連線失敗，請檢查網路後再試')}
+  return r;
+}
+async function call(action,payload){
+  const r=await rpc(action,S.token,payload);
+  if(r&&r.ok===false){if(r.error==='AUTH'){lostAuth();throw new Error('登入已失效，請重新登入')}throw new Error(r.error)}
+  return r;
+}
+/* ---- 小視窗 ---- */
+function modal(title,body,btns){return new Promise(res=>{$('gt').textContent=title;$('gb').innerHTML=body;const w=$('gbtn');w.innerHTML='';
+  btns.forEach(b=>{const e=document.createElement('button');e.type='button';e.textContent=b.t;if(b.go){e.className='go';e.style.margin='0';if(b.danger)e.style.background='var(--danger)'}e.onclick=()=>{$('gm').style.display='none';res(b.v)};w.appendChild(e)});
+  w.style.gridTemplateColumns=btns.length===1?'1fr':'1fr 1fr';$('gm').style.display='flex'});}
+const msg=t=>modal('提醒','<p style="margin:0">'+esc(t)+'</p>',[{t:'好',v:true,go:true}]);
+const ask=(title,body,ok,danger)=>modal(title,body,[{t:'取消',v:false},{t:ok,v:true,go:true,danger}]);
+let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',2500)};
+
+/* ---- 登入 ---- */
+function showLogin(m){$('app').style.display='none';$('login').style.display='';$('lerr').textContent=m||'';$('code').value='';S.token=null;S.me=null}
+function lostAuth(){store.removeItem(TK);showLogin('登入已失效，請重新輸入員工代號')}
+async function doLogin(code,unlock){return call0('login',{code:code,dev:dev(),unlock:!!unlock})}
+async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;throw new Error((r&&r.error)||'登入失敗')}
+async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;enter()}
+$('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
+  $('lgin').disabled=true;try{await afterLogin(await doLogin(c))}catch(e){$('lerr').textContent=e.message}$('lgin').disabled=false};
+$('code').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
+$('out').onclick=()=>{store.removeItem(TK);showLogin('')};
+async function boot(){
+  const t=store.getItem(TK);
+  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.last=null;S.pre=r.view||null;enter();return}catch(e){store.removeItem(TK)}}
+  showLogin('');
+}
+function enter(){
+  $('login').style.display='none';$('app').style.display='';$('who').textContent=S.me.name;
+  $('tabs').style.display=isAdmin()?'':'none';
+  initForm();fillPeople();switchTab(S.tab);
+}
+function fillPeople(){
+  const names=S.cfg.staff;
+  $('pbtns').innerHTML=names.map(n=>`<button type="button" data-p="${esc(n)}">${esc(n)}</button>`).join('');
+  $('dpb').innerHTML=['全部'].concat(names).map(n=>`<button type="button" data-dp="${n==='全部'?'':esc(n)}">${esc(n)}</button>`).join('');
+  $('fp').innerHTML='<option value="">全部</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');
+}
+function switchTab(t){
+  S.tab=t;const adm=isAdmin();
+  $('fill').style.display=(t==='fill')?'':'none';$('back').style.display=(t==='back'&&adm)?'':'none';
+  $('pbtns').style.display=(adm&&t==='fill')?'':'none';
+  $('tabP').className=t==='fill'?'go':'';$('tabP').style.margin='0';$('tabB').className=t==='back'?'go':'';$('tabB').style.margin='0';
+  if(t==='fill')loadFill();else loadBack();
+}
+$('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');
+
+/* ---- 填寫表單 ---- */
+function initForm(){
+  $('s').innerHTML=S.cfg.shifts.map(s=>`<option>${esc(s.name)}</option>`).join('');
+  $('doc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
+  $('d').value=dayNow();$('ty').value='OT';S.lk=null;$('nt').value='';$('k').value='';onForm(true);
+}
+const effTy=()=>{const v=$('ty').value;return v==='LV'?(S.lk||''):v};
+function fmt(el){let v=el.value.replace(/\D/g,'').slice(0,4);if(v.length>2)v=v.slice(0,2)+':'+v.slice(2);el.value=v}
+function onForm(reset){
+  const sel=$('ty').value, sh=shiftOf($('s').value)||{}, np=sh.type==='N+';
+  const noHalf=!!(sh.night||String(sh.name||'').indexOf('週六')===0);
+  if(S.lk&&(S.lk==='AM'||S.lk==='PM')&&noHalf)S.lk=null;
+  document.querySelectorAll('#lvk button').forEach(b=>{const k=b.dataset.k;b.disabled=(k==='AM'||k==='PM')&&noHalf;b.classList.toggle('on',S.lk===k)});
+  const t=effTy();
+  $('lvk').style.display=sel==='LV'?'':'none';
+  $('shW').style.display=sel==='OTH'?'none':'';
+  const needTimes=(t==='OT'||t==='LV'||sel==='OTH');
+  $('ab').style.display=needTimes?'':'none';
+  $('aW').style.display=(t==='OT'&&np)?'none':'';
+  $('aL').textContent=t==='LV'?'請假開始':sel==='OTH'?'開始（選填）':'原下班時間';
+  $('bL').textContent=t==='LV'?'請假結束':sel==='OTH'?'結束（選填）':np?'門診結束時間':'實際下班時間';
+  $('dk').style.display=t==='OT'?'':'none';
+  const D=$('doc');if(t==='OT'&&sh.doctor){D.value=sh.doctor;D.disabled=true}else{if(D.disabled)D.value='';D.disabled=false}
+  $('nL').textContent=sel==='OTH'?'備註（必填）':'備註（選填）';
+  if(reset){$('a').value=(t==='OT'&&!np)?(sh.end||''):'';$('b').value=t==='LV'?(sh.end||''):''}
+  calc();
+}
+function overlap(sh,a,b){return (sh.windows||[]).some(w=>tm(a)<tm(w[1])&&tm(b)>tm(w[0]))}
+function readForm(){return{date:$('d').value,shift:$('ty').value==='OTH'?'—':$('s').value,a:$('a').value.trim(),b:$('b').value.trim(),doc:$('doc').value,k:$('k').value.trim().toUpperCase(),note:$('nt').value.trim()}}
+function chk(t,o){
+  const sh=shiftOf(o.shift)||{},np=sh.type==='N+',miss=[];
+  if(!o.date)miss.push('日期');
+  if(t==='OT'){if(!o.b)miss.push(np?'門診結束時間':'實際下班時間');if(!np&&!o.a)miss.push('原下班時間');if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號')}
+  if(t==='LV'){if(!o.a)miss.push('請假開始');if(!o.b)miss.push('請假結束')}
+  if(t==='OTH'&&!o.note)miss.push('備註');
+  if(miss.length)return '請先填寫：'+miss.join('、');
+  if(o.date>dayNow())return '不能登記未來的日期';
+  if((t==='OT'||t==='LV')&&(!V(o.b)||(!(np&&t==='OT')&&!V(o.a))))return '時間請用 24 小時制，例如 17:30、21:30';
+  if(t==='OT'&&!(/[A-Z]/.test(o.k)&&/\d/.test(o.k)&&/^[A-Z0-9\-]+$/.test(o.k)))return '最後一張領藥號請填英文字母加數字，例如 K162';
+  if(t==='OT'){if(np){if(tm(o.b)<690)return '門診結束時間要在 11:30 之後'}else{if(tm(o.b)<=tm(o.a))return '實際下班要晚於原下班時間';if(overlap(sh,o.a,o.b))return '這段時間橫跨正常上班時段，請分成兩筆填寫（例如：中午一筆、下午一筆）。'}}
+  if(t==='LV'){if(np)return '週六 N+ 請假請用「其他」並寫備註';if(tm(o.b)<=tm(o.a))return '請假結束要晚於請假開始'}
+  return '';
+}
+function calc(){
+  const t=effTy(),o=readForm(),sh=shiftOf(o.shift)||{},np=sh.type==='N+',el=$('c');let h='';
+  if(t==='OT'&&V(o.b)&&(np||V(o.a))){const m=np?150+tm(o.b)-690:tm(o.b)-tm(o.a);if(np){if(tm(o.b)>=690)h='上班時段合計 <b>'+hm(m)+'</b> → 計入 <b>'+half(m)+'h</b>，多出 '+m%30+' 分'}else if(m>0)h='這筆加班 <b>'+hm(m)+'</b>'}
+  else if(t==='LV'&&V(o.a)&&V(o.b)&&tm(o.b)>tm(o.a))h='請假 <b>'+hm(tm(o.b)-tm(o.a))+'</b>';
+  else if((t==='OT'&&(o.b||(!np&&o.a)))||(t==='LV'&&(o.a||o.b))){const bad=(x=>x&&!V(x));if(bad(o.b)||bad(o.a))h='<span class="warn">請用 24 小時制填入時間（例 17:30 21:30）</span>'}
+  el.innerHTML=h;el.style.display=h?'':'none';
+}
+$('ty').onchange=()=>{S.lk=null;onForm(true)};$('s').onchange=()=>onForm(true);
+$('lvk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;S.lk=b.dataset.k;onForm(true)};
+['a','b'].forEach(i=>$(i).oninput=function(){fmt(this);calc()});$('k').oninput=function(){this.value=this.value.toUpperCase()};
+$('pbtns').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.target=b.dataset.p;loadFill()};
+async function loadFill(){
+  document.querySelectorAll('#pbtns button').forEach(b=>{const on=b.dataset.p===S.target;b.className=on?'on':'';});
+  if(isAdmin()&&!S.target){S.fv=null;$('mineH').textContent='未休分鐘';$('mine').innerHTML='<p class="note">請先在上方選擇人員</p>';$('myList').innerHTML='';$('myDays').innerHTML='';return}
+  if(S.pre&&!isAdmin()){S.fv=S.pre;S.pre=null;renderFill();return}
+  S.pre=null;
+  try{S.fv=await call('view',{month:ymNow(),person:isAdmin()?S.target:''});renderFill()}catch(e){msg(e.message)}
+}
+function renderFill(){
+  const v=S.fv,st=v.stats[0]||{carryIn:0,total:0,extra:0,unused:0,can:0},adm=isAdmin();
+  $('mineH').textContent=adm?S.target+' 的未休分鐘（含上月）':'我的未休分鐘（含上月）';
+  $('mine').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">本月總加班 ${st.total} 分鐘（含上月 ${st.total+st.carryIn}）；未休＝上月 ${st.carryIn} ＋ 本月多出 ${st.extra}。滿 30 分鐘可換算 0.5 小時，目前可換算 ${st.can} h。</div>`;
+  $('myList').innerHTML=v.entries.map(e=>entryCard(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
+  $('myDays').innerHTML=daysTable(v.days,false);
+}
+function whenOf(e){return e.ty==='OT'?(shiftOf(e.shift)&&shiftOf(e.shift).type==='N+'?'至 '+e.b:e.a+'–'+e.b):e.ty==='LV'?e.a+'–'+e.b+'（'+hm(tm(e.b)-tm(e.a))+'）':e.ty==='AM'?'14:00 上班':e.ty==='PM'?'12:30 下班':e.ty==='DAY'?'整天':(e.a?e.a+'–'+e.b:'')}
+function entryCard(e,adm){
+  const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span>`:'', ed=e.edited?`<span class="warn">（${adm?'已修改':'管理者已修改'}）</span>`:'';
+  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}</summary>${e.shift!=='—'?esc(e.shift)+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${adm?`<div class="bt"><button type="button" data-act="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-act="del" data-id="${esc(e.id)}">刪除</button></div>`:''}</details>`;
+}
+function daysTable(days,adm){
+  let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th><th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>班別代號</th><th>小夜h</th>':''}<th>備註</th></tr>`;
+  days.forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
+    h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(d.shift)}</td><td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.bcode||'')+'</td><td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
+  return h;
+}
+
+/* ---- 送出 ---- */
+$('go').onclick=async()=>{
+  const sel=$('ty').value;
+  if(isAdmin()&&!S.target){msg('請先在上方選擇人員');return}
+  if(sel==='LV'&&!S.lk){msg('請選擇請假種類：AM、PM、小時假或整天');return}
+  const t=effTy(),o=readForm(),e=chk(t,o);if(e){msg(e);return}
+  const sh=shiftOf(o.shift)||{},np=sh.type==='N+';
+  const dup=S.fv&&S.fv.entries.some(x=>x.date===o.date&&x.ty===t&&x.shift===o.shift&&x.a===(t==='AM'||t==='PM'||t==='DAY'?'':o.a)&&x.b===(t==='AM'||t==='PM'||t==='DAY'?'':o.b)&&(t!=='OTH'||x.note===o.note));
+  const L=[];if(isAdmin())L.push('對象：<b>'+esc(S.target)+'</b>');
+  L.push('日期：<b>'+esc(o.date)+'</b>　類型：<b>'+TY[t]+'</b>');
+  if(o.shift!=='—')L.push('班別：<b>'+esc(o.shift)+'</b>');
+  if(t==='OT'){L.push('時間：<b>'+(np?'至 '+o.b:o.a+'–'+o.b)+'</b>');const m=np?150+tm(o.b)-690:tm(o.b)-tm(o.a);L.push((np?'上班時段合計':'加班')+'：<b>'+hm(m)+'</b>');L.push('醫師：<b>'+esc(o.doc)+'</b>　最後一張領藥號：<b>'+esc(o.k)+'</b>')}
+  else if(t==='LV')L.push('時間：<b>'+o.a+'–'+o.b+'</b>（'+hm(tm(o.b)-tm(o.a))+'）');
+  else if(t==='AM')L.push('<b>14:00 上班</b>');else if(t==='PM')L.push('<b>12:30 下班</b>');else if(t==='DAY')L.push('<b>整天</b>');
+  else if(o.a||o.b)L.push('時間：<b>'+esc(o.a)+'–'+esc(o.b)+'</b>');
+  if(o.note)L.push('備註：<b>'+esc(o.note)+'</b>');
+  if(dup)L.push('<span class="warn">已有相同的登記，請確認是否重複</span>');
+  L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
+  if(!await ask('請確認內容',L.join('<br>'),'確認送出'))return;
+  $('go').disabled=true;
+  try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('nt').value='';onForm(true);await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
+  $('go').disabled=false;
+};
+
+/* ---- 後台 ---- */
+$('bm').value=S.month;
+$('bm').onchange=()=>{S.month=$('bm').value||ymNow();loadBack()};
+$('dpb').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.dp=b.dataset.dp;renderBack()};
+$('fp').onchange=$('ft').onchange=()=>renderBack();
+async function loadBack(){
+  $('bm').value=S.month;
+  try{S.bv=await call('view',{month:S.month,person:''});renderBack()}catch(e){msg(e.message)}
+  ['dTrash','dEdits','dLogins'].forEach(id=>{if($(id).open)loadExtra(id)});
+}
+function renderBack(){
+  const v=S.bv;if(!v)return;
+  document.querySelectorAll('#dpb button').forEach(b=>b.className=(b.dataset.dp===S.dp)?'on':'');
+  $('bDays').innerHTML=daysTable(v.days.filter(d=>!S.dp||d.name===S.dp),true);
+  $('bMan').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(v.manual.map(m=>`<tr><td>${esc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
+  $('bStat').innerHTML='<tr><th>姓名</th><th>上月未休分鐘</th><th>本月總加班分鐘</th><th>本月總加班分鐘（含上月）</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）</th><th>結轉下月</th></tr>'+
+    v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.total+s.carryIn}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td></tr>`).join('');
+  const p=$('fp').value,ty=$('ft').value,list=v.entries.filter(e=>(!p||e.name===p)&&(!ty||e.ty===ty));
+  $('fcnt').textContent='共 '+list.length+' 筆';$('bList').innerHTML=list.map(e=>entryCard(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
+}
+$('bStat').onchange=async e=>{const i=e.target.closest('input');if(!i)return;
+  const n=i.dataset.n,row=[...$('bStat').querySelectorAll('input')].filter(x=>x.dataset.n===n),cin=row.find(x=>x.dataset.f==='in'),off=row.find(x=>x.dataset.f==='off');
+  const manualIn=!cin.classList.contains('auto')||i===cin, manualOff=!off.classList.contains('auto')||i===off;
+  try{await call('setMonth',{month:S.month,name:n,carryIn:manualIn&&cin.value!==''?cin.value:'',offset:manualOff&&off.value!==''?off.value:''});toast('已儲存')}catch(err){msg(err.message)}
+  loadBack();
+};
+async function loadExtra(id){
+  try{
+    if(id==='dTrash'){const r=await call('trash');$('bTrash').innerHTML='<tr><th>刪除時間</th><th>刪除者</th><th>對象</th><th>內容</th><th></th></tr>'+(r.rows.map(x=>`<tr><td>${esc(x[14])}</td><td>${esc(x[15])}</td><td>${esc(x[3])}</td><td>${esc([x[4],TY[x[5]],x[6]==='—'?'':x[6],x[9],x[10],x[11]?'備註：'+x[11]:''].filter(Boolean).join('　'))}</td><td><button type="button" class="x" style="border:1px solid var(--bd)" data-act="restore" data-id="${esc(x[0])}">還原</button></td></tr>`).join('')||'<tr><td colspan="5" class="note">目前沒有已刪除的資料</td></tr>')}
+    else{const r=await call('logs');
+      if(id==='dEdits')$('bEdits').innerHTML='<tr><th>時間</th><th>修改者</th><th>動作</th><th>對象</th><th>修改前</th><th>修改後</th></tr>'+(r.edits.map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="6" class="note">目前沒有修改紀錄</td></tr>');
+      else $('bLogins').innerHTML='<tr><th>時間</th><th>姓名</th><th>裝置</th></tr>'+(r.logins.map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="3" class="note">目前沒有登入紀錄</td></tr>')}
+  }catch(e){msg(e.message)}
+}
+['dTrash','dEdits','dLogins'].forEach(id=>$(id).addEventListener('toggle',()=>{if($(id).open)loadExtra(id)}));
+$('clrLog').onclick=async()=>{if(!await ask('確定要清空所有登入紀錄嗎？','','確定清空',true))return;try{await call('clearLogins');loadExtra('dLogins')}catch(e){msg(e.message)}};
+
+/* ---- 編輯／刪除／還原（用事件代理） ---- */
+let EID=null;
+document.addEventListener('click',async ev=>{
+  const b=ev.target.closest('[data-act]');if(!b)return;const id=b.dataset.id,act=b.dataset.act;
+  if(act==='restore'){try{await call('restore',{id});toast('已還原');loadBack()}catch(e){msg(e.message)}return}
+  const e=S.bv&&S.bv.entries.find(x=>x.id===id);if(!e)return;
+  if(act==='del'){
+    const body=[e.date,TY[e.ty],e.shift==='—'?'':e.shift,whenOf(e),e.doc,e.k,e.note?'備註：'+e.note:''].filter(Boolean).map(esc).join('<br>');
+    if(!await ask('確定要刪除這筆資料嗎？',body,'確定刪除',true))return;
+    try{await call('del',{id});toast('已刪除');loadBack()}catch(er){msg(er.message)}
+  }else if(act==='edit'){
+    EID=id;$('es').innerHTML=S.cfg.shifts.map(s=>`<option>${esc(s.name)}</option>`).join('');
+    $('edoc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
+    $('ed').value=e.date;$('es').value=e.shift;$('ea').value=e.a;$('eb').value=e.b;$('edoc').value=e.doc;$('ek').value=e.k;$('ent').value=e.note;
+    $('einfo').textContent=e.name+'　'+TY[e.ty];
+    $('es').parentNode.style.visibility=e.ty==='OTH'?'hidden':'';
+    $('eab').style.display=(e.ty==='OT'||e.ty==='LV'||e.ty==='OTH')?'':'none';$('edk').style.display=e.ty==='OT'?'':'none';
+    $('em').style.display='flex';
+  }
+});
+['ea','eb'].forEach(i=>$(i).oninput=function(){fmt(this)});$('ek').oninput=function(){this.value=this.value.toUpperCase()};
+$('ecancel').onclick=()=>{$('em').style.display='none';EID=null};
+$('esave').onclick=async()=>{
+  const e=S.bv.entries.find(x=>x.id===EID);if(!e)return;
+  const o={date:$('ed').value,shift:e.ty==='OTH'?'—':$('es').value,a:$('ea').value.trim(),b:$('eb').value.trim(),doc:$('edoc').value,k:$('ek').value.trim().toUpperCase(),note:$('ent').value.trim()};
+  const er=(e.ty==='AM'||e.ty==='PM'||e.ty==='DAY')?(o.date?'':'請先填寫：日期'):chk(e.ty,o);if(er){msg(er);return}
+  try{await call('edit',Object.assign({id:EID},o));$('em').style.display='none';EID=null;toast('已儲存');loadBack()}catch(err){msg(err.message)}
+};
+
+/* ---- 電腦閒置鎖定（手機不鎖） ---- */
+let idle=null;
+function armIdle(){
+  if(touch)return;
+  ['click','keydown','mousemove','scroll'].forEach(ev=>document.addEventListener(ev,()=>{S.lockAt=Date.now()},{passive:true}));
+  setInterval(()=>{if(S.me&&$('lockm').style.display!=='flex'&&Date.now()-S.lockAt>((S.cfg&&S.cfg.lockSec)||120)*1000){$('lockm').style.display='flex';$('lcode').value='';$('lerr2').textContent='';setTimeout(()=>$('lcode').focus(),50)}},5000);
+}
+$('lgo').onclick=async()=>{
+  const c=$('lcode').value.trim();if(!c)return;
+  try{
+    const r=await doLogin(c,true);
+    if(r.me.name===S.me.name){S.token=r.token;store.setItem(TK,r.token);S.lockAt=Date.now();$('lockm').style.display='none'}
+    else{const r2=await doLogin(c,false);$('lockm').style.display='none';S.lockAt=Date.now();await afterLogin(r2)}
+  }catch(e){$('lerr2').textContent=e.message}
+};
+$('lcode').onkeydown=e=>{if(e.key==='Enter')$('lgo').click()};
+armIdle();boot();
+</script></body></html>
