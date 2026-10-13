@@ -120,7 +120,7 @@ details.q p{margin:8px 0 0;color:var(--mut)}
   <div class="eyebrow">中藥局 D2694　人員用</div>
   <h1>調班表 使用說明</h1>
   <p class="lead">用手機或電腦登記加班、請假。你只要填時間，總工時由系統自動計算。</p>
-  <div class="notice">10 月是試用期。請照舊填紙本，紙本為準；電子版只是先熟悉操作。<br>有問題或想修改的地方，歡迎提出，非常感謝。</div>
+  <div class="notice">謝謝你們願意試用電子調班表。<br>10 月是試用期，請照舊填紙本，以紙本為準。電子版讓大家先熟悉，有加班或請假時順手登記看看。<br>使用上有問題、算出來的時數和紙本不一樣、或有想修改的地方，請隨時告訴我。若最後覺得不方便，就改回紙本。<span style="display:block;text-align:right;margin-top:6px">偉弘 敬上</span></div>
   <div class="url"><code id="u">https://linweihung168-hue.github.io/diaoban/</code><button class="btn pri" id="cp" type="button">複製網址</button></div>
 </header>
 
@@ -129,8 +129,8 @@ details.q p{margin:8px 0 0;color:var(--mut)}
   <h2>安裝成 APP，之後一點就開</h2>
   <p class="lead">只要做一次。安裝後會有「調班表」圖示，點開是獨立視窗，像一般軟體。手機和電腦都可以。</p>
   <div class="cols">
-    <div class="card"><h3>iPhone</h3><ol><li>用 <b>Safari</b> 打開上面的網址</li><li>按下方的「分享」圖示</li><li>往下找「加入主畫面」，按「新增」</li></ol></div>
-    <div class="card"><h3>三星手機</h3><ol><li>用 <b>Chrome</b> 打開網址</li><li>按右上角「⋮」選單</li><li>選「安裝應用程式」（或「加到主畫面」），按「安裝」</li></ol></div>
+    <div class="card"><h3>iOS 系統</h3><ol><li>用 <b>Safari</b> 打開上面的網址</li><li>按下方的「分享」圖示</li><li>往下找「加入主畫面」，按「新增」</li></ol></div>
+    <div class="card"><h3>安卓系統</h3><ol><li>用 <b>Chrome</b> 打開網址</li><li>按右上角「⋮」選單</li><li>選「安裝應用程式」（或「加到主畫面」），按「安裝」</li></ol></div>
     <div class="card"><h3>電腦（Chrome 或 Edge）</h3><ol><li>打開上面的網址</li><li>按網址列<b>最右邊</b>的「安裝」圖示（小螢幕加向下箭頭）</li><li>按「安裝」。會開出獨立的「調班表」視窗</li></ol></div>
   </div>
   <p class="lead" style="margin-top:14px">電腦安裝後，<b>桌面會自動出現「調班表」圖示</b>，之後雙擊就能開。想固定在工作列，開啟後在工作列的圖示上按右鍵，選「釘選到工作列」。</p>
@@ -173,13 +173,11 @@ details.q p{margin:8px 0 0;color:var(--mut)}
 
 <section>
   <div class="eyebrow">填寫前先看</div>
-  <h2>6 個重點</h2>
+  <h2>4 個重點</h2>
   <ul class="rules">
     <li><b>時間</b><span>一律 24 小時制，只要打數字。打 <b>1930</b> 會自動變成 19:30。</span></li>
     <li><b>領藥號</b><span>填「最後一張領藥號」，要有英文字母加數字，例如 K162。小寫會自動變大寫。</span></li>
     <li><b>分兩筆</b><span>一次加班如果橫跨正常上班時段（例如中午到下午），請分成兩筆填寫。</span></li>
-    <li><b>日期</b><span>預設是今天，可以補登前幾天，但不能選未來的日期。</span></li>
-    <li><b>重複提醒</b><span>如果已有相同的登記，送出前會提醒你，避免填兩次。</span></li>
     <li><b>送出後</b><span>自己不能修改或刪除，請看下面「填錯了怎麼辦」。</span></li>
   </ul>
 </section>
@@ -189,19 +187,10 @@ details.q p{margin:8px 0 0;color:var(--mut)}
   <h2>遇到狀況時</h2>
   <details class="q"><summary>填錯了怎麼辦？</summary><p>送出前會有「請確認內容」的視窗，請在那裡再檢查一次。送出後無法自己修改或刪除，請告訴林偉弘，由他修改。修改會留下紀錄，你的畫面會標示「管理者已修改」。</p></details>
   <details class="q"><summary>週六 N+ 班怎麼填？</summary><p>只要填「門診結束時間」（要在 11:30 之後），系統會自動計算。N+ 班如果要請假，請改用「其他」並寫備註。</p></details>
-  <details class="q"><summary>夜班或週六班，為什麼不能選請假 AM、PM？</summary><p>這兩種班別的 AM、PM 按鈕會變灰色，請改選「小時假」或「整天」。</p></details>
-  <details class="q"><summary>說「找不到這個員工代號」？</summary><p>請確認有沒有輸錯。連續輸入錯誤太多次，需要等 10 分鐘才能再試。如果代號正確還是不行，請聯絡管理者。</p></details>
   <details class="q"><summary>突然被登出，或要重新登入？</summary><p>重新輸入員工代號就可以。電腦閒置 2 分鐘會自動鎖住，輸入代號即可繼續；手機不會鎖。如果清除了瀏覽器的網站資料，也會需要重新登入。</p></details>
   <details class="q"><summary>出現「連線失敗」？</summary><p>請檢查手機或電腦的網路，過一會兒再試一次。資料沒送出就不會被記錄，不會有重複。</p></details>
   <details class="q"><summary>別人看得到我的資料嗎？</summary><p>只有你自己和管理者看得到。每個人登入後，只會看到自己的登記。</p></details>
 </section>
-
-<section>
-  <div class="eyebrow">有問題</div>
-  <h2>請找管理者</h2>
-  <div class="who"><div>林偉弘<small>管理者</small></div><div>楊淑惠<small>管理者</small></div></div>
-</section>
-
 <p class="fine">畫面為示範，日期與數字僅供說明。實際畫面以 APP 為準。</p>
 </div>
 
@@ -270,7 +259,7 @@ const DEMOS={
  ],
  'd-oth':[
   {t:'類型選「其他」',d:'「類型」選<b>其他</b>。班別欄位會消失，「備註」變成<b>必填</b>。',k:'form',s:{type:'OTH',hl:['ty','nt']}},
-  {t:'寫清楚備註',d:'把情況寫清楚，例如「看診延長，原因請見紙本」。送出後會列入「<b>需人工核對</b>」，由林偉弘確認。',k:'form',s:{type:'OTH',hl:['nt','go'],vals:{nt:'看診延長，原因請見紙本'}}}
+  {t:'寫清楚備註',d:'把情況寫清楚，例如「加班10分鐘」。送出後會列入「<b>需人工核對</b>」，由林偉弘確認。',k:'form',s:{type:'OTH',hl:['nt','go'],vals:{nt:'加班10分鐘'}}}
  ],
  'd-rec':[
   {t:'我的未休分鐘',d:'登記頁往下，<b>我的未休分鐘</b>會顯示累計。這是每次加班「不滿 30 分鐘」的零頭，加上上個月留下來的。',k:'records',s:{hl:['mine']}},
