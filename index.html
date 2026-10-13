@@ -2,6 +2,15 @@
 <html lang="zh-Hant"><head><base target="_top"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>調班表</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1f6feb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="調班表">
+<meta name="application-name" content="調班表">
 <style>
 :root{--bg:#f6f7f9;--fg:#1d2330;--card:#fff;--bd:#d9dde5;--ac:#1f6feb;--mut:#6b7385;--ok:#17803d;--warn:#b45309;--danger:#c0392b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root{--bg:#14171d;--fg:#e8ebf2;--card:#1d222b;--bd:#323946;--ac:#5b9dff;--mut:#98a1b3;--ok:#4cc27a;--warn:#f0b35a}}
@@ -75,6 +84,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div class="scroll"><table id="bLogins"></table></div></details></div>
 </section>
 </div>
+<p class="note" style="text-align:center;margin:18px 0 6px"><a href="manual.html" target="_blank" rel="noopener" style="color:var(--mut)">使用說明</a></p>
 </main>
 
 <div id="toast">已送出</div>
