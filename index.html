@@ -61,6 +61,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 
 <section id="back" style="display:none">
 <div class="card"><label style="margin-top:0">月份</label><input type="month" id="bm"></div>
+<div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：每日彙總、所有登記、月結、已刪除、修改紀錄、登入紀錄</p></div>
 <div class="card"><h2>每日彙總</h2><div id="dpb" class="seg" style="margin-bottom:10px"></div><div class="scroll"><table id="bDays"></table></div></div>
 <div class="card"><h2>需人工核對</h2><div class="scroll"><table id="bMan"></table></div></div>
 <div class="card"><h2>月結</h2><div class="scroll"><table id="bStat"></table></div></div>
@@ -302,6 +303,30 @@ async function loadExtra(id){
 $('clrLog').onclick=async()=>{if(!await ask('確定要清空所有登入紀錄嗎？','','確定清空',true))return;try{await call('clearLogins');loadExtra('dLogins')}catch(e){msg(e.message)}};
 
 /* ---- 編輯／刪除／還原（用事件代理） ---- */
+/* ---- 匯出 Excel ---- */
+function loadXlsx(){return new Promise((res,rej)=>{if(window.XLSX)return res();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=()=>rej(new Error('匯出元件載入失敗，請檢查網路後再試'));document.head.appendChild(s)})}
+$('xgo').onclick=async()=>{
+  const btn=$('xgo');btn.disabled=true;btn.textContent='準備中…';
+  try{
+    const [r]=await Promise.all([call('export'),loadXlsx()]);
+    const ym=S.month,all=$('xr').value==='all',inM=s=>all||String(s).slice(0,7)===ym;
+    const tyOf=t=>TY[t]||t;
+    const timeOf=(ty,sh,a,b)=>{const s=shiftOf(sh);return ty==='OT'?(s&&s.type==='N+'?'至 '+b:a+'–'+b):ty==='LV'?a+'–'+b:ty==='AM'?'14:00 上班':ty==='PM'?'12:30 下班':ty==='DAY'?'整天':(a?a+'–'+b:'')};
+    const days=[['日期','姓名','班別','總工時(h)','多出分鐘','計入工時(h)','加班分鐘','請假','班別代號','小夜h','備註']].concat(r.days.filter(d=>inM(d.date)).map(d=>[d.date,d.name,d.shift,d.total==null?'':d.total,d.extra,d.counted,d.t,d.lv?hm(d.lv):'',d.bcode||'',d.nightH||'',[d.ty,d.notes.length?'需人工核對：'+d.notes.join('；'):'',d.warn].filter(Boolean).join('　')]));
+    const ents=[['日期','對象','類型','班別','時間','醫師','最後一張領藥號','備註','代填者','已修改','登記人','登記時間']].concat(r.entries.filter(e=>inM(e[4])).sort((a,b)=>a[4]<b[4]?-1:a[4]>b[4]?1:(a[1]<b[1]?-1:1)).map(e=>[e[4],e[3],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],e[10],e[11],e[12],e[13]==='Y'?'是':'',e[2],e[1]]));
+    const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
+    const del=[['刪除時間','刪除者','對象','日期','類型','班別','時間','醫師','最後一張領藥號','備註']].concat(r.deleted.filter(e=>inM(e[4])).map(e=>[e[14],e[15],e[3],e[4],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],e[10],e[11]]));
+    const edt=[['時間','修改者','動作','對象','修改前','修改後']].concat(r.edits.filter(e=>inM(e[0])));
+    const lgn=[['時間','姓名','裝置']].concat(r.logins.filter(e=>inM(e[0])));
+    const wb=XLSX.utils.book_new();
+    [['每日彙總',days],['所有登記',ents],['月結',stat],['已刪除',del],['修改紀錄',edt],['登入紀錄',lgn]].forEach(([n,rows])=>{
+      const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=rows[0].map((_,i)=>({wch:Math.min(40,Math.max(8,...rows.slice(0,60).map(x=>String(x[i]==null?'':x[i]).length*1.6)))}));
+      XLSX.utils.book_append_sheet(wb,ws,n)});
+    XLSX.writeFile(wb,'調班表_'+(all?'全部':ym)+'.xlsx');
+    toast('已下載');
+  }catch(e){msg(e.message)}
+  btn.disabled=false;btn.textContent='下載 Excel';
+};
 let EID=null;
 document.addEventListener('click',async ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;const id=b.dataset.id,act=b.dataset.act;
