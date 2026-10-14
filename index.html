@@ -59,7 +59,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div id="shW"><label>班別</label><select id="s"></select></div>
 <div id="lvk" style="display:none"><label>請假種類</label><div class="seg"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button><button type="button" data-k="DAY">整天</button></div></div>
 <div class="row" id="ab"><div id="aW"><label id="aL">原下班時間</label><input id="a" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="bL">實際下班時間</label><input id="b" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
-<div class="row" id="dk"><div><label>醫師</label><select id="doc"></select></div><div><label>最後一張領藥號</label><input id="k" autocomplete="off"></div></div>
+<div class="row" id="dk"><div><label>醫師</label><select id="doc"></select></div><div><label>最後一張領藥號（紙本請留存）</label><input id="k" autocomplete="off"></div></div>
 <label id="nL">備註（選填）</label><input id="nt" maxlength="200" autocomplete="off">
 <div class="calc" id="c" style="display:none"></div>
 <button type="button" class="go" id="go">送出</button></div>
@@ -154,7 +154,7 @@ async function boot(){
 function enter(){
   $('login').style.display='none';$('app').style.display='';$('who').textContent=S.me.name;
   $('tabs').style.display=isAdmin()?'':'none';
-  initForm();fillPeople();switchTab(S.tab);
+  initForm();fillPeople();switchTab(isAdmin()?'back':S.tab);
 }
 function fillPeople(){
   const names=S.cfg.staff;
@@ -191,7 +191,7 @@ function onForm(reset){
   $('ab').style.display=needTimes?'':'none';
   $('aW').style.display=(t==='OT'&&np)?'none':'';
   $('aL').textContent=t==='LV'?'請假開始':sel==='OTH'?'開始（選填）':'原下班時間';
-  $('bL').textContent=t==='LV'?'請假結束':sel==='OTH'?'結束（選填）':np?'門診結束時間':'實際下班時間';
+  $('bL').textContent=t==='LV'?'請假結束':sel==='OTH'?'結束（選填）':np?'下班時間':'實際下班時間';
   $('dk').style.display=t==='OT'?'':'none';
   const D=$('doc');if(t==='OT'&&sh.doctor){D.value=sh.doctor;D.disabled=true}else{if(D.disabled)D.value='';D.disabled=false}
   $('nL').textContent=sel==='OTH'?'備註（必填）':'備註（選填）';
@@ -203,14 +203,14 @@ function readForm(){return{date:$('d').value,shift:$('ty').value==='OTH'?'—':$
 function chk(t,o){
   const sh=shiftOf(o.shift)||{},np=sh.type==='N+',miss=[];
   if(!o.date)miss.push('日期');
-  if(t==='OT'){if(!o.b)miss.push(np?'門診結束時間':'實際下班時間');if(!np&&!o.a)miss.push('原下班時間');if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號')}
+  if(t==='OT'){if(!o.b)miss.push(np?'下班時間':'實際下班時間');if(!np&&!o.a)miss.push('原下班時間');if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號')}
   if(t==='LV'){if(!o.a)miss.push('請假開始');if(!o.b)miss.push('請假結束')}
   if(t==='OTH'&&!o.note)miss.push('備註');
   if(miss.length)return '請先填寫：'+miss.join('、');
   if(o.date>dayNow())return '不能登記未來的日期';
   if((t==='OT'||t==='LV')&&(!V(o.b)||(!(np&&t==='OT')&&!V(o.a))))return '時間請用 24 小時制，例如 17:30、21:30';
   if(t==='OT'&&!(/[A-Z]/.test(o.k)&&/\d/.test(o.k)&&/^[A-Z0-9\-]+$/.test(o.k)))return '最後一張領藥號請填英文字母加數字，例如 K162';
-  if(t==='OT'){if(np){if(tm(o.b)<690)return '門診結束時間要在 11:30 之後'}else{if(tm(o.b)<=tm(o.a))return '實際下班要晚於原下班時間';if(overlap(sh,o.a,o.b))return '這段時間橫跨正常上班時段，請分成兩筆填寫（例如：中午一筆、下午一筆）。'}}
+  if(t==='OT'){if(np){if(tm(o.b)<690)return '下班時間要在 11:30 之後'}else{if(tm(o.b)<=tm(o.a))return '實際下班要晚於原下班時間';if(overlap(sh,o.a,o.b))return '這段時間橫跨正常上班時段，請分成兩筆填寫（例如：中午一筆、下午一筆）。'}}
   if(t==='LV'){if(np)return '週六 N+ 請假請用「其他」並寫備註';if(tm(o.b)<=tm(o.a))return '請假結束要晚於請假開始'}
   return '';
 }
@@ -268,6 +268,7 @@ $('go').onclick=async()=>{
   else if(o.a||o.b)L.push('時間：<b>'+esc(o.a)+'–'+esc(o.b)+'</b>');
   if(o.note)L.push('備註：<b>'+esc(o.note)+'</b>');
   if(dup)L.push('<span class="warn">已有相同的登記，請確認是否重複</span>');
+  if(t==='OT')L.push('<span class="warn">請把「最後一張處方」紙本留存，附在紙本調班表。</span>');
   L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
   if(!await ask('請確認內容',L.join('<br>'),'確認送出'))return;
   $('go').disabled=true;
