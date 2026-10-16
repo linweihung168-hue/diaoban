@@ -113,6 +113,7 @@ const half=m=>Math.floor(m/30)/2;
 const hm=m=>{const h=Math.floor(m/60),r=m%60;return (h?h+'h':'')+(r||!h?r+'m':'')};
 const fm=n=>Math.round(n*100)/100;
 const dev=()=>{const u=navigator.userAgent;return /iPhone|iPad/.test(u)?'iPhone/iPad':/Android/.test(u)?'Android':/Windows/.test(u)?'Windows 電腦':/Mac/.test(u)?'Mac':'其他裝置'};
+const dn=n=>String(n).replace(/醫師/g,'');   // 顯示用：班別名稱裡的「醫師」不顯示（資料裡的名稱不變）
 const shiftOf=n=>(S.cfg?S.cfg.shifts:[]).find(s=>s.name===n);
 const isAdmin=()=>S.me&&S.me.role==='管理者';
 
@@ -173,7 +174,7 @@ $('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');
 
 /* ---- 填寫表單 ---- */
 function initForm(){
-  $('s').innerHTML=S.cfg.shifts.map(s=>`<option>${esc(s.name)}</option>`).join('');
+  $('s').innerHTML=S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
   $('doc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
   $('d').value=dayNow();$('ty').value='OT';S.lk=null;$('nt').value='';$('k').value='';onForm(true);
 }
@@ -242,12 +243,12 @@ function renderFill(){
 function whenOf(e){return e.ty==='OT'?(shiftOf(e.shift)&&shiftOf(e.shift).type==='N+'?'至 '+e.b:e.a+'–'+e.b):e.ty==='LV'?e.a+'–'+e.b+'（'+hm(tm(e.b)-tm(e.a))+'）':e.ty==='AM'?'14:00 上班':e.ty==='PM'?'12:30 下班':e.ty==='DAY'?'整天':(e.a?e.a+'–'+e.b:'')}
 function entryCard(e,adm){
   const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span>`:'', ed=e.edited?`<span class="warn">（${adm?'已修改':'管理者已修改'}）</span>`:'';
-  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}</summary>${e.shift!=='—'?esc(e.shift)+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${adm?`<div class="bt"><button type="button" data-act="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-act="del" data-id="${esc(e.id)}">刪除</button></div>`:''}</details>`;
+  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}</summary>${e.shift!=='—'?esc(dn(e.shift))+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${adm?`<div class="bt"><button type="button" data-act="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-act="del" data-id="${esc(e.id)}">刪除</button></div>`:''}</details>`;
 }
 function daysTable(days,adm){
   let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th><th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>班別代號</th><th>小夜h</th>':''}<th>備註</th></tr>`;
   days.forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
-    h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(d.shift)}</td><td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.bcode||'')+'</td><td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
+    h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(dn(d.shift))}</td><td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.bcode||'')+'</td><td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
   return h;
 }
 
@@ -261,7 +262,7 @@ $('go').onclick=async()=>{
   const dup=S.fv&&S.fv.entries.some(x=>x.date===o.date&&x.ty===t&&x.shift===o.shift&&x.a===(t==='AM'||t==='PM'||t==='DAY'?'':o.a)&&x.b===(t==='AM'||t==='PM'||t==='DAY'?'':o.b)&&(t!=='OTH'||x.note===o.note));
   const L=[];if(isAdmin())L.push('對象：<b>'+esc(S.target)+'</b>');
   L.push('日期：<b>'+esc(o.date)+'</b>　類型：<b>'+TY[t]+'</b>');
-  if(o.shift!=='—')L.push('班別：<b>'+esc(o.shift)+'</b>');
+  if(o.shift!=='—')L.push('班別：<b>'+esc(dn(o.shift))+'</b>');
   if(t==='OT'){L.push('時間：<b>'+(np?'至 '+o.b:o.a+'–'+o.b)+'</b>');const m=np?150+tm(o.b)-690:tm(o.b)-tm(o.a);L.push((np?'上班時段合計':'加班')+'：<b>'+hm(m)+'</b>');L.push('醫師：<b>'+esc(o.doc)+'</b>　最後一張領藥號：<b>'+esc(o.k)+'</b>')}
   else if(t==='LV')L.push('時間：<b>'+o.a+'–'+o.b+'</b>（'+hm(tm(o.b)-tm(o.a))+'）');
   else if(t==='AM')L.push('<b>14:00 上班</b>');else if(t==='PM')L.push('<b>12:30 下班</b>');else if(t==='DAY')L.push('<b>整天</b>');
@@ -348,7 +349,7 @@ document.addEventListener('click',async ev=>{
     if(!await ask('確定要刪除這筆資料嗎？',body,'確定刪除',true))return;
     try{await call('del',{id});toast('已刪除');loadBack()}catch(er){msg(er.message)}
   }else if(act==='edit'){
-    EID=id;$('es').innerHTML=S.cfg.shifts.map(s=>`<option>${esc(s.name)}</option>`).join('');
+    EID=id;$('es').innerHTML=S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
     $('edoc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
     $('ed').value=e.date;$('es').value=e.shift;$('ea').value=e.a;$('eb').value=e.b;$('edoc').value=e.doc;$('ek').value=e.k;$('ent').value=e.note;
     $('einfo').textContent=e.name+'　'+TY[e.ty];
