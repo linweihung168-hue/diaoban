@@ -247,7 +247,7 @@ function entryCard(e,adm){
 }
 function daysTable(days,adm){
   let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th><th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>班別代號</th><th>小夜h</th>':''}<th>備註</th></tr>`;
-  days.forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
+  days.slice().sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:0).forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
     h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(dn(d.shift))}</td><td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.bcode||'')+'</td><td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
   return h;
 }
