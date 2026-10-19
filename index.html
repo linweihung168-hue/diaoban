@@ -49,7 +49,8 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 
 <div id="app" style="display:none">
 <div id="bar"><b id="who"></b><button type="button" id="out" class="x">登出</button></div>
-<div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">D2694</button><button type="button" id="tabB">後台管理</button></div>
+<div id="units" class="seg" style="grid-template-columns:1fr 1fr;margin-bottom:10px;display:none"></div>
+<div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">填寫</button><button type="button" id="tabB">後台管理</button></div>
 
 <section id="fill">
 <div id="pbtns" class="seg" style="margin-bottom:14px;display:none"></div>
@@ -83,6 +84,25 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <p><button type="button" id="clrLog" class="x" title="清空登入紀錄" aria-label="清空登入紀錄" style="border:1px solid var(--bd)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></p>
 <div class="scroll"><table id="bLogins"></table></div></details></div>
 </section>
+
+<section id="fill90" style="display:none">
+<div class="card"><div id="f9body"></div><button type="button" class="go" id="go9">送出</button></div>
+<div class="card" id="c9mine"><h2>我的未休分鐘（含上月）</h2><div id="mine9"></div></div>
+<div class="card" id="c9list"><details><summary>本月登記查詢</summary><div id="list9"></div></details></div>
+</section>
+
+<section id="back90" style="display:none">
+<div class="card"><label style="margin-top:0">月份</label><input type="month" id="bm9"></div>
+<div class="card"><h2>待處理</h2><p class="note" style="margin:0 0 8px">改好 Word 大班表或輸入完成後，按「已處理」。</p><div id="pend9"></div></div>
+<div class="card"><h2>本月彙總</h2><div class="scroll"><table id="bStat9"></table></div></div>
+<div class="card"><details><summary>每日加班與小時假</summary><div class="scroll" style="margin-top:8px"><table id="bDays9"></table></div></details></div>
+<div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr9"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo9" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：班表變動、請假、加班、所有登記、每人彙總、已刪除、修改紀錄</p></div>
+<div class="card"><details id="dAll9"><summary>所有登記</summary>
+<div class="row" style="margin-top:8px"><div><label>人員</label><select id="fp9"></select></div><div><label>類型</label><select id="ft9"><option value="">全部</option><option>換班</option><option>請假</option><option>加班</option><option>其他</option></select></div></div>
+<p class="note" id="fcnt9" style="margin:8px 0"></p><div id="bList9"></div></details></div>
+<div class="card"><details id="dTrash9"><summary>已刪除</summary><div class="scroll"><table id="bTrash9"></table></div></details></div>
+<div class="card"><details id="dEdits9"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits9"></table></div></details></div>
+</section>
 </div>
 <p class="note" style="text-align:center;margin:18px 0 6px"><a href="manual.html" target="_blank" rel="noopener" style="color:var(--mut)">使用說明</a></p>
 </main>
@@ -95,6 +115,8 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div id="edk"><label>醫師</label><select id="edoc"></select><div class="row"><div><label>最後一張領藥號</label><input id="ek"></div><div><label>處方時間</label><input id="ekt" inputmode="numeric" maxlength="5"></div></div></div>
 <label>備註</label><input id="ent" maxlength="200">
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel">取消</button><button type="button" class="go" id="esave" style="margin:0">儲存修改</button></div></div></div>
+<div id="em9" class="mask"><div class="card"><h2>編輯登記</h2><p class="note" id="einfo9"></p><div id="e9body"></div>
+<div class="row" style="margin-top:12px"><button type="button" id="ecancel9">取消</button><button type="button" class="go" id="esave9" style="margin:0">儲存修改</button></div></div></div>
 <div id="lockm" class="mask" style="z-index:50"><div class="card"><h2>已鎖定</h2><p class="note">閒置時間較長，請輸入員工代號繼續使用。</p>
 <input id="lcode" inputmode="numeric" autocomplete="off"><p class="warn" id="lerr2" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgo" style="margin-top:6px">繼續</button></div></div>
 
@@ -116,6 +138,7 @@ const dev=()=>{const u=navigator.userAgent;return /iPhone|iPad/.test(u)?'iPhone/
 const dn=n=>String(n).replace(/醫師/g,'');   // 顯示用：班別名稱裡的「醫師」不顯示（資料裡的名稱不變）
 const shiftOf=n=>(S.cfg?S.cfg.shifts:[]).find(s=>s.name===n);
 const isAdmin=()=>S.me&&S.me.role==='管理者';
+const isD90=x=>/^D2690/.test(x[4]||'')||/^D2690/.test(x[5]||'');
 
 /* ---- 與後端溝通 ---- */
 const API='https://moljaswicnyuapldqvfz.supabase.co/functions/v1/api';   // ← 部署時只要改這一行（見部署說明）
@@ -142,21 +165,27 @@ function showLogin(m){$('app').style.display='none';$('login').style.display='';
 function lostAuth(){store.removeItem(TK);showLogin('登入已失效，請重新輸入員工代號')}
 async function doLogin(code,unlock){return call0('login',{code:code,dev:dev(),unlock:!!unlock})}
 async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;throw new Error((r&&r.error)||'登入失敗')}
-async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;enter()}
+async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;enter()}
 $('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
   $('lgin').disabled=true;try{await afterLogin(await doLogin(c))}catch(e){$('lerr').textContent=e.message}$('lgin').disabled=false};
 $('code').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
 $('out').onclick=()=>{store.removeItem(TK);showLogin('')};
 async function boot(){
   const t=store.getItem(TK);
-  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.last=null;S.pre=r.view||null;enter();return}catch(e){store.removeItem(TK)}}
+  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.last=null;S.pre=r.view||null;enter();return}catch(e){store.removeItem(TK)}}
   showLogin('');
 }
+const myUnits=()=>((S.me&&S.me.units&&S.me.units.length)?S.me.units:['D2694']).filter(u=>u!=='D2690'||S.cfg90);
 function enter(){
   $('login').style.display='none';$('app').style.display='';$('who').textContent=S.me.name;
   $('tabs').style.display=isAdmin()?'':'none';
-  initForm();fillPeople();switchTab(isAdmin()?'back':S.tab);
+  const us=myUnits();let u=null;try{u=store.getItem('diaoban_unit')}catch(e){}
+  S.unit=us.indexOf(u)>=0?u:(us.indexOf('D2694')>=0?'D2694':us[0]);
+  $('units').style.display=us.length>1?'':'none';
+  $('units').innerHTML=['D2690','D2694'].filter(x=>us.indexOf(x)>=0).map(x=>`<button type="button" data-u="${x}">${x}</button>`).join('');
+  initForm();fillPeople();if(S.cfg90)initForm9();switchTab(isAdmin()?'back':S.tab);
 }
+$('units').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.u===S.unit)return;S.unit=b.dataset.u;try{store.setItem('diaoban_unit',S.unit)}catch(er){}switchTab(S.tab)};
 function fillPeople(){
   const names=S.cfg.staff;
   $('pbtns').innerHTML=names.map(n=>`<button type="button" data-p="${esc(n)}">${esc(n)}</button>`).join('');
@@ -164,10 +193,13 @@ function fillPeople(){
   $('fp').innerHTML='<option value="">全部</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');
 }
 function switchTab(t){
-  S.tab=t;const adm=isAdmin();
-  $('fill').style.display=(t==='fill')?'':'none';$('back').style.display=(t==='back'&&adm)?'':'none';
-  $('pbtns').style.display=(adm&&t==='fill')?'':'none';
+  S.tab=t;const adm=isAdmin(),u=S.unit;
+  document.querySelectorAll('#units button').forEach(b=>b.className=b.dataset.u===u?'on':'');
+  $('fill').style.display=(t==='fill'&&u==='D2694')?'':'none';$('back').style.display=(t==='back'&&adm&&u==='D2694')?'':'none';
+  $('fill90').style.display=(t==='fill'&&u==='D2690')?'':'none';$('back90').style.display=(t==='back'&&adm&&u==='D2690')?'':'none';
+  $('pbtns').style.display=(adm&&t==='fill'&&u==='D2694')?'':'none';
   $('tabP').className=t==='fill'?'go':'';$('tabP').style.margin='0';$('tabB').className=t==='back'?'go':'';$('tabB').style.margin='0';
+  if(u==='D2690'){if(t==='fill')loadFill90();else loadBack90();return}
   if(t==='fill')loadFill();else loadBack();
 }
 $('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');
@@ -308,7 +340,7 @@ async function loadExtra(id){
   try{
     if(id==='dTrash'){const r=await call('trash');$('bTrash').innerHTML='<tr><th>刪除時間</th><th>刪除者</th><th>對象</th><th>內容</th><th></th></tr>'+(r.rows.map(x=>`<tr><td>${esc(x[14])}</td><td>${esc(x[15])}</td><td>${esc(x[3])}</td><td>${esc([x[4],TY[x[5]],x[6]==='—'?'':x[6],x[9],x[10],x[11]?'備註：'+x[11]:''].filter(Boolean).join('　'))}</td><td><button type="button" class="x" style="border:1px solid var(--bd)" data-act="restore" data-id="${esc(x[0])}">還原</button></td></tr>`).join('')||'<tr><td colspan="5" class="note">目前沒有已刪除的資料</td></tr>')}
     else{const r=await call('logs');
-      if(id==='dEdits')$('bEdits').innerHTML='<tr><th>時間</th><th>修改者</th><th>動作</th><th>對象</th><th>修改前</th><th>修改後</th></tr>'+(r.edits.map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="6" class="note">目前沒有修改紀錄</td></tr>');
+      if(id==='dEdits')$('bEdits').innerHTML='<tr><th>時間</th><th>修改者</th><th>動作</th><th>對象</th><th>修改前</th><th>修改後</th></tr>'+(r.edits.filter(x=>!isD90(x)).map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="6" class="note">目前沒有修改紀錄</td></tr>');
       else $('bLogins').innerHTML='<tr><th>時間</th><th>姓名</th><th>裝置</th></tr>'+(r.logins.map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="3" class="note">目前沒有登入紀錄</td></tr>')}
   }catch(e){msg(e.message)}
 }
@@ -330,7 +362,7 @@ $('xgo').onclick=async()=>{
     const ents=[['日期','對象','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註','代填者','已修改','登記人','登記時間']].concat(r.entries.filter(e=>inM(e[4])).sort((a,b)=>a[4]<b[4]?-1:a[4]>b[4]?1:(a[1]<b[1]?-1:1)).map(e=>[e[4],e[3],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11],e[12],e[13]==='Y'?'是':'',e[2],e[1]]));
     const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
     const del=[['刪除時間','刪除者','對象','日期','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註']].concat(r.deleted.filter(e=>inM(e[4])).map(e=>[e[14],e[15],e[3],e[4],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11]]));
-    const edt=[['時間','修改者','動作','對象','修改前','修改後']].concat(r.edits.filter(e=>inM(e[0])));
+    const edt=[['時間','修改者','動作','對象','修改前','修改後']].concat(r.edits.filter(e=>inM(e[0])&&!isD90(e)));
     const lgn=[['時間','姓名','裝置']].concat(r.logins.filter(e=>inM(e[0])));
     const wb=XLSX.utils.book_new();
     [['每日彙總',days],['所有登記',ents],['月結',stat],['已刪除',del],['修改紀錄',edt],['登入紀錄',lgn]].forEach(([n,rows])=>{
@@ -385,5 +417,274 @@ $('lgo').onclick=async()=>{
   }catch(e){$('lerr2').textContent=e.message}
 };
 $('lcode').onkeydown=e=>{if(e.key==='Enter')$('lgo').click()};
+
+/* ================= D2690 西藥局 ================= */
+const sh9=()=>S.cfg90?S.cfg90.shifts:[];
+const shift9=n=>sh9().find(s=>s.name===n);
+const staff9=()=>S.cfg90?S.cfg90.staff:[];
+const ST9={f9:{lk:'',ok:'延後下班'},e9:{lk:'',ok:'延後下班'}};
+const optS=(list,ph)=>(ph?`<option value="">${ph}</option>`:'')+list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+async function raw(action,payload){const r=await rpc(action,S.token,payload);if(r&&r.ok===false&&r.error==='AUTH'){lostAuth();throw new Error('登入已失效，請重新登入')}return r}
+function form9(p){return `
+<div class="row"><div><label>日期</label><input type="date" id="${p}d"></div><div><label>類型</label><select id="${p}ty"><option>換班</option><option>請假</option><option>加班</option><option>其他</option></select></div></div>
+<div id="${p}sw">
+<div class="row"><div><label>原上班者</label><select id="${p}swa"></select></div><div><label>班別</label><select id="${p}sws"></select></div></div>
+<div class="row"><div><label>新上班者</label><select id="${p}swb"></select></div><div><label>新上班者原班別</label><select id="${p}swbs"></select></div></div>
+</div>
+<div id="${p}ps">
+<div class="row" id="${p}pr"><div><label id="${p}pal">人員</label><select id="${p}pa"></select></div><div id="${p}psW"><label>班別</label><select id="${p}psh"></select></div></div>
+<div id="${p}lk"><label>請假種類</label><div class="seg" style="grid-template-columns:repeat(3,1fr)"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button></div></div>
+<div id="${p}ok" class="seg" style="grid-template-columns:1fr 1fr;margin-top:12px"><button type="button" data-k="延後下班">延後下班</button><button type="button" data-k="提早上班">提早上班</button></div>
+<div class="row" id="${p}xr"><div><label id="${p}xl1"></label><input id="${p}x1" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="${p}xl2"></label><input id="${p}x2" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
+<div id="${p}cvW"><label>貼班人員（必填）</label><select id="${p}cv"></select></div>
+</div>
+<div class="calc" id="${p}c" style="display:none"></div>
+<label id="${p}nl">備註（選填）</label><input id="${p}nt" maxlength="200" autocomplete="off">`}
+function fill9(p){
+  const adm=isAdmin(),me=S.me.name,st=staff9(),all=sh9().map(s=>s.name),noR=all.filter(n=>n!=='R');
+  $(p+'swa').innerHTML=optS(st,'請選擇');$(p+'swb').innerHTML=optS(st,'請選擇');
+  $(p+'sws').innerHTML=optS(all,'請選擇');$(p+'swbs').innerHTML=optS(all,'請選擇');
+  $(p+'psh').innerHTML=optS(noR,'請選擇');$(p+'cv').innerHTML=optS(st,'請選擇');
+  const pa=$(p+'pa');
+  if(adm){pa.innerHTML=optS(st,'請選擇');pa.disabled=false}else{pa.innerHTML=optS([me]);pa.disabled=true}
+}
+function wire9(p){
+  $(p+'ty').onchange=()=>{ST9[p].lk='';ST9[p].ok='延後下班';on9(p,true)};
+  $(p+'psh').onchange=()=>on9(p,false);
+  ['swa','sws','swb','swbs','pa','cv'].forEach(k=>$(p+k).onchange=()=>calc9(p));
+  $(p+'lk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;ST9[p].lk=b.dataset.k;on9(p,true)};
+  $(p+'ok').onclick=e=>{const b=e.target.closest('button');if(!b)return;ST9[p].ok=b.dataset.k;on9(p,true)};
+  ['x1','x2'].forEach(k=>$(p+k).oninput=function(){fmt(this);calc9(p)});
+}
+function on9(p,reset){
+  const ty=$(p+'ty').value,s=ST9[p],sh=shift9($(p+'psh').value)||{},cover=!!sh.cover;
+  $(p+'sw').style.display=ty==='換班'?'':'none';$(p+'ps').style.display=ty==='換班'?'none':'';
+  $(p+'psW').style.display=(ty==='請假'||ty==='加班')?'':'none';
+  $(p+'pr').style.gridTemplateColumns=ty==='其他'?'minmax(0,1fr)':'';
+  $(p+'pal').textContent=ty==='其他'?'人員（選填）':'人員';
+  if(isAdmin()){const o=$(p+'pa').options[0];if(o)o.textContent=ty==='其他'?'（不指定）':'請選擇'}
+  $(p+'lk').style.display=ty==='請假'?'':'none';$(p+'ok').style.display=ty==='加班'?'':'none';
+  if(s.lk==='AM'&&cover)s.lk='';
+  $(p+'lk').querySelectorAll('button').forEach(b=>{b.disabled=(b.dataset.k==='AM'&&cover);b.classList.toggle('on',s.lk===b.dataset.k)});
+  $(p+'ok').querySelectorAll('button').forEach(b=>b.classList.toggle('on',s.ok===b.dataset.k));
+  const lv=ty==='請假'&&s.lk==='LV',ot=ty==='加班';
+  $(p+'xr').style.display=(lv||ot)?'':'none';
+  $(p+'xl1').textContent=lv?'請假開始':(s.ok==='提早上班'?'原上班時間':'原下班時間');
+  $(p+'xl2').textContent=lv?'請假結束':(s.ok==='提早上班'?'實際上班時間':'實際下班時間');
+  $(p+'cvW').style.display=(ty==='請假'&&s.lk==='PM'&&cover)?'':'none';
+  $(p+'nl').textContent=ty==='其他'?'備註（必填）':'備註（選填）';
+  $(p+'d').max=ty==='加班'?dayNow():'';
+  if(reset){$(p+'x1').value='';$(p+'x2').value=''}
+  calc9(p);
+}
+function read9(p){
+  const ty=$(p+'ty').value,s=ST9[p],o={ty:ty,date:$(p+'d').value,note:$(p+'nt').value.trim(),a:'',sa:'',b:'',sb:'',kind:'',t1:'',t2:''};
+  if(ty==='換班'){o.a=$(p+'swa').value;o.sa=$(p+'sws').value;o.b=$(p+'swb').value;o.sb=$(p+'swbs').value}
+  else{o.a=$(p+'pa').value;
+    if(ty==='請假'||ty==='加班')o.sa=$(p+'psh').value;
+    if(ty==='請假'){o.kind=s.lk;if(s.lk==='LV'){o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}
+      const sh=shift9(o.sa)||{};if(s.lk==='PM'&&sh.cover){o.b=$(p+'cv').value;o.sb=sh.cover}}
+    if(ty==='加班'){o.kind=s.ok;o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}}
+  return o;
+}
+const min9=o=>o.kind==='提早上班'?tm(o.t1)-tm(o.t2):tm(o.t2)-tm(o.t1);
+function chk9(o){
+  const miss=[];
+  if(!o.date)return '請先填寫：日期';
+  if(o.ty==='加班'&&o.date>dayNow())return '加班不能登記未來的日期';
+  if(o.ty==='換班'){
+    if(!o.a)miss.push('原上班者');if(!o.sa)miss.push('班別');if(!o.b)miss.push('新上班者');if(!o.sb)miss.push('新上班者原班別');
+    if(miss.length)return '請先填寫：'+miss.join('、');
+    if(o.a===o.b)return '原上班者和新上班者不能是同一人';
+    if(o.sa===o.sb)return '兩人的班別相同，不需要換班';
+    return '';
+  }
+  if(o.ty==='其他')return o.note?'':'請先填寫：備註';
+  if(!o.a)miss.push('人員');if(!o.sa)miss.push('班別');
+  if(o.ty==='請假'&&!o.kind)miss.push('請假種類');
+  if(miss.length)return '請先填寫：'+miss.join('、');
+  const sh=shift9(o.sa)||{};
+  if(o.ty==='請假'){
+    if(o.kind==='LV'){if(!o.t1||!o.t2)return '請先填寫：請假開始、請假結束';if(!V(o.t1)||!V(o.t2))return '時間請用 24 小時制，例如 16:10';if(tm(o.t2)<=tm(o.t1))return '請假結束要晚於請假開始'}
+    if(o.kind==='PM'&&sh.cover){if(!o.b)return '請先填寫：貼班人員';if(o.b===o.a)return '貼班人員不能是請假的人'}
+    return '';
+  }
+  if(!o.t1||!o.t2)return '請先填寫：'+(o.kind==='延後下班'?'原下班時間、實際下班時間':'原上班時間、實際上班時間');
+  if(!V(o.t1)||!V(o.t2))return '時間請用 24 小時制，例如 17:30';
+  if(min9(o)<=0)return o.kind==='延後下班'?'實際下班要晚於原下班時間':'實際上班要早於原上班時間';
+  return '';
+}
+function calc9(p){
+  const o=read9(p),el=$(p+'c');let h='';
+  if(o.ty==='換班'){h=(o.a&&o.sa&&o.b&&o.sb&&o.a!==o.b&&o.sa!==o.sb)?esc(o.a)+' → <b>'+esc(o.sb)+'</b>　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>':'<span style="color:var(--mut)">選好新上班者原班別後，這裡會顯示兩人換完的結果</span>'}
+  else if(o.ty==='加班'&&V(o.t1)&&V(o.t2)&&min9(o)>0)h='加班：<b>'+hm(min9(o))+'</b>';
+  else if(o.ty==='請假'&&o.kind==='LV'&&V(o.t1)&&V(o.t2)&&tm(o.t2)>tm(o.t1))h='請假 <b>'+hm(tm(o.t2)-tm(o.t1))+'</b>';
+  else if((o.ty==='加班'||(o.ty==='請假'&&o.kind==='LV'))&&((o.t1&&!V(o.t1))||(o.t2&&!V(o.t2))))h='<span class="warn">請用 24 小時制填入時間（例 17:30）</span>';
+  el.innerHTML=h;el.style.display=h?'':'none';
+}
+function initForm9(){
+  $('f9body').innerHTML=form9('f9');fill9('f9');wire9('f9');resetForm9();
+}
+function resetForm9(keepDate){
+  if(!keepDate)$('f9d').value=dayNow();
+  ST9.f9.lk='';ST9.f9.ok='延後下班';$('f9ty').value=$('f9ty').value||'換班';
+  fill9('f9');
+  if(!isAdmin()){$('f9swa').value=S.me.name}
+  $('f9nt').value='';on9('f9',true);
+}
+function summary9(o,adm){
+  const L=['日期：<b>'+esc(o.date)+'</b>　類型：<b>'+o.ty+'</b>'];
+  if(o.ty==='換班'){
+    L.push('原上班者：<b>'+esc(o.a)+'</b>　班別：<b>'+esc(o.sa)+'</b>');
+    L.push('新上班者：<b>'+esc(o.b)+'</b>　原班別：<b>'+esc(o.sb)+'</b>');
+    L.push('結果：'+esc(o.a)+' → <b>'+esc(o.sb)+'</b>　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>');
+  }else if(o.ty==='請假'){
+    L.push('人員：<b>'+esc(o.a)+'</b>　班別：<b>'+esc(o.sa)+'</b>');
+    L.push(o.kind==='LV'?'小時假：<b>'+o.t1+'–'+o.t2+'</b>（'+hm(tm(o.t2)-tm(o.t1))+'）':'請假：<b>'+o.kind+'</b>');
+    if(o.b)L.push('貼班：<b>'+esc(o.b)+'　'+esc(o.sb)+'</b>');
+  }else if(o.ty==='加班'){
+    L.push('人員：<b>'+esc(o.a)+'</b>　班別：<b>'+esc(o.sa)+'</b>');
+    L.push(o.kind+'：<b>'+o.t1+' → '+o.t2+'</b>');L.push('加班：<b>'+hm(min9(o))+'</b>');
+  }else if(o.a)L.push('人員：<b>'+esc(o.a)+'</b>');
+  if(o.note)L.push('備註：<b>'+esc(o.note)+'</b>');
+  L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
+  return L.join('<br>');
+}
+$('go9').onclick=async()=>{
+  const o=read9('f9'),er=chk9(o);if(er){msg(er);return}
+  if(!await ask('請確認內容',summary9(o),'確認送出'))return;
+  $('go9').disabled=true;
+  try{
+    let r=await raw('submit90',o);
+    if(r&&r.dup){if(!await ask('重複提醒','<p style="margin:0">'+esc(r.error)+'</p>','仍要登記'))return;r=await raw('submit90',Object.assign({force:true},o))}
+    if(!r||r.ok===false)throw new Error((r&&r.error)||'送出失敗');
+    toast('已送出');resetForm9(true);await loadFill90();
+  }catch(err){msg(err.message)}
+  finally{$('go9').disabled=false}
+};
+
+/* ---- 登記內容顯示 ---- */
+const KIND9={AM:'AM',PM:'PM',LV:'小時假'};
+function desc9(e){
+  if(e.ty==='換班')return{h:esc(e.a)+' ⇄ '+esc(e.b),r:[esc(e.a)+'：'+esc(e.sa)+' → '+esc(e.sb),esc(e.b)+'：'+esc(e.sb)+' → '+esc(e.sa)]};
+  if(e.ty==='請假')return{h:esc(e.a)+'　'+esc(e.sa)+'　'+KIND9[e.kind]+(e.kind==='LV'?' '+esc(e.t1)+'–'+esc(e.t2)+'（'+hm(tm(e.t2)-tm(e.t1))+'）':''),r:e.b?['貼班：'+esc(e.b)+'　'+esc(e.sb)]:[]};
+  if(e.ty==='加班')return{h:esc(e.a)+'　'+esc(e.sa)+'　'+esc(e.kind)+' '+esc(e.t1)+'→'+esc(e.t2)+'（'+hm(min9(e))+'）',r:[]};
+  return{h:esc(e.a||''),r:[]};
+}
+function card9(e,adm){
+  const d=desc9(e),ed=e.edited?`<span class="warn">（${adm?'已修改':'管理者已修改'}）</span>`:'';
+  const done=adm?(e.doneAt?`<span class="ok">✓ 已處理（${esc(e.doneBy)}　${esc(e.doneAt.slice(5,16))}）</span><br>`:''):'';
+  const btn=adm?`<div class="bt">${e.doneAt?`<button type="button" data-a9="undone" data-id="${esc(e.id)}">取消已處理</button>`:`<button type="button" data-a9="done" data-id="${esc(e.id)}">已處理</button>`}<button type="button" data-a9="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-a9="del" data-id="${esc(e.id)}">刪除</button></div>`:'';
+  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${e.ty}　${d.h}</summary>${d.r.map(x=>x+'<br>').join('')}${e.note?'備註：'+esc(e.note)+'<br>':''}${adm?'登記人：'+esc(e.by)+'<br>':''}${done}${ed}${btn}</details>`;
+}
+function pendRow9(e){
+  const d=desc9(e);
+  return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(e.date.slice(5))}　${e.ty}</b>　${d.h}${d.r.length?'<br><span style="color:var(--mut)">'+d.r.join('　')+'</span>':''}${e.note?'<br><span style="color:var(--mut)">備註：'+esc(e.note)+'</span>':''}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-a9="done" data-id="${esc(e.id)}">已處理</button></div>`;
+}
+
+/* ---- 一般人員頁面 ---- */
+async function loadFill90(){
+  const adm=isAdmin();$('c9mine').style.display=adm?'none':'';$('c9list').style.display=adm?'none':'';
+  if(adm)return;
+  try{S.v9=await call('view90',{month:ymNow()});renderFill90()}catch(e){msg(e.message)}
+}
+function renderFill90(){
+  const v=S.v9,st=(v.stats&&v.stats[0])||{carryIn:0,total:0,extra:0,unused:0,can:0};
+  $('mine9').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">本月總加班 ${st.total} 分鐘；未休＝上月 ${st.carryIn} ＋ 本月多出 ${st.extra}。滿 30 分鐘可換算 0.5 小時，目前可換算 ${st.can} h。</div>`;
+  $('list9').innerHTML=v.entries.map(e=>card9(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
+}
+
+/* ---- 後台 ---- */
+$('bm9').onchange=()=>{S.month=$('bm9').value||ymNow();loadBack90()};
+$('fp9').onchange=$('ft9').onchange=()=>renderBack90();
+async function loadBack90(){
+  $('bm9').value=S.month;
+  $('fp9').innerHTML='<option value="">全部</option>'+staff9().map(n=>`<option>${esc(n)}</option>`).join('');
+  try{S.bv9=await call('view90',{month:S.month});renderBack90()}catch(e){msg(e.message)}
+  ['dTrash9','dEdits9'].forEach(id=>{if($(id).open)loadExtra9(id)});
+}
+function renderBack90(){
+  const v=S.bv9;if(!v)return;
+  $('pend9').innerHTML=v.pending.map(pendRow9).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
+  $('bStat9').innerHTML='<tr><th>姓名</th><th>上月未休分鐘</th><th>本月總加班分鐘</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）</th><th>結轉下月</th><th>本月小時假</th></tr>'+
+    v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.lv?hm(s.lv):''}</td></tr>`).join('');
+  $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
+  const p=$('fp9').value,ty=$('ft9').value,list=v.entries.filter(e=>(!p||e.a===p||e.b===p)&&(!ty||e.ty===ty));
+  $('fcnt9').textContent='共 '+list.length+' 筆';$('bList9').innerHTML=list.map(e=>card9(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
+}
+$('bStat9').onchange=async e=>{const i=e.target.closest('input');if(!i)return;
+  const n=i.dataset.n,row=[...$('bStat9').querySelectorAll('input')].filter(x=>x.dataset.n===n),cin=row.find(x=>x.dataset.f==='in'),off=row.find(x=>x.dataset.f==='off');
+  const manualIn=!cin.classList.contains('auto')||i===cin,manualOff=!off.classList.contains('auto')||i===off;
+  try{await call('setMonth90',{month:S.month,name:n,carryIn:manualIn&&cin.value!==''?cin.value:'',offset:manualOff&&off.value!==''?off.value:''});toast('已儲存')}catch(err){msg(err.message)}
+  loadBack90();
+};
+async function loadExtra9(id){
+  try{
+    if(id==='dTrash9'){const r=await call('trash90');
+      $('bTrash9').innerHTML='<tr><th>刪除時間</th><th>刪除者</th><th>日期</th><th>內容</th><th></th></tr>'+(r.rows.map(x=>{const e={ty:x[3],date:x[4],a:x[5],sa:x[6],b:x[7],sb:x[8],kind:x[9],t1:x[10],t2:x[11]},d=desc9(e);
+        return `<tr><td>${esc(x[16])}</td><td>${esc(x[17])}</td><td>${esc(x[4])}</td><td>${esc(x[3])}　${d.h}${x[12]?'　備註：'+esc(x[12]):''}</td><td><button type="button" class="x" style="border:1px solid var(--bd)" data-a9="restore" data-id="${esc(x[0])}">還原</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">目前沒有已刪除的資料</td></tr>')}
+    else{const r=await call('logs');
+      $('bEdits9').innerHTML='<tr><th>時間</th><th>修改者</th><th>動作</th><th>對象</th><th>修改前</th><th>修改後</th></tr>'+(r.edits.filter(isD90).map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="6" class="note">目前沒有修改紀錄</td></tr>')}
+  }catch(e){msg(e.message)}
+}
+['dTrash9','dEdits9'].forEach(id=>$(id).addEventListener('toggle',()=>{if($(id).open)loadExtra9(id)}));
+
+/* ---- 已處理／編輯／刪除／還原 ---- */
+let EID9=null;
+document.addEventListener('click',async ev=>{
+  const b=ev.target.closest('[data-a9]');if(!b)return;const id=b.dataset.id,act=b.dataset.a9;
+  try{
+    if(act==='done'||act==='undone'){await call('done90',{id:id,undo:act==='undone'});toast(act==='done'?'已處理':'已取消');loadBack90();return}
+    if(act==='restore'){await call('restore90',{id:id});toast('已還原');loadBack90();return}
+    const e=(S.bv9.entries.find(x=>x.id===id))||(S.bv9.pending.find(x=>x.id===id));if(!e)return;
+    if(act==='del'){const d=desc9(e);
+      if(!await ask('確定要刪除這筆資料嗎？',esc(e.date)+'　'+e.ty+'<br>'+d.h+(d.r.length?'<br>'+d.r.join('<br>'):'')+(e.note?'<br>備註：'+esc(e.note):''),'確定刪除',true))return;
+      await call('del90',{id:id});toast('已刪除');loadBack90();
+    }else if(act==='edit'){
+      EID9=id;$('e9body').innerHTML=form9('e9');fill9('e9');wire9('e9');
+      $('einfo9').textContent='登記人：'+e.by;$('e9ty').value=e.ty;$('e9ty').disabled=true;$('e9d').value=e.date;
+      ST9.e9.lk=e.ty==='請假'?e.kind:'';ST9.e9.ok=e.ty==='加班'?e.kind:'延後下班';
+      if(e.ty==='換班'){$('e9swa').value=e.a;$('e9sws').value=e.sa;$('e9swb').value=e.b;$('e9swbs').value=e.sb}
+      else{$('e9pa').value=e.a;$('e9psh').value=e.sa;if(e.b)$('e9cv').value=e.b}
+      on9('e9',true);$('e9x1').value=e.t1||'';$('e9x2').value=e.t2||'';$('e9nt').value=e.note||'';calc9('e9');
+      $('em9').style.display='flex';
+    }
+  }catch(err){msg(err.message)}
+});
+$('ecancel9').onclick=()=>{$('em9').style.display='none';EID9=null};
+$('esave9').onclick=async()=>{
+  const o=read9('e9'),er=chk9(o);if(er){msg(er);return}
+  try{const r=await raw('edit90',Object.assign({id:EID9},o));if(!r||r.ok===false)throw new Error((r&&r.error)||'儲存失敗');
+    $('em9').style.display='none';EID9=null;toast('已儲存');loadBack90()}catch(err){msg(err.message)}
+};
+
+/* ---- 匯出 Excel（D2690） ---- */
+$('xgo9').onclick=async()=>{
+  const btn=$('xgo9');btn.disabled=true;btn.textContent='準備中…';
+  try{
+    const [r]=await Promise.all([call('export90'),loadXlsx()]);
+    const ym=S.month,all=$('xr9').value==='all',inM=s=>all||String(s).slice(0,7)===ym;
+    const ec=n=>{const s=shift9(n);return s?s.ecode:''};
+    const E=r.entries.filter(x=>inM(x[4])).map(x=>({id:x[0],at:x[1],by:x[2],ty:x[3],date:x[4],a:x[5],sa:x[6],b:x[7],sb:x[8],kind:x[9],t1:x[10],t2:x[11],note:x[12],edited:x[13],doneBy:x[14],doneAt:x[15]})).sort((p,q)=>p.date<q.date?-1:p.date>q.date?1:(p.at<q.at?-1:1));
+    const chg=[['日期','人員','新班別（紙本）','電子班表代號','原因','備註']];
+    E.forEach(e=>{
+      if(e.ty==='換班'){chg.push([e.date,e.a,e.sb,ec(e.sb),'換班：與 '+e.b+' 互換（原 '+e.sa+'）',e.note]);chg.push([e.date,e.b,e.sa,ec(e.sa),'換班：與 '+e.a+' 互換（原 '+e.sb+'）',e.note])}
+      else if(e.ty==='請假'&&e.b)chg.push([e.date,e.b,e.sb,ec(e.sb),'貼班：'+e.a+' 請 PM',e.note])});
+    const lv=[['日期','人員','班別','種類','開始','結束','小時','備註']].concat(E.filter(e=>e.ty==='請假').map(e=>[e.date,e.a,e.sa,KIND9[e.kind],e.t1,e.t2,e.kind==='LV'?Math.round((tm(e.t2)-tm(e.t1))/6)/10:'',e.note]));
+    const ot=[['日期','人員','班別','種類','原時間','實際時間','加班分鐘','備註']].concat(E.filter(e=>e.ty==='加班').map(e=>[e.date,e.a,e.sa,e.kind,e.t1,e.t2,min9(e),e.note]));
+    const ents=[['日期','類型','人員／原上班者','班別','新上班者／貼班','新上班者原班別／貼班班別','種類','開始／原時間','結束／實際時間','備註','登記人','登記時間','已修改','已處理','處理人','處理時間']].concat(E.map(e=>[e.date,e.ty,e.a,e.sa,e.b,e.sb,e.kind,e.t1,e.t2,e.note,e.by,e.at,e.edited==='Y'?'是':'',e.doneAt?'是':'',e.doneBy,e.doneAt]));
+    const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
+    const del=[['刪除時間','刪除者','日期','類型','人員','班別','新上班者／貼班','種類','開始','結束','備註']].concat(r.deleted.filter(x=>inM(x[4])).map(x=>[x[16],x[17],x[4],x[3],x[5],x[6],x[7],x[9],x[10],x[11],x[12]]));
+    const edt=[['時間','修改者','動作','對象','修改前','修改後']].concat(r.edits.filter(e=>inM(e[0])));
+    const wb=XLSX.utils.book_new();
+    [['班表變動',chg],['請假',lv],['加班',ot],['所有登記',ents],['每人彙總',stat],['已刪除',del],['修改紀錄',edt]].forEach(([n,rows])=>{
+      const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=rows[0].map((_,i)=>({wch:Math.min(40,Math.max(8,...rows.slice(0,60).map(x=>String(x[i]==null?'':x[i]).length*1.6)))}));
+      XLSX.utils.book_append_sheet(wb,ws,n)});
+    XLSX.writeFile(wb,'D2690調班表_'+(all?'全部':ym)+'.xlsx');
+    toast('已下載');
+  }catch(e){msg(e.message)}
+  btn.disabled=false;btn.textContent='下載 Excel';
+};
+
 armIdle();boot();
 </script></body></html>
