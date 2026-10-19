@@ -28,6 +28,7 @@ button.go{background:var(--ac);color:#fff;border:0;margin-top:14px;font-weight:6
 button.x{width:auto;padding:4px 10px;height:auto;background:transparent;color:var(--fg)}
 button:disabled{opacity:.4}
 .seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:8px}.seg button{height:44px;padding:6px}
+.chips{display:flex;gap:8px}.chips button{height:auto;padding:4px 16px;border-radius:99px;font-size:13px}.chips button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .calc{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:14px}
 .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:left}th{color:var(--mut)}
@@ -49,7 +50,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 
 <div id="app" style="display:none">
 <div id="bar"><b id="who"></b><button type="button" id="out" class="x">登出</button></div>
-<div id="units" class="seg" style="grid-template-columns:1fr 1fr;margin-bottom:10px;display:none"></div>
+<div id="units" class="chips" style="margin-bottom:10px;display:none"></div>
 <div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">填寫</button><button type="button" id="tabB">後台管理</button></div>
 
 <section id="fill">
@@ -72,7 +73,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <section id="back" style="display:none">
 <div class="card"><label style="margin-top:0">月份</label><input type="month" id="bm"></div>
 <div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：每日彙總、所有登記、月結、已刪除、修改紀錄、登入紀錄</p></div>
-<div class="card"><h2>每日彙總</h2><div id="dpb" class="seg" style="margin-bottom:10px"></div><div class="scroll"><table id="bDays"></table></div></div>
+<div class="card"><details><summary>每日彙總</summary><div id="dpb" class="seg" style="margin-bottom:10px"></div><div class="scroll"><table id="bDays"></table></div></details></div>
 <div class="card"><h2>需人工核對</h2><div class="scroll"><table id="bMan"></table></div></div>
 <div class="card"><h2>月結</h2><div class="scroll"><table id="bStat"></table></div></div>
 <div class="card"><details id="dAll"><summary>所有登記</summary>
@@ -94,7 +95,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <section id="back90" style="display:none">
 <div class="card"><label style="margin-top:0">月份</label><input type="month" id="bm9"></div>
 <div class="card"><h2>待處理</h2><p class="note" style="margin:0 0 8px">改好 Word 大班表或輸入完成後，按「已處理」。</p><div id="pend9"></div></div>
-<div class="card"><h2>本月彙總</h2><div class="scroll"><table id="bStat9"></table></div></div>
+<div class="card"><details><summary>本月彙總</summary><div class="scroll"><table id="bStat9"></table></div></details></div>
 <div class="card"><details><summary>每日加班與小時假</summary><div class="scroll" style="margin-top:8px"><table id="bDays9"></table></div></details></div>
 <div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr9"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo9" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：班表變動、請假、加班、所有登記、每人彙總、已刪除、修改紀錄</p></div>
 <div class="card"><details id="dAll9"><summary>所有登記</summary>
@@ -421,7 +422,10 @@ $('lcode').onkeydown=e=>{if(e.key==='Enter')$('lgo').click()};
 /* ================= D2690 西藥局 ================= */
 const sh9=()=>S.cfg90?S.cfg90.shifts:[];
 const shift9=n=>sh9().find(s=>s.name===n);
-const staff9=()=>S.cfg90?S.cfg90.staff:[];
+const ORD9='宋佰臻 洪世蓉 王宥閑 徐兆谷 施玫如 黃湯淋 曾玉屏 邱柏凱 詹柔婕 陳秋滿 謝淑釗 蔡宜璇 林偉弘 王宸瑄 鄭光輝 柯宥騂'.split(' ');
+const o9=n=>{const i=ORD9.indexOf(n);return i<0?999:i};
+const by9=(a,b)=>o9(a)-o9(b)||(a<b?-1:a>b?1:0);
+const staff9=()=>S.cfg90?S.cfg90.staff.slice().sort(by9):[];
 const ST9={f9:{lk:'',ok:'延後下班'},e9:{lk:'',ok:'延後下班'}};
 const optS=(list,ph)=>(ph?`<option value="">${ph}</option>`:'')+list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
 async function raw(action,payload){const r=await rpc(action,S.token,payload);if(r&&r.ok===false&&r.error==='AUTH'){lostAuth();throw new Error('登入已失效，請重新登入')}return r}
@@ -607,7 +611,7 @@ function renderBack90(){
   const v=S.bv9;if(!v)return;
   $('pend9').innerHTML=v.pending.map(pendRow9).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
   $('bStat9').innerHTML='<tr><th>姓名</th><th>上月未休分鐘</th><th>本月總加班分鐘</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）</th><th>結轉下月</th><th>本月小時假</th></tr>'+
-    v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.lv?hm(s.lv):''}</td></tr>`).join('');
+    v.stats.slice().sort((p,q)=>by9(p.name,q.name)).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.lv?hm(s.lv):''}</td></tr>`).join('');
   $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
   const p=$('fp9').value,ty=$('ft9').value,list=v.entries.filter(e=>(!p||e.a===p||e.b===p)&&(!ty||e.ty===ty));
   $('fcnt9').textContent='共 '+list.length+' 筆';$('bList9').innerHTML=list.map(e=>card9(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
@@ -673,7 +677,7 @@ $('xgo9').onclick=async()=>{
     const lv=[['日期','人員','班別','種類','開始','結束','小時','備註']].concat(E.filter(e=>e.ty==='請假').map(e=>[e.date,e.a,e.sa,KIND9[e.kind],e.t1,e.t2,e.kind==='LV'?Math.round((tm(e.t2)-tm(e.t1))/6)/10:'',e.note]));
     const ot=[['日期','人員','班別','種類','原時間','實際時間','加班分鐘','備註']].concat(E.filter(e=>e.ty==='加班').map(e=>[e.date,e.a,e.sa,e.kind,e.t1,e.t2,min9(e),e.note]));
     const ents=[['日期','類型','人員／原上班者','班別','新上班者／貼班','新上班者原班別／貼班班別','種類','開始／原時間','結束／實際時間','備註','登記人','登記時間','已修改','已處理','處理人','處理時間']].concat(E.map(e=>[e.date,e.ty,e.a,e.sa,e.b,e.sb,e.kind,e.t1,e.t2,e.note,e.by,e.at,e.edited==='Y'?'是':'',e.doneAt?'是':'',e.doneBy,e.doneAt]));
-    const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
+    const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).sort((p,q)=>p.ym<q.ym?-1:p.ym>q.ym?1:by9(p.name,q.name)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
     const del=[['刪除時間','刪除者','日期','類型','人員','班別','新上班者／貼班','種類','開始','結束','備註']].concat(r.deleted.filter(x=>inM(x[4])).map(x=>[x[16],x[17],x[4],x[3],x[5],x[6],x[7],x[9],x[10],x[11],x[12]]));
     const edt=[['時間','修改者','動作','對象','修改前','修改後']].concat(r.edits.filter(e=>inM(e[0])));
     const wb=XLSX.utils.book_new();
