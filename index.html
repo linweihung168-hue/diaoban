@@ -29,6 +29,11 @@ button.x{width:auto;padding:4px 10px;height:auto;background:transparent;color:va
 button:disabled{opacity:.4}
 .seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:8px}.seg button{height:44px;padding:6px}
 .mnav{display:flex;align-items:center;justify-content:space-between;margin-top:6px}.mnav button{width:48px;height:44px;font-size:22px;padding:0}.mnav span{font-weight:600;font-size:17px}
+.l9h,.r9{display:grid;grid-template-columns:58px minmax(0,1fr) 34px minmax(0,1.4fr) 16px;gap:6px;align-items:center}
+.l9h{font-size:12px;color:var(--mut);padding:4px 6px;border-bottom:2px solid var(--bd)}
+details.e9r{border-bottom:1px solid var(--bd)}details.e9r>summary{list-style:none;padding:9px 6px;font-size:14px;font-weight:400;cursor:pointer;margin:0}
+details.e9r>summary::-webkit-details-marker{display:none}.e9r small{color:var(--mut)}
+.e9r .dt{padding:2px 6px 10px;font-size:13px;line-height:1.8;color:var(--mut)}.e9r .dt b{color:var(--fg)}
 .chips{display:flex;gap:8px}.chips button{width:auto;flex:0 0 auto;height:auto;padding:4px 16px;border-radius:99px;font-size:13px}.chips button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .calc{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:14px}
@@ -278,7 +283,7 @@ function renderFill(){
 function whenOf(e){return e.ty==='OT'?(shiftOf(e.shift)&&shiftOf(e.shift).type==='N+'?'至 '+e.b:e.a+'–'+e.b):e.ty==='LV'?e.a+'–'+e.b+'（'+hm(tm(e.b)-tm(e.a))+'）':e.ty==='AM'?'14:00 上班':e.ty==='PM'?'12:30 下班':e.ty==='DAY'?'整天':(e.a?e.a+'–'+e.b:'')}
 function entryCard(e,adm){
   const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span>`:'', ed=e.edited?`<span class="warn">（${adm?'已修改':'管理者已修改'}）</span>`:'';
-  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}</summary>${e.shift!=='—'?esc(dn(e.shift))+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k)+(e.kt?'　'+esc(e.kt):''):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${adm?`<div class="bt"><button type="button" data-act="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-act="del" data-id="${esc(e.id)}">刪除</button></div>`:''}</details>`;
+  return `<details class="ec"><summary>${esc(md9(e.date))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}</summary>${e.shift!=='—'?esc(dn(e.shift))+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k)+(e.kt?'　'+esc(e.kt):''):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${adm?`<div class="bt"><button type="button" data-act="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-act="del" data-id="${esc(e.id)}">刪除</button></div>`:''}</details>`;
 }
 function daysTable(days,adm){
   let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th><th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>班別代號</th><th>小夜h</th>':''}<th>備註</th></tr>`;
@@ -428,6 +433,7 @@ const shift9=n=>sh9().find(s=>s.name===n);
 const ORD9='宋佰臻 洪世蓉 王宥閑 徐兆谷 施玫如 黃湯淋 曾玉屏 邱柏凱 詹柔婕 陳秋滿 謝淑釗 蔡宜璇 林偉弘 王宸瑄 鄭光輝 柯宥騂'.split(' ');
 const o9=n=>{const i=ORD9.indexOf(n);return i<0?999:i};
 const by9=(a,b)=>o9(a)-o9(b)||(a<b?-1:a>b?1:0);
+const md9=d=>String(d).slice(5,10).replace('-','/');
 const staff9=()=>S.cfg90?S.cfg90.staff.slice().sort(by9):[];
 const ST9={f9:{lk:'',ok:'延後下班'},e9:{lk:'',ok:'延後下班'}};
 const optS=(list,ph)=>(ph?`<option value="">${ph}</option>`:'')+list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
@@ -523,7 +529,7 @@ function chk9(o){
 }
 function calc9(p){
   const o=read9(p),el=$(p+'c');let h='';
-  if(o.ty==='換班'){h=(o.a&&o.sa&&o.b&&o.sb&&o.a!==o.b&&o.sa!==o.sb)?esc(o.a)+' → <b>'+esc(o.sb)+'</b>　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>':'<span style="color:var(--mut)">選好新上班者原班別後，這裡會顯示兩人換完的結果</span>'}
+  if(o.ty==='換班'){h=(o.a&&o.sa&&o.b&&o.sb&&o.a!==o.b&&o.sa!==o.sb)?'調班後：'+esc(o.a)+' → <b>'+esc(o.sb)+'</b>　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>':'<span style="color:var(--mut)">選好新上班者原班別後，這裡會顯示調班後的結果</span>'}
   else if(o.ty==='加班'&&V(o.t1)&&V(o.t2)&&min9(o)>0)h='加班：<b>'+hm(min9(o))+'</b>';
   else if(o.ty==='請假'&&o.kind==='LV'&&V(o.t1)&&V(o.t2)&&tm(o.t2)>tm(o.t1))h='請假 <b>'+hm(tm(o.t2)-tm(o.t1))+'</b>';
   else if((o.ty==='加班'||(o.ty==='請假'&&o.kind==='LV'))&&((o.t1&&!V(o.t1))||(o.t2&&!V(o.t2))))h='<span class="warn">請用 24 小時制填入時間（例 17:30）</span>';
@@ -578,15 +584,30 @@ function desc9(e){
   if(e.ty==='加班')return{h:esc(e.a)+'　'+esc(e.sa)+'　'+esc(e.kind)+' '+esc(e.t1)+'→'+esc(e.t2)+'（'+hm(min9(e))+'）',r:[]};
   return{h:esc(e.a||''),r:[]};
 }
+const L9H='<div class="l9h"><span>調班日期</span><span>原上班者</span><span>班別</span><span>新上班者／內容</span><span></span></div>';
+function c4_9(e){
+  if(e.ty==='換班')return esc(e.b)+' <small>'+esc(e.sb)+'</small>';
+  if(e.ty==='請假')return '請假 '+KIND9[e.kind]+(e.kind==='LV'?' '+esc(e.t1)+'–'+esc(e.t2):'');
+  if(e.ty==='加班')return '加班 '+(e.kind==='提早上班'?'提早':'延後')+' '+esc(e.t1)+'→'+esc(e.t2);
+  return esc(e.note||'其他');
+}
 function card9(e,adm){
-  const d=desc9(e),ed=e.edited?`<span class="warn">（${adm?'已修改':'管理者已修改'}）</span>`:'';
-  const done=adm?(e.doneAt?`<span class="ok">✓ 已處理（${esc(e.doneBy)}　${esc(e.doneAt.slice(5,16))}）</span><br>`:''):'';
+  const ed=e.edited?`<span class="warn">（${adm?'已修改':'管理者已修改'}）</span><br>`:'';
+  const R=[];
+  R.push('類型：'+e.ty);
+  if(e.ty==='換班')R.push('調班後：'+esc(e.a)+' → <b>'+esc(e.sb)+'</b>　'+esc(e.b)+' → <b>'+esc(e.sa)+'</b>');
+  if(e.ty==='請假'&&e.b)R.push('貼班：'+esc(e.b)+'　'+esc(e.sb));
+  if(e.ty==='加班')R.push('加班時間：'+hm(min9(e)));
+  if(e.ty==='請假'&&e.kind==='LV')R.push('請假時間：'+hm(tm(e.t2)-tm(e.t1)));
+  if(e.note)R.push('備註：'+esc(e.note));
+  R.push('登記日期：'+esc(String(e.at||'').slice(0,10))+(adm?'　登記人：'+esc(e.by):''));
+  const done=e.doneAt?`<span class="ok">✓ 已處理${adm?'（'+esc(e.doneBy)+'　'+esc(md9(e.doneAt)+' '+String(e.doneAt).slice(11,16))+'）':''}</span><br>`:'';
   const btn=adm?`<div class="bt">${e.doneAt?`<button type="button" data-a9="undone" data-id="${esc(e.id)}">取消已處理</button>`:`<button type="button" data-a9="done" data-id="${esc(e.id)}">已處理</button>`}<button type="button" data-a9="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-a9="del" data-id="${esc(e.id)}">刪除</button></div>`:'';
-  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${e.ty}　${d.h}</summary>${d.r.map(x=>x+'<br>').join('')}${e.note?'備註：'+esc(e.note)+'<br>':''}${adm?'登記人：'+esc(e.by)+'<br>':''}${done}${ed}${btn}</details>`;
+  return `<details class="e9r"><summary class="r9"><span>${esc(md9(e.date))}</span><span>${esc(e.a||'—')}</span><span>${esc(e.sa||'')}</span><span>${c4_9(e)}</span><span class="ok">${e.doneAt?'✓':''}</span></summary><div class="dt">${R.join('<br>')}<br>${done}${ed}${btn}</div></details>`;
 }
 function pendRow9(e){
   const d=desc9(e);
-  return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(e.date.slice(5))}　${e.ty}</b>　${d.h}${d.r.length?'<br><span style="color:var(--mut)">'+d.r.join('　')+'</span>':''}${e.note?'<br><span style="color:var(--mut)">備註：'+esc(e.note)+'</span>':''}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-a9="done" data-id="${esc(e.id)}">已處理</button></div>`;
+  return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(md9(e.date))}　${e.ty}</b>　${d.h}${d.r.length?'<br><span style="color:var(--mut)">'+d.r.join('　')+'</span>':''}${e.note?'<br><span style="color:var(--mut)">備註：'+esc(e.note)+'</span>':''}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-a9="done" data-id="${esc(e.id)}">已處理</button></div>`;
 }
 
 /* ---- 一般人員頁面 ---- */
@@ -598,7 +619,7 @@ async function loadFill90(){
 function renderFill90(){
   const v=S.v9,st=(v.stats&&v.stats[0])||{carryIn:0,total:0,extra:0,unused:0,can:0};
   $('mine9').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">本月總加班 ${st.total} 分鐘；未休＝上月 ${st.carryIn} ＋ 本月多出 ${st.extra}。滿 30 分鐘可換算 0.5 小時，目前可換算 ${st.can} h。</div>`;
-  $('list9').innerHTML=v.entries.map(e=>card9(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
+  $('list9').innerHTML=(v.entries.length?L9H:'')+v.entries.map(e=>card9(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
 }
 
 /* ---- 後台 ---- */
@@ -616,7 +637,7 @@ function renderBack90(){
     v.stats.slice().sort((p,q)=>by9(p.name,q.name)).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.lv?hm(s.lv):''}</td></tr>`).join('');
   $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
   const p=$('fp9').value,ty=$('ft9').value,list=v.entries.filter(e=>(!p||e.a===p||e.b===p)&&(!ty||e.ty===ty));
-  $('fcnt9').textContent='共 '+list.length+' 筆';$('bList9').innerHTML=list.map(e=>card9(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
+  $('fcnt9').textContent='共 '+list.length+' 筆';$('bList9').innerHTML=(list.length?L9H:'')+list.map(e=>card9(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
 }
 $('bStat9').onchange=async e=>{const i=e.target.closest('input');if(!i)return;
   const n=i.dataset.n,row=[...$('bStat9').querySelectorAll('input')].filter(x=>x.dataset.n===n),cin=row.find(x=>x.dataset.f==='in'),off=row.find(x=>x.dataset.f==='off');
