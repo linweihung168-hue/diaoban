@@ -34,6 +34,7 @@ button:disabled{opacity:.4}
 details.e9r{border-bottom:1px solid var(--bd)}details.e9r>summary{list-style:none;padding:9px 6px;font-size:14px;font-weight:400;cursor:pointer;margin:0}
 details.e9r>summary::-webkit-details-marker{display:none}.e9r small{color:var(--mut)}
 .e9r .dt{padding:2px 6px 10px;font-size:13px;line-height:1.8;color:var(--mut)}.e9r .dt b{color:var(--fg)}
+#sg9{position:fixed;z-index:99999;display:none;background:#fff;border:1px solid var(--bd);border-radius:10px;box-shadow:0 6px 20px #0003;max-height:240px;overflow:auto}#sg9 div{padding:10px 16px;font-size:16px;cursor:pointer}#sg9 div.on,#sg9 div:hover{background:#e8f0fe}
 .sc9{text-transform:uppercase}input.bad{border-color:#c62828!important}.ferr{color:#c62828;font-size:12px;margin-top:2px}.ferr:empty{display:none}
 .chips{display:flex;gap:8px}.chips button{width:auto;flex:0 0 auto;height:auto;padding:4px 16px;border-radius:99px;font-size:13px}.chips button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
@@ -430,6 +431,28 @@ $('lcode').onkeydown=e=>{if(e.key==='Enter')$('lgo').click()};
 
 /* ================= D2690 西藥局 ================= */
 const sh9=()=>S.cfg90?S.cfg90.shifts:[];
+/* 班別建議清單：打字後才出現 */
+const SG9={el:null,noR:false,idx:-1,box:null};
+function sg9Hide(){if(SG9.box)SG9.box.style.display='none';SG9.idx=-1}
+function sg9List(el,noR){const v=el.value.trim().toUpperCase();if(!v)return[];
+  const all=sh9().map(s=>s.name).filter(n=>!(noR&&n==='R'));
+  let a=all.filter(n=>n.indexOf(v)===0);if(!a.length)a=all.filter(n=>n.indexOf(v)>=0);
+  return (a.length===1&&a[0]===v)?[]:a}
+function sg9Place(){const el=SG9.el,b=SG9.box;if(!el||!b||b.style.display==='none')return;const r=el.getBoundingClientRect();
+  b.style.left=r.left+'px';b.style.top=(r.bottom+2)+'px';b.style.minWidth=Math.max(r.width,70)+'px'}
+function sg9Show(el,noR){
+  if(!SG9.box){const b=document.createElement('div');b.id='sg9';document.body.appendChild(b);SG9.box=b;
+    b.onmousedown=e=>{e.preventDefault();const i=e.target.closest('[data-v]');if(i&&SG9.el)sg9Pick(i.dataset.v)};
+    window.addEventListener('scroll',sg9Place,true);window.addEventListener('resize',sg9Place)}
+  SG9.el=el;SG9.noR=noR;const a=sg9List(el,noR);
+  if(!a.length){sg9Hide();return}
+  SG9.idx=-1;SG9.box.innerHTML=a.map(n=>`<div data-v="${esc(n)}">${esc(n)}</div>`).join('');
+  SG9.box.style.display='block';sg9Place()}
+function sg9Pick(v){const el=SG9.el;if(!el)return;el.value=v;sg9Hide();el.dispatchEvent(new Event('input',{bubbles:true}));sg9Hide()}
+function sg9Key(e,el,noR){const b=SG9.box;if(!b||b.style.display==='none')return;const it=[...b.children];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();SG9.idx=(SG9.idx+(e.key==='ArrowDown'?1:-1)+it.length)%it.length;it.forEach((x,i)=>x.classList.toggle('on',i===SG9.idx))}
+  else if(e.key==='Enter'){e.preventDefault();const i=SG9.idx>=0?SG9.idx:(it.length===1?0:-1);if(i>=0)sg9Pick(it[i].dataset.v)}
+  else if(e.key==='Escape')sg9Hide()}
 const okS9=(n,noR)=>!!sh9().find(s=>s.name===n)&&!(noR&&n==='R');
 const shift9=n=>sh9().find(s=>s.name===n);
 const ORD9='宋佰臻 洪世蓉 王宥閑 徐兆谷 施玫如 黃湯淋 曾玉屏 邱柏凱 詹柔婕 陳秋滿 謝淑釗 蔡宜璇 林偉弘 王宸瑄 鄭光輝 柯宥騂'.split(' ');
@@ -448,11 +471,11 @@ async function raw(action,payload){const r=await rpc(action,S.token,payload);if(
 function form9(p){return `
 <div class="row"><div><label>日期</label><input type="date" id="${p}d"></div><div><label>類型</label><select id="${p}ty"><option value="換班">調班</option><option>請假</option><option>加班</option><option>其他</option></select></div></div>
 <div id="${p}sw">
-<div class="row"><div><label>原上班者</label><select id="${p}swa"></select></div><div><label>班別</label><input id="${p}sws" class="sc9" list="dl9a" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder=""><div class="ferr"></div></div></div>
-<div class="row"><div><label>新上班者</label><select id="${p}swb"></select></div><div><label>新上班者原班別</label><input id="${p}swbs" class="sc9" list="dl9a" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder=""><div class="ferr"></div></div></div>
+<div class="row"><div><label>原上班者</label><select id="${p}swa"></select></div><div><label>班別</label><input id="${p}sws" class="sc9" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder=""><div class="ferr"></div></div></div>
+<div class="row"><div><label>新上班者</label><select id="${p}swb"></select></div><div><label>新上班者原班別</label><input id="${p}swbs" class="sc9" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder=""><div class="ferr"></div></div></div>
 </div>
 <div id="${p}ps">
-<div class="row" id="${p}pr"><div><label id="${p}pal">人員</label><select id="${p}pa"></select></div><div id="${p}psW"><label>班別</label><input id="${p}psh" class="sc9" list="dl9b" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder=""><div class="ferr"></div></div></div>
+<div class="row" id="${p}pr"><div><label id="${p}pal">人員</label><select id="${p}pa"></select></div><div id="${p}psW"><label>班別</label><input id="${p}psh" class="sc9" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder=""><div class="ferr"></div></div></div>
 <div id="${p}lk"><label>請假種類</label><div class="seg" style="grid-template-columns:repeat(3,1fr)"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button></div></div>
 <div id="${p}ok" class="seg" style="grid-template-columns:1fr 1fr;margin-top:12px"><button type="button" data-k="延後下班">延後下班</button><button type="button" data-k="提早上班">提早上班</button></div>
 <div class="row" id="${p}xr"><div><label id="${p}xl1"></label><input id="${p}x1" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="${p}xl2"></label><input id="${p}x2" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
@@ -464,8 +487,7 @@ function fill9(p){
   const adm=isAdmin(),me=S.me.name,st=staff9(),all=sh9().map(s=>s.name),noR=all.filter(n=>n!=='R');
   $(p+'swa').innerHTML=optS(st,'請選擇');$(p+'swb').innerHTML=optS(st,'請選擇');
   ['sws','swbs','psh'].forEach(k=>{$(p+k).value='';$(p+k).classList.remove('bad');$(p+k).nextElementSibling.textContent=''});
-  ['dl9a','dl9b'].forEach(id=>{if(!$(id)){const d=document.createElement('datalist');d.id=id;document.body.appendChild(d)}});
-  $('dl9a').innerHTML=all.map(n=>`<option value="${esc(n)}">`).join('');$('dl9b').innerHTML=noR.map(n=>`<option value="${esc(n)}">`).join('');$(p+'cv').innerHTML=optS(st,'請選擇');
+$(p+'cv').innerHTML=optS(st,'請選擇');
   const pa=$(p+'pa');
   if(adm){pa.innerHTML=optS(st,'請選擇');pa.disabled=false}else{pa.innerHTML=optS([me]);pa.disabled=true}
 }
@@ -474,7 +496,8 @@ function wire9(p){
   ['swa','swb','pa','cv'].forEach(k=>$(p+k).onchange=()=>calc9(p));
   ['sws','swbs','psh'].forEach(k=>{const el=$(p+k);el.oninput=()=>{el.value=el.value.toUpperCase().replace(/\s/g,'');
     const bad=el.value&&!okS9(el.value,k==='psh');el.classList.toggle('bad',!!bad);el.nextElementSibling.textContent=bad?'請確認班別代號':'';
-    k==='psh'?on9(p,false):calc9(p)}});
+    sg9Show(el,k==='psh');k==='psh'?on9(p,false):calc9(p)};
+    el.onfocus=()=>sg9Show(el,k==='psh');el.onblur=()=>setTimeout(sg9Hide,150);el.onkeydown=e=>sg9Key(e,el,k==='psh')});
   $(p+'lk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;ST9[p].lk=b.dataset.k;on9(p,true)};
   $(p+'ok').onclick=e=>{const b=e.target.closest('button');if(!b)return;ST9[p].ok=b.dataset.k;on9(p,true)};
   ['x1','x2'].forEach(k=>$(p+k).oninput=function(){fmt(this);calc9(p)});
