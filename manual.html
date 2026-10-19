@@ -176,7 +176,7 @@ details.q p{margin:8px 0 0;color:var(--mut)}
   <h2>4 個重點</h2>
   <ul class="rules">
     <li><b>時間</b><span>一律 24 小時制，只要打數字。打 <b>1930</b> 會自動變成 19:30。</span></li>
-    <li><b>領藥號</b><span>填「最後一張領藥號」，要有英文字母加數字，例如 K162。小寫會自動變大寫。該張處方紙本請留存。</span></li>
+    <li><b>領藥號與處方時間</b><span>填「最後一張領藥號」（英文字母加數字，例如 K162，小寫會自動變大寫），以及該張處方簽上的「處方時間」（例如 16:04）。兩格都要填。該張處方紙本請留存。</span></li>
     <li><b>分兩筆</b><span>一次加班如果橫跨正常上班時段（例如中午到下午），請分成兩筆填寫。</span></li>
     <li><b>送出後</b><span>自己不能修改或刪除，請看下面「填錯了怎麼辦」。</span></li>
   </ul>
@@ -213,7 +213,7 @@ function form(s){
     const la=t==='LV'?'請假開始':t==='OTH'?'開始（選填）':'原下班時間', lb=t==='LV'?'請假結束':t==='OTH'?'結束（選填）':'實際下班時間';
     h+='<div class="m-row"><div><div class="m-l">'+la+'</div><div class="m-f'+H(s,'a')+(f.a?'':' ph')+'">'+(f.a||'')+'</div></div><div><div class="m-l">'+lb+'</div><div class="m-f'+H(s,'b')+(f.b?'':' ph')+'">'+(f.b||'')+'</div></div></div>';
   }
-  if(t==='OT')h+='<div class="m-row"><div><div class="m-l">醫師</div><div class="m-f'+H(s,'doc')+(f.doc?'':' ph')+'">'+(f.doc||'請選擇')+'</div></div><div><div class="m-l">最後一張領藥號</div><div class="m-f'+H(s,'k')+(f.k?'':' ph')+'">'+(f.k||'')+'</div></div></div>';
+  if(t==='OT')h+='<div class="m-l">醫師</div><div class="m-f'+H(s,'doc')+(f.doc?'':' ph')+'">'+(f.doc||'請選擇')+'</div><div class="m-row"><div><div class="m-l">最後一張領藥號</div><div class="m-f'+H(s,'k')+(f.k?'':' ph')+'">'+(f.k||'')+'</div></div><div><div class="m-l">處方時間</div><div class="m-f'+H(s,'kt')+(f.kt?'':' ph')+'">'+(f.kt||'')+'</div></div></div>';
   h+='<div class="m-l">'+(t==='OTH'?'備註（必填）':'備註（選填）')+'</div><div class="m-f'+H(s,'nt')+(f.nt?'':' ph')+'">'+(f.nt||'')+'</div>';
   if(s.calc)h+='<div class="m-calc fade'+H(s,'calc')+'">'+s.calc+'</div>';
   h+='<div class="m-btn'+H(s,'go')+'">送出</div></div>';
@@ -245,9 +245,9 @@ const DEMOS={
   {t:'選班別',d:'選你<b>當天上的班別</b>。',k:'form',s:{hl:['s'],vals:OT}},
   {t:'原下班時間',d:'「原下班時間」會依班別<b>自動帶入</b>，通常不用改。',k:'form',s:{hl:['a'],vals:{shift:OT.shift,a:'17:30'}}},
   {t:'實際下班時間',d:'輸入「<b>實際下班時間</b>」。只要打數字 <b>1930</b>，系統會自動變成 19:30。',k:'form',s:{hl:['b'],vals:{shift:OT.shift,a:'17:30',b:'19:30'}}},
-  {t:'醫師與領藥號',d:'選<b>醫師</b>，再填「<b>最後一張領藥號</b>」：英文字母加數字，例如 K162。<b>該張處方紙本請留存</b>，附在紙本調班表。',k:'form',s:{hl:['doc','k'],vals:{shift:OT.shift,a:'17:30',b:'19:30',doc:'葉勇德',k:'K162'}}},
-  {t:'看一下算出來的時間',d:'填完會即時顯示這筆加班的時間。先看<b>對不對</b>，再送出。',k:'form',s:{hl:['calc'],calc:'這筆加班 <b>2h</b>',vals:{shift:OT.shift,a:'17:30',b:'19:30',doc:'葉勇德',k:'K162'}}},
-  {t:'按「送出」',d:'按「<b>送出</b>」，會跳出確認視窗。請再核對一次內容，沒問題按「確認送出」。',k:'form',s:{hl:['ok'],calc:'這筆加班 <b>2h</b>',vals:{shift:OT.shift,a:'17:30',b:'19:30',doc:'葉勇德',k:'K162'},modal:'<div style="line-height:1.7">日期：<b>2026-10-13</b>　類型：<b>加班</b><br>班別：<b>M1 白班（一三四）</b><br>時間：<b>17:30–19:30</b><br>醫師：<b>葉勇德</b>　領藥號：<b>K162</b><br><span class="warnr">請確認填寫內容正確，送出後不可更改、刪除。</span></div>'}},
+  {t:'醫師、領藥號與處方時間',d:'選<b>醫師</b>，填「<b>最後一張領藥號</b>」（英文字母加數字，例如 K162），再填處方簽上的「<b>處方時間</b>」（例如 16:04）。<b>該張處方紙本請留存</b>，附在紙本調班表。',k:'form',s:{hl:['doc','k','kt'],vals:{shift:OT.shift,a:'17:30',b:'19:30',doc:'葉勇德',k:'K162',kt:'17:12'}}},
+  {t:'看一下算出來的時間',d:'填完會即時顯示這筆加班的時間。先看<b>對不對</b>，再送出。',k:'form',s:{hl:['calc'],calc:'這筆加班 <b>2h</b>',vals:{shift:OT.shift,a:'17:30',b:'19:30',doc:'葉勇德',k:'K162',kt:'17:12'}}},
+  {t:'按「送出」',d:'按「<b>送出</b>」，會跳出確認視窗。請再核對一次內容，沒問題按「確認送出」。',k:'form',s:{hl:['ok'],calc:'這筆加班 <b>2h</b>',vals:{shift:OT.shift,a:'17:30',b:'19:30',doc:'葉勇德',k:'K162',kt:'17:12'},modal:'<div style="line-height:1.7">日期：<b>2026-10-13</b>　類型：<b>加班</b><br>班別：<b>M1 白班（一三四）</b><br>時間：<b>17:30–19:30</b><br>醫師：<b>葉勇德</b>　領藥號：<b>K162</b><br><span class="warnr">請確認填寫內容正確，送出後不可更改、刪除。</span></div>'}},
   {t:'完成',d:'出現綠色的「<b>已送出</b>」就完成了。下方的未休分鐘與登記紀錄會自動更新。',k:'form',s:{toast:1,hl:['mine'],mine:'60',vals:{shift:OT.shift}}}
  ],
  'd-lv':[

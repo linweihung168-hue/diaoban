@@ -59,7 +59,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div id="shW"><label>班別</label><select id="s"></select></div>
 <div id="lvk" style="display:none"><label>請假種類</label><div class="seg"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button><button type="button" data-k="DAY">整天</button></div></div>
 <div class="row" id="ab"><div id="aW"><label id="aL">原下班時間</label><input id="a" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="bL">實際下班時間</label><input id="b" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
-<div class="row" id="dk"><div><label>醫師</label><select id="doc"></select></div><div><label>最後一張領藥號</label><input id="k" autocomplete="off" placeholder="紙本請留存"></div></div>
+<div id="dk"><label>醫師</label><select id="doc"></select><div class="row"><div><label>最後一張領藥號</label><input id="k" autocomplete="off"></div><div><label>處方時間</label><input id="kt" inputmode="numeric" maxlength="5" autocomplete="off"></div></div><p class="note" style="margin:6px 0 0">處方簽上的號碼與時間，紙本請留存</p></div>
 <label id="nL">備註（選填）</label><input id="nt" maxlength="200" autocomplete="off">
 <div class="calc" id="c" style="display:none"></div>
 <button type="button" class="go" id="go">送出</button></div>
@@ -92,7 +92,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div id="em" class="mask"><div class="card"><h2>編輯登記</h2><p class="note" id="einfo"></p>
 <div class="row"><div><label>日期</label><input type="date" id="ed"></div><div><label>班別</label><select id="es"></select></div></div>
 <div class="row" id="eab"><div><label>開始／原下班時間</label><input id="ea" inputmode="numeric" maxlength="5"></div><div><label>結束時間</label><input id="eb" inputmode="numeric" maxlength="5"></div></div>
-<div class="row" id="edk"><div><label>醫師</label><select id="edoc"></select></div><div><label>最後一張領藥號</label><input id="ek"></div></div>
+<div id="edk"><label>醫師</label><select id="edoc"></select><div class="row"><div><label>最後一張領藥號</label><input id="ek"></div><div><label>處方時間</label><input id="ekt" inputmode="numeric" maxlength="5"></div></div></div>
 <label>備註</label><input id="ent" maxlength="200">
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel">取消</button><button type="button" class="go" id="esave" style="margin:0">儲存修改</button></div></div></div>
 <div id="lockm" class="mask" style="z-index:50"><div class="card"><h2>已鎖定</h2><p class="note">閒置時間較長，請輸入員工代號繼續使用。</p>
@@ -176,7 +176,7 @@ $('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');
 function initForm(){
   $('s').innerHTML=S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
   $('doc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
-  $('d').value=dayNow();$('ty').value='OT';S.lk=null;$('nt').value='';$('k').value='';onForm(true);
+  $('d').value=dayNow();$('ty').value='OT';S.lk=null;$('nt').value='';$('k').value='';$('kt').value='';onForm(true);
 }
 const effTy=()=>{const v=$('ty').value;return v==='LV'?(S.lk||''):v};
 function fmt(el){let v=el.value.replace(/\D/g,'').slice(0,4);if(v.length>2)v=v.slice(0,2)+':'+v.slice(2);el.value=v}
@@ -200,16 +200,17 @@ function onForm(reset){
   calc();
 }
 function overlap(sh,a,b){return (sh.windows||[]).some(w=>tm(a)<tm(w[1])&&tm(b)>tm(w[0]))}
-function readForm(){return{date:$('d').value,shift:$('ty').value==='OTH'?'—':$('s').value,a:$('a').value.trim(),b:$('b').value.trim(),doc:$('doc').value,k:$('k').value.trim().toUpperCase(),note:$('nt').value.trim()}}
+function readForm(){return{date:$('d').value,shift:$('ty').value==='OTH'?'—':$('s').value,a:$('a').value.trim(),b:$('b').value.trim(),doc:$('doc').value,k:$('k').value.trim().toUpperCase(),kt:$('kt').value.trim(),note:$('nt').value.trim()}}
 function chk(t,o){
   const sh=shiftOf(o.shift)||{},np=sh.type==='N+',miss=[];
   if(!o.date)miss.push('日期');
-  if(t==='OT'){if(!o.b)miss.push(np?'下班時間':'實際下班時間');if(!np&&!o.a)miss.push('原下班時間');if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號')}
+  if(t==='OT'){if(!o.b)miss.push(np?'下班時間':'實際下班時間');if(!np&&!o.a)miss.push('原下班時間');if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號');if(!o.kt)miss.push('處方時間')}
   if(t==='LV'){if(!o.a)miss.push('請假開始');if(!o.b)miss.push('請假結束')}
   if(t==='OTH'&&!o.note)miss.push('備註');
   if(miss.length)return '請先填寫：'+miss.join('、');
   if(o.date>dayNow())return '不能登記未來的日期';
   if((t==='OT'||t==='LV')&&(!V(o.b)||(!(np&&t==='OT')&&!V(o.a))))return '時間請用 24 小時制，例如 17:30、21:30';
+  if(t==='OT'&&!V(o.kt))return '處方時間請用 24 小時制，例如 16:04';
   if(t==='OT'&&!(/[A-Z]/.test(o.k)&&/\d/.test(o.k)&&/^[A-Z0-9\-]+$/.test(o.k)))return '最後一張領藥號請填英文字母加數字，例如 K162';
   if(t==='OT'){if(np){if(tm(o.b)<690)return '下班時間要在 11:30 之後'}else{if(tm(o.b)<=tm(o.a))return '實際下班要晚於原下班時間';if(overlap(sh,o.a,o.b))return '這段時間橫跨正常上班時段，請分成兩筆填寫（例如：中午一筆、下午一筆）。'}}
   if(t==='LV'){if(np)return '週六 N+ 請假請用「其他」並寫備註';if(tm(o.b)<=tm(o.a))return '請假結束要晚於請假開始'}
@@ -224,7 +225,7 @@ function calc(){
 }
 $('ty').onchange=()=>{S.lk=null;onForm(true)};$('s').onchange=()=>onForm(true);
 $('lvk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;S.lk=b.dataset.k;onForm(true)};
-['a','b'].forEach(i=>$(i).oninput=function(){fmt(this);calc()});$('k').oninput=function(){this.value=this.value.toUpperCase()};
+['a','b'].forEach(i=>$(i).oninput=function(){fmt(this);calc()});$('kt').oninput=function(){fmt(this)};$('k').oninput=function(){this.value=this.value.toUpperCase()};
 $('pbtns').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.target=b.dataset.p;loadFill()};
 async function loadFill(){
   document.querySelectorAll('#pbtns button').forEach(b=>{const on=b.dataset.p===S.target;b.className=on?'on':'';});
@@ -243,7 +244,7 @@ function renderFill(){
 function whenOf(e){return e.ty==='OT'?(shiftOf(e.shift)&&shiftOf(e.shift).type==='N+'?'至 '+e.b:e.a+'–'+e.b):e.ty==='LV'?e.a+'–'+e.b+'（'+hm(tm(e.b)-tm(e.a))+'）':e.ty==='AM'?'14:00 上班':e.ty==='PM'?'12:30 下班':e.ty==='DAY'?'整天':(e.a?e.a+'–'+e.b:'')}
 function entryCard(e,adm){
   const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span>`:'', ed=e.edited?`<span class="warn">（${adm?'已修改':'管理者已修改'}）</span>`:'';
-  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}</summary>${e.shift!=='—'?esc(dn(e.shift))+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${adm?`<div class="bt"><button type="button" data-act="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-act="del" data-id="${esc(e.id)}">刪除</button></div>`:''}</details>`;
+  return `<details class="ec"><summary>${esc(e.date.slice(5))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}</summary>${e.shift!=='—'?esc(dn(e.shift))+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k)+(e.kt?'　'+esc(e.kt):''):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${adm?`<div class="bt"><button type="button" data-act="edit" data-id="${esc(e.id)}">編輯</button><button type="button" data-act="del" data-id="${esc(e.id)}">刪除</button></div>`:''}</details>`;
 }
 function daysTable(days,adm){
   let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th><th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>班別代號</th><th>小夜h</th>':''}<th>備註</th></tr>`;
@@ -263,7 +264,7 @@ $('go').onclick=async()=>{
   const L=[];if(isAdmin())L.push('對象：<b>'+esc(S.target)+'</b>');
   L.push('日期：<b>'+esc(o.date)+'</b>　類型：<b>'+TY[t]+'</b>');
   if(o.shift!=='—')L.push('班別：<b>'+esc(dn(o.shift))+'</b>');
-  if(t==='OT'){L.push('時間：<b>'+(np?'至 '+o.b:o.a+'–'+o.b)+'</b>');const m=np?150+tm(o.b)-690:tm(o.b)-tm(o.a);L.push((np?'上班時段合計':'加班')+'：<b>'+hm(m)+'</b>');L.push('醫師：<b>'+esc(o.doc)+'</b>　最後一張領藥號：<b>'+esc(o.k)+'</b>')}
+  if(t==='OT'){L.push('時間：<b>'+(np?'至 '+o.b:o.a+'–'+o.b)+'</b>');const m=np?150+tm(o.b)-690:tm(o.b)-tm(o.a);L.push((np?'上班時段合計':'加班')+'：<b>'+hm(m)+'</b>');L.push('醫師：<b>'+esc(o.doc)+'</b>　最後一張領藥號：<b>'+esc(o.k)+'</b>　處方時間：<b>'+esc(o.kt)+'</b>')}
   else if(t==='LV')L.push('時間：<b>'+o.a+'–'+o.b+'</b>（'+hm(tm(o.b)-tm(o.a))+'）');
   else if(t==='AM')L.push('<b>14:00 上班</b>');else if(t==='PM')L.push('<b>12:30 下班</b>');else if(t==='DAY')L.push('<b>整天</b>');
   else if(o.a||o.b)L.push('時間：<b>'+esc(o.a)+'–'+esc(o.b)+'</b>');
@@ -273,7 +274,7 @@ $('go').onclick=async()=>{
   L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
   if(!await ask('請確認內容',L.join('<br>'),'確認送出'))return;
   $('go').disabled=true;
-  try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('nt').value='';onForm(true);await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
+  try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('kt').value='';$('nt').value='';onForm(true);await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
   $('go').disabled=false;
 };
 
@@ -323,11 +324,12 @@ $('xgo').onclick=async()=>{
     const [r]=await Promise.all([call('export'),loadXlsx()]);
     const ym=S.month,all=$('xr').value==='all',inM=s=>all||String(s).slice(0,7)===ym;
     const tyOf=t=>TY[t]||t;
+    const sk=v=>{const m=/^(\S+) (\d\d:\d\d)$/.exec(String(v||''));return m?[m[1],m[2]]:[String(v||''),'']};
     const timeOf=(ty,sh,a,b)=>{const s=shiftOf(sh);return ty==='OT'?(s&&s.type==='N+'?'至 '+b:a+'–'+b):ty==='LV'?a+'–'+b:ty==='AM'?'14:00 上班':ty==='PM'?'12:30 下班':ty==='DAY'?'整天':(a?a+'–'+b:'')};
     const days=[['日期','姓名','班別','總工時(h)','多出分鐘','計入工時(h)','加班分鐘','請假','班別代號','小夜h','備註']].concat(r.days.filter(d=>inM(d.date)).map(d=>[d.date,d.name,d.shift,d.total==null?'':d.total,d.extra,d.counted,d.t,d.lv?hm(d.lv):'',d.bcode||'',d.nightH||'',[d.ty,d.notes.length?'需人工核對：'+d.notes.join('；'):'',d.warn].filter(Boolean).join('　')]));
-    const ents=[['日期','對象','類型','班別','時間','醫師','最後一張領藥號','備註','代填者','已修改','登記人','登記時間']].concat(r.entries.filter(e=>inM(e[4])).sort((a,b)=>a[4]<b[4]?-1:a[4]>b[4]?1:(a[1]<b[1]?-1:1)).map(e=>[e[4],e[3],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],e[10],e[11],e[12],e[13]==='Y'?'是':'',e[2],e[1]]));
+    const ents=[['日期','對象','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註','代填者','已修改','登記人','登記時間']].concat(r.entries.filter(e=>inM(e[4])).sort((a,b)=>a[4]<b[4]?-1:a[4]>b[4]?1:(a[1]<b[1]?-1:1)).map(e=>[e[4],e[3],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11],e[12],e[13]==='Y'?'是':'',e[2],e[1]]));
     const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
-    const del=[['刪除時間','刪除者','對象','日期','類型','班別','時間','醫師','最後一張領藥號','備註']].concat(r.deleted.filter(e=>inM(e[4])).map(e=>[e[14],e[15],e[3],e[4],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],e[10],e[11]]));
+    const del=[['刪除時間','刪除者','對象','日期','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註']].concat(r.deleted.filter(e=>inM(e[4])).map(e=>[e[14],e[15],e[3],e[4],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11]]));
     const edt=[['時間','修改者','動作','對象','修改前','修改後']].concat(r.edits.filter(e=>inM(e[0])));
     const lgn=[['時間','姓名','裝置']].concat(r.logins.filter(e=>inM(e[0])));
     const wb=XLSX.utils.book_new();
@@ -345,24 +347,24 @@ document.addEventListener('click',async ev=>{
   if(act==='restore'){try{await call('restore',{id});toast('已還原');loadBack()}catch(e){msg(e.message)}return}
   const e=S.bv&&S.bv.entries.find(x=>x.id===id);if(!e)return;
   if(act==='del'){
-    const body=[e.date,TY[e.ty],e.shift==='—'?'':e.shift,whenOf(e),e.doc,e.k,e.note?'備註：'+e.note:''].filter(Boolean).map(esc).join('<br>');
+    const body=[e.date,TY[e.ty],e.shift==='—'?'':e.shift,whenOf(e),e.doc,e.k,e.kt,e.note?'備註：'+e.note:''].filter(Boolean).map(esc).join('<br>');
     if(!await ask('確定要刪除這筆資料嗎？',body,'確定刪除',true))return;
     try{await call('del',{id});toast('已刪除');loadBack()}catch(er){msg(er.message)}
   }else if(act==='edit'){
     EID=id;$('es').innerHTML=S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
     $('edoc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
-    $('ed').value=e.date;$('es').value=e.shift;$('ea').value=e.a;$('eb').value=e.b;$('edoc').value=e.doc;$('ek').value=e.k;$('ent').value=e.note;
+    $('ed').value=e.date;$('es').value=e.shift;$('ea').value=e.a;$('eb').value=e.b;$('edoc').value=e.doc;$('ek').value=e.k;$('ekt').value=e.kt||'';$('ent').value=e.note;
     $('einfo').textContent=e.name+'　'+TY[e.ty];
     $('es').parentNode.style.visibility=e.ty==='OTH'?'hidden':'';
     $('eab').style.display=(e.ty==='OT'||e.ty==='LV'||e.ty==='OTH')?'':'none';$('edk').style.display=e.ty==='OT'?'':'none';
     $('em').style.display='flex';
   }
 });
-['ea','eb'].forEach(i=>$(i).oninput=function(){fmt(this)});$('ek').oninput=function(){this.value=this.value.toUpperCase()};
+['ea','eb','ekt'].forEach(i=>$(i).oninput=function(){fmt(this)});$('ek').oninput=function(){this.value=this.value.toUpperCase()};
 $('ecancel').onclick=()=>{$('em').style.display='none';EID=null};
 $('esave').onclick=async()=>{
   const e=S.bv.entries.find(x=>x.id===EID);if(!e)return;
-  const o={date:$('ed').value,shift:e.ty==='OTH'?'—':$('es').value,a:$('ea').value.trim(),b:$('eb').value.trim(),doc:$('edoc').value,k:$('ek').value.trim().toUpperCase(),note:$('ent').value.trim()};
+  const o={date:$('ed').value,shift:e.ty==='OTH'?'—':$('es').value,a:$('ea').value.trim(),b:$('eb').value.trim(),doc:$('edoc').value,k:$('ek').value.trim().toUpperCase(),kt:$('ekt').value.trim(),note:$('ent').value.trim()};
   const er=(e.ty==='AM'||e.ty==='PM'||e.ty==='DAY')?(o.date?'':'請先填寫：日期'):chk(e.ty,o);if(er){msg(er);return}
   try{await call('edit',Object.assign({id:EID},o));$('em').style.display='none';EID=null;toast('已儲存');loadBack()}catch(err){msg(err.message)}
 };
