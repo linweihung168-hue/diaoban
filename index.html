@@ -619,6 +619,17 @@ function desc9(e){
   if(e.ty==='加班')return{h:esc(e.a)+'　'+esc(e.sa)+'　'+esc(e.kind)+' '+esc(e.t1)+'→'+esc(e.t2)+'（'+hm(min9(e))+'）',r:[]};
   return{h:esc(e.a||''),r:[]};
 }
+/* 小時假：Word 要標的當天上班時數（平日日班才自動算：總時數 8h 扣請假；小夜、假日、其他班別需人工） */
+const DAY8_9=['N','F','F2','FA','FS','E','G'];
+function hw9(e,list){
+  if(e.ty!=='請假'||e.kind!=='LV')return null;
+  const wd=new Date(e.date+'T00:00:00').getDay();
+  if(DAY8_9.indexOf(e.sa)<0||wd<1||wd>5)return {t:'小時假：Word 標示請人工計算（小夜、假日或其他班別）',auto:false};
+  const mins=(list||[]).filter(x=>x.ty==='請假'&&x.kind==='LV'&&x.a===e.a&&x.date===e.date).reduce((n,x)=>n+Math.max(0,tm(x.t2)-tm(x.t1)),0);
+  const h=Math.round((480-mins)/60*100)/100,lv=Math.round(mins/60*100)/100;
+  return {t:'Word 標示：<b>'+h+'h</b>（8h − 當天請假共 '+lv+'h）'+(mins%30?'　<span class="warn">請假不是 30 分鐘的倍數，請確認</span>':''),auto:true,h:h};
+}
+const hwList9=()=>((isAdmin()&&S.bv9&&S.bv9.entries)||(S.v9&&S.v9.entries)||[]);
 const L9H='<div class="l9h"><span>調班日期</span><span>原上班者</span><span>班別</span><span>新上班者／內容</span><span></span></div>';
 function c4_9(e){
   if(e.ty==='換班')return esc(e.b)+' <small>'+esc(e.sb)+'</small>';
@@ -633,7 +644,7 @@ function card9(e,adm){
   if(e.ty==='換班')R.push('調班後：'+esc(e.a)+' → <b>'+esc(e.sb)+'</b>　'+esc(e.b)+' → <b>'+esc(e.sa)+'</b>');
   if(e.ty==='請假'&&e.b)R.push('貼班：'+esc(e.b)+'　'+esc(e.sb));
   if(e.ty==='加班')R.push('加班時間：'+hm(min9(e)));
-  if(e.ty==='請假'&&e.kind==='LV')R.push('請假時間：'+hm(tm(e.t2)-tm(e.t1)));
+  if(e.ty==='請假'&&e.kind==='LV'){R.push('請假時間：'+hm(tm(e.t2)-tm(e.t1)));const w=hw9(e,hwList9());if(w)R.push(w.t)}
   if(e.note)R.push('備註：'+esc(e.note));
   R.push('登記日期：'+esc(String(e.at||'').slice(0,10))+(adm?'　登記人：'+esc(e.by):''));
   const done=e.doneAt?`<span class="ok">✓ 已處理${adm?'（'+esc(e.doneBy)+'　'+esc(md9(e.doneAt)+' '+String(e.doneAt).slice(11,16))+'）':''}</span><br>`:'';
@@ -642,7 +653,7 @@ function card9(e,adm){
 }
 function pendRow9(e){
   const d=desc9(e);
-  return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(md9(e.date))}　${tyN9(e.ty)}</b>　${d.h}${d.r.length?'<br><span style="color:var(--mut)">'+d.r.join('　')+'</span>':''}${e.note?'<br><span style="color:var(--mut)">備註：'+esc(e.note)+'</span>':''}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-a9="done" data-id="${esc(e.id)}">已處理</button></div>`;
+  return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(md9(e.date))}　${tyN9(e.ty)}</b>　${d.h}${d.r.length?'<br><span style="color:var(--mut)">'+d.r.join('　')+'</span>':''}${e.note?'<br><span style="color:var(--mut)">備註：'+esc(e.note)+'</span>':''}${(()=>{const w=hw9(e,hwList9());return w?'<br><span style="color:var(--mut)">'+w.t+'</span>':''})()}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-a9="done" data-id="${esc(e.id)}">已處理</button></div>`;
 }
 
 /* ---- 一般人員頁面 ---- */
@@ -732,7 +743,7 @@ $('xgo9').onclick=async()=>{
     E.forEach(e=>{
       if(e.ty==='換班'){chg.push([e.date,e.a,e.sb,ec(e.sb),'調班：與 '+e.b+' 互換（原 '+e.sa+'）',e.note]);chg.push([e.date,e.b,e.sa,ec(e.sa),'調班：與 '+e.a+' 互換（原 '+e.sb+'）',e.note])}
       else if(e.ty==='請假'&&e.b)chg.push([e.date,e.b,e.sb,ec(e.sb),'貼班：'+e.a+' 請 PM',e.note])});
-    const lv=[['日期','人員','班別','種類','開始','結束','小時','備註']].concat(E.filter(e=>e.ty==='請假').map(e=>[e.date,e.a,e.sa,KIND9[e.kind],e.t1,e.t2,e.kind==='LV'?Math.round((tm(e.t2)-tm(e.t1))/6)/10:'',e.note]));
+    const lv=[['日期','人員','班別','種類','開始','結束','小時','Word標示時數','備註']].concat(E.filter(e=>e.ty==='請假').map(e=>[e.date,e.a,e.sa,KIND9[e.kind],e.t1,e.t2,e.kind==='LV'?Math.round((tm(e.t2)-tm(e.t1))/6)/10:'',(()=>{const w=hw9(e,E);return w&&w.auto?w.h:(w?'人工計算':'')})(),e.note]));
     const ot=[['日期','人員','班別','種類','原時間','實際時間','加班分鐘','備註']].concat(E.filter(e=>e.ty==='加班').map(e=>[e.date,e.a,e.sa,e.kind,e.t1,e.t2,min9(e),e.note]));
     const ents=[['日期','類型','人員／原上班者','班別','新上班者／貼班','新上班者原班別／貼班班別','種類','開始／原時間','結束／實際時間','備註','登記人','登記時間','已修改','已處理','處理人','處理時間']].concat(E.map(e=>[e.date,tyN9(e.ty),e.a,e.sa,e.b,e.sb,e.kind,e.t1,e.t2,e.note,e.by,e.at,e.edited==='Y'?'是':'',e.doneAt?'是':'',e.doneBy,e.doneAt]));
     const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).sort((p,q)=>p.ym<q.ym?-1:p.ym>q.ym?1:by9(p.name,q.name)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
