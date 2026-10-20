@@ -66,7 +66,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div class="card">
 <div class="row"><div><label>日期</label><input type="date" id="d"></div>
 <div><label>類型</label><select id="ty"><option value="OT">加班</option><option value="LV">請假</option><option value="OTH">其他</option></select></div></div>
-<div id="shW"><label>班別</label><select id="s"></select></div>
+<div id="shW"><label>班別</label><select id="s"></select><div class="note" id="sh94" style="margin:3px 0 0"></div></div>
 <div id="lvk" style="display:none"><label>請假種類</label><div class="seg"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button><button type="button" data-k="DAY">整天</button></div></div>
 <div class="row" id="ab"><div id="aW"><label id="aL">原下班時間</label><input id="a" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="bL">實際下班時間</label><input id="b" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
 <div id="dk"><label>醫師</label><select id="doc"></select><div class="row"><div><label>最後一張領藥號</label><input id="k" autocomplete="off"></div><div><label>處方時間</label><input id="kt" inputmode="numeric" maxlength="5" autocomplete="off"></div></div><p class="note" style="margin:6px 0 0">處方簽上的號碼與時間，紙本請留存</p></div>
@@ -175,14 +175,14 @@ function showLogin(m){$('app').style.display='none';$('login').style.display='';
 function lostAuth(){store.removeItem(TK);showLogin('登入已失效，請重新輸入員工代號')}
 async function doLogin(code,unlock){return call0('login',{code:code,dev:dev(),unlock:!!unlock})}
 async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;throw new Error((r&&r.error)||'登入失敗')}
-async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;enter()}
+async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;enter()}
 $('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
   $('lgin').disabled=true;try{await afterLogin(await doLogin(c))}catch(e){$('lerr').textContent=e.message}$('lgin').disabled=false};
 $('code').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
 $('out').onclick=()=>{store.removeItem(TK);showLogin('')};
 async function boot(){
   const t=store.getItem(TK);
-  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.last=null;S.pre=r.view||null;enter();return}catch(e){store.removeItem(TK)}}
+  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;S.last=null;S.pre=r.view||null;enter();return}catch(e){store.removeItem(TK)}}
   showLogin('');
 }
 const myUnits=()=>((S.me&&S.me.units&&S.me.units.length)?S.me.units:['D2694']).filter(u=>u!=='D2690'||S.cfg90);
@@ -241,6 +241,25 @@ function onForm(reset){
   if(reset){$('a').value=(t==='OT'&&!np)?(sh.end||''):'';$('b').value=t==='LV'?(sh.end||''):''}
   calc();
 }
+/* 中藥局：登記時依班表帶入班別（Word 寫法＋星期幾 → 班別選項） */
+function map94(code,date){
+  if(!code||!date)return null;const wd=new Date(date+'T00:00:00').getDay();
+  const f=keys=>(S.cfg?S.cfg.shifts:[]).find(s=>keys.every(k=>dn(s.name).replace(/[（(）)\s]/g,'').indexOf(k)>=0));
+  if(code==='M1')return wd===1||wd===3||wd===4?f(['M1','一三四']):(wd===2||wd===5?f(['M1','二五']):null);
+  if(code==='N2')return (wd===2||wd===5)?f(['N2','二五']):null;
+  if(code==='B')return (wd===1||wd===3)?f(['B','中','小夜']):null;
+  if(code==='B1230')return f(['B','西','小夜']);
+  if(wd===6){if(code==='9-13')return f(['週六','9-13']);if(code==='N+')return f(['週六','N+']);if(code==='N')return f(['週六','李'])}
+  return null;
+}
+function auto94(){
+  const sel=$('ty').value;if(sel==='OTH'||$('s').dataset.manual==='1')return;
+  const name=isAdmin()?S.target:S.me.name,d=$('d').value;
+  const a=S.roster94&&name?((S.roster94[d.slice(0,7)]||{})[name]||[]):[];
+  const o=map94(a[+d.slice(8,10)-1]||'',d);
+  if(o){$('s').value=o.name;$('s').dataset.auto='1';$('sh94').textContent='依班表帶入';onForm(true)}
+  else{$('sh94').textContent='';if($('s').dataset.auto==='1'){$('s').selectedIndex=0;$('s').dataset.auto='';onForm(true)}}
+}
 function overlap(sh,a,b){return (sh.windows||[]).some(w=>tm(a)<tm(w[1])&&tm(b)>tm(w[0]))}
 function readForm(){return{date:$('d').value,shift:$('ty').value==='OTH'?'—':$('s').value,a:$('a').value.trim(),b:$('b').value.trim(),doc:$('doc').value,k:$('k').value.trim().toUpperCase(),kt:$('kt').value.trim(),note:$('nt').value.trim()}}
 function chk(t,o){
@@ -265,10 +284,11 @@ function calc(){
   else if((t==='OT'&&(o.b||(!np&&o.a)))||(t==='LV'&&(o.a||o.b))){const bad=(x=>x&&!V(x));if(bad(o.b)||bad(o.a))h='<span class="warn">請用 24 小時制填入時間（例 17:30 21:30）</span>'}
   el.innerHTML=h;el.style.display=h?'':'none';
 }
-$('ty').onchange=()=>{S.lk=null;onForm(true)};$('s').onchange=()=>onForm(true);
+$('ty').onchange=()=>{S.lk=null;onForm(true);auto94()};$('s').onchange=()=>{$('s').dataset.manual='1';$('sh94').textContent='';onForm(true)};
+$('d').addEventListener('change',()=>auto94());
 $('lvk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;S.lk=b.dataset.k;onForm(true)};
 ['a','b'].forEach(i=>$(i).oninput=function(){fmt(this);calc()});$('kt').oninput=function(){fmt(this)};$('k').oninput=function(){this.value=this.value.toUpperCase()};
-$('pbtns').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.target=b.dataset.p;loadFill()};
+$('pbtns').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.target=b.dataset.p;$('s').dataset.manual='';loadFill()};
 async function loadFill(){
   document.querySelectorAll('#pbtns button').forEach(b=>{const on=b.dataset.p===S.target;b.className=on?'on':'';});
   if(isAdmin()&&!S.target){S.fv=null;$('mineH').textContent='未休分鐘';$('mine').innerHTML='<p class="note">請先在上方選擇人員</p>';$('myList').innerHTML='';$('myDays').innerHTML='';return}
@@ -277,6 +297,7 @@ async function loadFill(){
   try{S.fv=await call('view',{month:ymNow(),person:isAdmin()?S.target:''});renderFill()}catch(e){msg(e.message)}
 }
 function renderFill(){
+  setTimeout(auto94,0);
   const v=S.fv,st=v.stats[0]||{carryIn:0,total:0,extra:0,unused:0,can:0},adm=isAdmin();
   $('mineH').textContent=adm?S.target+' 的未休分鐘（含上月）':'我的未休分鐘（含上月）';
   $('mine').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">本月總加班 ${st.total} 分鐘（含上月 ${st.total+st.carryIn}）；未休＝上月 ${st.carryIn} ＋ 本月多出 ${st.extra}。滿 30 分鐘可換算 0.5 小時，目前可換算 ${st.can} h。</div>`;
@@ -316,7 +337,7 @@ $('go').onclick=async()=>{
   L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
   if(!await ask('請確認內容',L.join('<br>'),'確認送出'))return;
   $('go').disabled=true;
-  try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('kt').value='';$('nt').value='';onForm(true);await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
+  try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('kt').value='';$('nt').value='';$('s').dataset.manual='';onForm(true);auto94();await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
   $('go').disabled=false;
 };
 
@@ -768,7 +789,7 @@ function rosterCode9(date,name){
   const a=(S.cfg90.roster[date.slice(0,7)]||{})[name];return a?(a[+date.slice(8,10)-1]||''):'';
 }
 function autoSh9(p,srcId,shId,noR){
-  const el=$(p+shId),name=$(p+srcId).value,c=rosterCode9($(p+'d').value,name);
+  const el=$(p+shId),name=$(p+srcId).value;let c=rosterCode9($(p+'d').value,name);if(c==='B1230')c='B';
   if(el.value&&el.dataset.auto!=='1')return;               // 使用者自己打的，不覆蓋
   const ok=c&&okS9(c,noR);
   el.value=ok?c:'';el.dataset.auto=ok?'1':'';el.classList.remove('bad');
