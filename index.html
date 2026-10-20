@@ -145,11 +145,11 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <label>備註</label><input id="ent" maxlength="200">
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel">取消</button><button type="button" class="go" id="esave" style="margin:0">儲存修改</button></div></div></div>
 <div id="nm" class="mask"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">通知</h2><button type="button" class="x" id="nclose" aria-label="關閉">✕</button></div><div id="nl" style="margin-top:6px"></div></div></div>
-<div id="mt"><div style="text-align:center;max-width:340px"><div style="width:64px;height:64px;border-radius:50%;background:var(--card);border:1px solid var(--bd);color:var(--ac);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div><h2 style="font-size:22px;margin:0 0 8px">系統更新中</h2><p class="note" id="mtn" style="margin:0 0 4px"></p><div id="mtt" style="font-size:26px;font-weight:700;color:var(--ac);margin:10px 0 4px"></div><p class="note" id="mth" style="margin:0 0 16px">時間到會自動恢復，不用重新登入</p><button type="button" id="mtr" class="go" style="margin-top:0">重新整理</button></div></div>
+<div id="mt"><div style="text-align:center;width:100%;max-width:320px"><div style="width:88px;height:88px;border-radius:22px;background:linear-gradient(145deg,#4c93ff,#1f6feb);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(31,111,235,.27)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div><h2 style="font-size:26px;margin:20px 0 6px">系統更新中</h2><div id="mtn" style="font-size:16px;margin:0 0 26px;opacity:.85"></div><div id="mtt" style="font-size:20px;font-weight:600"></div><p class="note" id="mth" style="margin:6px 0 28px"></p><button type="button" id="mtr" class="go" style="margin-top:0">重新整理</button></div></div>
 <div id="sm" class="mask"><div class="card"><h2>設定</h2>
 <label>字體大小</label><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>大班表預設展開</span><button type="button" id="sro" class="x" style="border:1px solid var(--bd);min-width:64px"></button></div>
-<p class="note" style="margin:10px 0 0">設定只存在這支手機（這個瀏覽器），不影響其他人。</p><p class="note" style="margin:6px 0 0" id="ver"></p>
+<p class="note" style="margin:10px 0 0" id="ver"></p>
 <button type="button" class="go" id="sclose">完成</button></div></div>
 <div id="em9" class="mask"><div class="card"><h2>編輯登記</h2><p class="note" id="einfo9"></p><div id="e9body"></div>
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel9">取消</button><button type="button" class="go" id="esave9" style="margin:0">儲存修改</button></div></div></div>
@@ -280,11 +280,18 @@ setInterval(()=>{if(S.me)chkVer()},5*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.me)chkVer()});
 const untilTxt=u=>{if(!u)return '';return u.slice(0,10)===dayNow()?u.slice(11,16):u.slice(5,10).replace('-','/')+' '+u.slice(11,16)};
 let mtTimer=null;
+function mtLeft(u){const t=Date.UTC(+u.slice(0,4),+u.slice(5,7)-1,+u.slice(8,10),+u.slice(11,13),+u.slice(14,16));return Math.ceil((t-(Date.now()+8*36e5))/6e4)}
+function mtRender(){const u=S.mtU;
+  if(!u){$('mtt').innerHTML='更新完成後會自動恢復';$('mth').textContent='不用重新登入';return}
+  const n=mtLeft(u);let t;
+  if(n<=1)t='<span style="color:var(--ac);font-size:30px">即將</span>恢復';
+  else if(n<60)t='約 <span style="color:var(--ac);font-size:30px">'+n+'</span> 分鐘後恢復';
+  else{const h=Math.floor(n/60),m=n%60;t='約 <span style="color:var(--ac);font-size:30px">'+h+'</span> 小時'+(m?' <span style="color:var(--ac);font-size:30px">'+m+'</span> 分鐘':'')+'後恢復'}
+  $('mtt').innerHTML=t;$('mth').textContent='預計 '+untilTxt(u)+'　·　時間到會自動恢復'}
 function showMaint(m){
-  m=m||{};$('mtn').textContent=m.note||'更新完成後就能繼續使用';
-  $('mtt').textContent=m.until?'預計 '+untilTxt(m.until)+' 恢復':'';$('mth').style.display=m.until?'':'none';
+  m=m||{};$('mtn').textContent=m.note||'更新功能中，請稍候';S.mtU=m.until||'';mtRender();
   $('mt').style.display='flex';
-  if(!mtTimer)mtTimer=setInterval(()=>checkMaint(false),20000);
+  if(!mtTimer)mtTimer=setInterval(()=>{mtRender();checkMaint(false)},20000);
 }
 async function checkMaint(manual){
   try{const r=await rpc('status',null,{});
@@ -335,7 +342,7 @@ function enter(){
   S.unit=us.indexOf(u)>=0?u:(us.indexOf('D2694')>=0?'D2694':us[0]);
   $('units').style.display=us.length>1?'':'none';
   $('units').innerHTML=['D2690','D2694'].filter(x=>us.indexOf(x)>=0).map(x=>`<button type="button" data-u="${x}">${x}</button>`).join('');
-  applyPrefs();$('ver').textContent='版本 '+APPV;chkVer();renderBell();renderBanner();renderSys();initForm();fillPeople();if(S.cfg90)initForm9();switchTab(isAdmin()?'back':S.tab);
+  applyPrefs();$('ver').textContent='最後更新：'+APPV.slice(0,10).replace(/\./g,'/');chkVer();renderBell();renderBanner();renderSys();initForm();fillPeople();if(S.cfg90)initForm9();switchTab(isAdmin()?'back':S.tab);
 }
 $('units').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.u===S.unit)return;S.unit=b.dataset.u;try{store.setItem('diaoban_unit',S.unit)}catch(er){}switchTab(S.tab)};
 function fillPeople(){
