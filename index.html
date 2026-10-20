@@ -227,17 +227,17 @@ function onForm(reset){
   const noHalf=!!(sh.night||String(sh.name||'').indexOf('週六')===0);
   if(S.lk&&(S.lk==='AM'||S.lk==='PM')&&noHalf)S.lk=null;
   document.querySelectorAll('#lvk button').forEach(b=>{const k=b.dataset.k;b.disabled=(k==='AM'||k==='PM')&&noHalf;b.classList.toggle('on',S.lk===k)});
-  const t=effTy();
+  const t=effTy(),hol=t==='OT'&&sh.type==='休假日';
   $('lvk').style.display=sel==='LV'?'':'none';
   $('shW').style.display=sel==='OTH'?'none':'';
   const needTimes=(t==='OT'||t==='LV'||sel==='OTH');
   $('ab').style.display=needTimes?'':'none';
   $('aW').style.display=(t==='OT'&&np)?'none':'';
-  $('aL').textContent=t==='LV'?'請假開始':sel==='OTH'?'開始（選填）':'原下班時間';
-  $('bL').textContent=t==='LV'?'請假結束':sel==='OTH'?'結束（選填）':np?'下班時間':'實際下班時間';
-  $('dk').style.display=t==='OT'?'':'none';
+  $('aL').textContent=t==='LV'?'請假開始':hol?'開始時間':sel==='OTH'?'開始（選填）':'原下班時間';
+  $('bL').textContent=t==='LV'?'請假結束':hol?'結束時間':sel==='OTH'?'結束（選填）':np?'下班時間':'實際下班時間';
+  $('dk').style.display=(t==='OT'&&!hol)?'':'none';
   const D=$('doc');if(t==='OT'&&sh.doctor){D.value=sh.doctor;D.disabled=true}else{if(D.disabled)D.value='';D.disabled=false}
-  $('nL').textContent=sel==='OTH'?'備註（必填）':'備註（選填）';
+  $('nL').textContent=(sel==='OTH')?'備註（必填）':hol?'事由（必填）':'備註（選填）';
   if(reset){$('a').value=(t==='OT'&&!np)?(sh.end||''):'';$('b').value=t==='LV'?(sh.end||''):''}
   calc();
 }
@@ -256,7 +256,8 @@ function auto94(){
   const sel=$('ty').value;if(sel==='OTH'||$('s').dataset.manual==='1')return;
   const name=isAdmin()?S.target:S.me.name,d=$('d').value;
   const a=S.roster94&&name?((S.roster94[d.slice(0,7)]||{})[name]||[]):[];
-  const o=map94(a[+d.slice(8,10)-1]||'',d);
+  const c0=a[+d.slice(8,10)-1]||'';
+  const o=(c0==='R'&&sel==='OT')?(S.cfg.shifts.find(s=>s.type==='休假日')||null):map94(c0,d);
   if(o){$('s').value=o.name;$('s').dataset.auto='1';$('sh94').textContent='依班表帶入';onForm(true)}
   else{
     const c=a[+d.slice(8,10)-1]||'';
@@ -270,12 +271,15 @@ function chk(t,o){
   const sh=shiftOf(o.shift)||{},np=sh.type==='N+',miss=[];
   if(!o.date)miss.push('日期');
   if((t==='OT'||t==='LV')&&!o.shift)miss.push('班別');
-  if(t==='OT'){if(!o.b)miss.push(np?'下班時間':'實際下班時間');if(!np&&!o.a)miss.push('原下班時間');if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號');if(!o.kt)miss.push('處方時間')}
+  const hol=sh.type==='休假日';
+  if(t!=='OT'&&t!=='OTH'&&hol)return '請假不能選「休假日加班」';
+  if(t==='OT'){if(!o.b)miss.push(hol?'結束時間':np?'下班時間':'實際下班時間');if(!np&&!o.a)miss.push(hol?'開始時間':'原下班時間');if(!hol){if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號');if(!o.kt)miss.push('處方時間')}else if(!o.note)miss.push('事由（備註）')}
   if(t==='LV'){if(!o.a)miss.push('請假開始');if(!o.b)miss.push('請假結束')}
   if(t==='OTH'&&!o.note)miss.push('備註');
   if(miss.length)return '請先填寫：'+miss.join('、');
   if(o.date>dayNow())return '不能登記未來的日期';
   if((t==='OT'||t==='LV')&&(!V(o.b)||(!(np&&t==='OT')&&!V(o.a))))return '時間請用 24 小時制，例如 17:30、21:30';
+  if(t==='OT'&&hol){if(tm(o.b)<=tm(o.a))return '結束時間要晚於開始時間';return ''}
   if(t==='OT'&&!V(o.kt))return '處方時間請用 24 小時制，例如 16:04';
   if(t==='OT'&&!(/[A-Z]/.test(o.k)&&/\d/.test(o.k)&&/^[A-Z0-9\-]+$/.test(o.k)))return '最後一張領藥號請填英文字母加數字，例如 K162';
   if(t==='OT'){if(np){if(tm(o.b)<690)return '下班時間要在 11:30 之後'}else{if(tm(o.b)<=tm(o.a))return '實際下班要晚於原下班時間';if(overlap(sh,o.a,o.b))return '這段時間橫跨正常上班時段，請分成兩筆填寫（例如：中午一筆、下午一筆）。'}}
@@ -327,18 +331,18 @@ $('go').onclick=async()=>{
   if(isAdmin()&&!S.target){msg('請先在上方選擇人員');return}
   if(sel==='LV'&&!S.lk){msg('請選擇請假種類：AM、PM、小時假或整天');return}
   const t=effTy(),o=readForm(),e=chk(t,o);if(e){msg(e);return}
-  const sh=shiftOf(o.shift)||{},np=sh.type==='N+';
+  const sh=shiftOf(o.shift)||{},np=sh.type==='N+',sh0hol=sh.type==='休假日';
   const dup=S.fv&&S.fv.entries.some(x=>x.date===o.date&&x.ty===t&&x.shift===o.shift&&x.a===(t==='AM'||t==='PM'||t==='DAY'?'':o.a)&&x.b===(t==='AM'||t==='PM'||t==='DAY'?'':o.b)&&(t!=='OTH'||x.note===o.note));
   const L=[];if(isAdmin())L.push('對象：<b>'+esc(S.target)+'</b>');
   L.push('日期：<b>'+esc(o.date)+'</b>　類型：<b>'+TY[t]+'</b>');
   if(o.shift!=='—')L.push('班別：<b>'+esc(dn(o.shift))+'</b>');
-  if(t==='OT'){L.push('時間：<b>'+(np?'至 '+o.b:o.a+'–'+o.b)+'</b>');const m=np?150+tm(o.b)-690:tm(o.b)-tm(o.a);L.push((np?'上班時段合計':'加班')+'：<b>'+hm(m)+'</b>');L.push('醫師：<b>'+esc(o.doc)+'</b>　最後一張領藥號：<b>'+esc(o.k)+'</b>　處方時間：<b>'+esc(o.kt)+'</b>')}
+  if(t==='OT'){L.push('時間：<b>'+(np?'至 '+o.b:o.a+'–'+o.b)+'</b>');const m=np?150+tm(o.b)-690:tm(o.b)-tm(o.a);L.push((np?'上班時段合計':'加班')+'：<b>'+hm(m)+'</b>');if(!sh0hol)L.push('醫師：<b>'+esc(o.doc)+'</b>　最後一張領藥號：<b>'+esc(o.k)+'</b>　處方時間：<b>'+esc(o.kt)+'</b>')}
   else if(t==='LV')L.push('時間：<b>'+o.a+'–'+o.b+'</b>（'+hm(tm(o.b)-tm(o.a))+'）');
   else if(t==='AM')L.push('<b>14:00 上班</b>');else if(t==='PM')L.push('<b>12:30 下班</b>');else if(t==='DAY')L.push('<b>整天</b>');
   else if(o.a||o.b)L.push('時間：<b>'+esc(o.a)+'–'+esc(o.b)+'</b>');
   if(o.note)L.push('備註：<b>'+esc(o.note)+'</b>');
   if(dup)L.push('<span class="warn">已有相同的登記，請確認是否重複</span>');
-  if(t==='OT')L.push('<span class="warn">請把「最後一張處方」紙本留存，附在紙本調班表。</span>');
+  if(t==='OT'&&!sh0hol)L.push('<span class="warn">請把「最後一張處方」紙本留存，附在紙本調班表。</span>');
   L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
   if(!await ask('請確認內容',L.join('<br>'),'確認送出'))return;
   $('go').disabled=true;
@@ -426,11 +430,12 @@ document.addEventListener('click',async ev=>{
     $('ed').value=e.date;$('es').value=e.shift;$('ea').value=e.a;$('eb').value=e.b;$('edoc').value=e.doc;$('ek').value=e.k;$('ekt').value=e.kt||'';$('ent').value=e.note;
     $('einfo').textContent=e.name+'　'+TY[e.ty];
     $('es').parentNode.style.visibility=e.ty==='OTH'?'hidden':'';
-    $('eab').style.display=(e.ty==='OT'||e.ty==='LV'||e.ty==='OTH')?'':'none';$('edk').style.display=e.ty==='OT'?'':'none';
+    $('eab').style.display=(e.ty==='OT'||e.ty==='LV'||e.ty==='OTH')?'':'none';$('edk').style.display=(e.ty==='OT'&&!(shiftOf(e.shift)||{type:''}).type.startsWith('休假日'))?'':'none';
     $('em').style.display='flex';
   }
 });
 ['ea','eb','ekt'].forEach(i=>$(i).oninput=function(){fmt(this)});$('ek').oninput=function(){this.value=this.value.toUpperCase()};
+$('es').onchange=()=>{const e=S.bv&&S.bv.entries.find(x=>x.id===EID);if(e&&e.ty==='OT')$('edk').style.display=(shiftOf($('es').value)||{}).type==='休假日'?'none':''};
 $('ecancel').onclick=()=>{$('em').style.display='none';EID=null};
 $('esave').onclick=async()=>{
   const e=S.bv.entries.find(x=>x.id===EID);if(!e)return;
@@ -480,6 +485,7 @@ function sg9Key(e,el,noR){const b=SG9.box;if(!b||b.style.display==='none')return
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();SG9.idx=(SG9.idx+(e.key==='ArrowDown'?1:-1)+it.length)%it.length;it.forEach((x,i)=>x.classList.toggle('on',i===SG9.idx))}
   else if(e.key==='Enter'){e.preventDefault();const i=SG9.idx>=0?SG9.idx:(it.length===1?0:-1);if(i>=0)sg9Pick(it[i].dataset.v)}
   else if(e.key==='Escape')sg9Hide()}
+const noR9=p=>$(p+'ty').value==='請假';
 const okS9=(n,noR)=>!!sh9().find(s=>s.name===n)&&!(noR&&n==='R');
 const shift9=n=>sh9().find(s=>s.name===n);
 const ORD9='宋佰臻 洪世蓉 王宥閑 徐兆谷 施玫如 黃湯淋 曾玉屏 邱柏凱 詹柔婕 陳秋滿 謝淑釗 蔡宜璇 林偉弘 王宸瑄 鄭光輝 柯宥騂'.split(' ');
@@ -522,10 +528,10 @@ function wire9(p){
   $(p+'ty').onchange=()=>{ST9[p].lk='';ST9[p].ok='延後下班';on9(p,true)};
   ['swa','swb','pa','cv'].forEach(k=>$(p+k).onchange=()=>calc9(p));
   ['sws','swbs','psh'].forEach(k=>{const el=$(p+k);el.oninput=()=>{el.value=el.value.toUpperCase().replace(/\s/g,'');
-    const bad=el.value&&!okS9(el.value,k==='psh');el.classList.toggle('bad',!!bad);el.nextElementSibling.textContent=bad?'請確認班別代號':'';
-    sg9Show(el,k==='psh');k==='psh'?on9(p,false):calc9(p)};
+    const nr=k==='psh'&&noR9(p);const bad=el.value&&!okS9(el.value,nr);el.classList.toggle('bad',!!bad);el.nextElementSibling.textContent=bad?'請確認班別代號':'';
+    sg9Show(el,nr);k==='psh'?on9(p,false):calc9(p)};
     el.addEventListener('input',()=>{el.dataset.auto='';el.nextElementSibling.className='ferr'});
-    el.onfocus=()=>sg9Show(el,k==='psh');el.onblur=()=>setTimeout(sg9Hide,150);el.onkeydown=e=>sg9Key(e,el,k==='psh')});
+    el.onfocus=()=>sg9Show(el,k==='psh'&&noR9(p));el.onblur=()=>setTimeout(sg9Hide,150);el.onkeydown=e=>sg9Key(e,el,k==='psh'&&noR9(p))});
   $(p+'lk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;ST9[p].lk=b.dataset.k;on9(p,true)};
   $(p+'ok').onclick=e=>{const b=e.target.closest('button');if(!b)return;ST9[p].ok=b.dataset.k;on9(p,true)};
   ['x1','x2'].forEach(k=>$(p+k).oninput=function(){fmt(this);calc9(p)});
@@ -535,19 +541,19 @@ function on9(p,reset){
   const ty=$(p+'ty').value,s=ST9[p],sh=shift9($(p+'psh').value)||{},cover=!!sh.cover;
   $(p+'sw').style.display=ty==='換班'?'':'none';$(p+'ps').style.display=ty==='換班'?'none':'';
   $(p+'psW').style.display=(ty==='請假'||ty==='加班')?'':'none';
-  $(p+'pr').style.gridTemplateColumns=ty==='其他'?'minmax(0,1fr)':'';
+  $(p+'pr').style.gridTemplateColumns='minmax(0,1fr)';
   $(p+'pal').textContent=ty==='其他'?'人員（選填）':'人員';
   if(isAdmin()){const o=$(p+'pa').options[0];if(o)o.textContent=ty==='其他'?'（不指定）':'請選擇'}
-  $(p+'lk').style.display=ty==='請假'?'':'none';$(p+'ok').style.display=ty==='加班'?'':'none';
+  $(p+'lk').style.display=ty==='請假'?'':'none';$(p+'ok').style.display=(ty==='加班'&&!(($(p+'psh').value||'').trim().toUpperCase()==='R'))?'':'none';
   if(s.lk==='AM'&&cover)s.lk='';
   $(p+'lk').querySelectorAll('button').forEach(b=>{b.disabled=(b.dataset.k==='AM'&&cover);b.classList.toggle('on',s.lk===b.dataset.k)});
   $(p+'ok').querySelectorAll('button').forEach(b=>b.classList.toggle('on',s.ok===b.dataset.k));
-  const lv=ty==='請假'&&s.lk==='LV',ot=ty==='加班';
+  const lv=ty==='請假'&&s.lk==='LV',ot=ty==='加班',hol=ot&&$(p+'psh').value.trim().toUpperCase()==='R';
   $(p+'xr').style.display=(lv||ot)?'':'none';
-  $(p+'xl1').textContent=lv?'請假開始':(s.ok==='提早上班'?'原上班時間':'原下班時間');
-  $(p+'xl2').textContent=lv?'請假結束':(s.ok==='提早上班'?'實際上班時間':'實際下班時間');
+  $(p+'xl1').textContent=lv?'請假開始':hol?'開始時間':(s.ok==='提早上班'?'原上班時間':'原下班時間');
+  $(p+'xl2').textContent=lv?'請假結束':hol?'結束時間':(s.ok==='提早上班'?'實際上班時間':'實際下班時間');
   $(p+'cvW').style.display=(ty==='請假'&&s.lk==='PM'&&cover)?'':'none';
-  $(p+'nl').textContent=ty==='其他'?'備註（必填）':'備註（選填）';
+  $(p+'nl').textContent=(ty==='其他')?'備註（必填）':hol?'事由（必填）':'備註（選填）';
   $(p+'d').max=ty==='加班'?dayNow():'';
   if(reset){$(p+'x1').value='';$(p+'x2').value=''}
   calc9(p);
@@ -559,7 +565,7 @@ function read9(p){
     if(ty==='請假'||ty==='加班')o.sa=$(p+'psh').value.trim().toUpperCase();
     if(ty==='請假'){o.kind=s.lk;if(s.lk==='LV'){o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}
       const sh=shift9(o.sa)||{};if(s.lk==='PM'&&sh.cover){o.b=$(p+'cv').value;o.sb=sh.cover}}
-    if(ty==='加班'){o.kind=s.ok;o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}}
+    if(ty==='加班'){o.kind=o.sa==='R'?'休假日加班':(s.ok==='休假日加班'?'延後下班':s.ok);o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}}
   return o;
 }
 const min9=o=>o.kind==='提早上班'?tm(o.t1)-tm(o.t2):tm(o.t2)-tm(o.t1);
@@ -579,16 +585,17 @@ function chk9(o){
   if(!o.a)miss.push('人員');if(!o.sa)miss.push('班別');
   if(o.ty==='請假'&&!o.kind)miss.push('請假種類');
   if(miss.length)return '請先填寫：'+miss.join('、');
-  if(!okS9(o.sa,true))return '請確認班別代號';
+  if(!okS9(o.sa,o.ty==='請假'))return '請確認班別代號';
   const sh=shift9(o.sa)||{};
   if(o.ty==='請假'){
     if(o.kind==='LV'){if(!o.t1||!o.t2)return '請先填寫：請假開始、請假結束';if(!V(o.t1)||!V(o.t2))return '時間請用 24 小時制，例如 16:10';if(tm(o.t2)<=tm(o.t1))return '請假結束要晚於請假開始'}
     if(o.kind==='PM'&&sh.cover){if(!o.b)return '請先填寫：貼班人員';if(o.b===o.a)return '貼班人員不能是請假的人'}
     return '';
   }
-  if(!o.t1||!o.t2)return '請先填寫：'+(o.kind==='延後下班'?'原下班時間、實際下班時間':'原上班時間、實際上班時間');
+  if(o.kind==='休假日加班'&&!o.note)return '請先填寫：事由（備註）';
+  if(!o.t1||!o.t2)return '請先填寫：'+(o.kind==='休假日加班'?'開始時間、結束時間':o.kind==='延後下班'?'原下班時間、實際下班時間':'原上班時間、實際上班時間');
   if(!V(o.t1)||!V(o.t2))return '時間請用 24 小時制，例如 17:30';
-  if(min9(o)<=0)return o.kind==='延後下班'?'實際下班要晚於原下班時間':'實際上班要早於原上班時間';
+  if(min9(o)<=0)return o.kind==='休假日加班'?'結束時間要晚於開始時間':o.kind==='延後下班'?'實際下班要晚於原下班時間':'實際上班要早於原上班時間';
   return '';
 }
 function calc9(p){
@@ -663,7 +670,7 @@ const L9H='<div class="l9h"><span>調班日期</span><span>原上班者</span><s
 function c4_9(e){
   if(e.ty==='換班')return esc(e.b)+' <small>'+esc(e.sb)+'</small>';
   if(e.ty==='請假')return '請假 '+KIND9[e.kind]+(e.kind==='LV'?' '+esc(e.t1)+'–'+esc(e.t2):'');
-  if(e.ty==='加班')return '加班 '+(e.kind==='提早上班'?'提早':'延後')+' '+esc(e.t1)+'→'+esc(e.t2);
+  if(e.ty==='加班')return '加班 '+(e.kind==='休假日加班'?'休假日':e.kind==='提早上班'?'提早':'延後')+' '+esc(e.t1)+'→'+esc(e.t2);
   return esc(e.note||'其他');
 }
 function card9(e,adm){
@@ -803,7 +810,7 @@ function autoSh9(p,srcId,shId,noR){
 function autoFill9(p){
   if(p!=='f9')return;const ty=$(p+'ty').value;
   if(ty==='調班'||ty==='換班'){autoSh9(p,'swa','sws',false);autoSh9(p,'swb','swbs',false)}
-  else if(ty==='請假'||ty==='加班')autoSh9(p,'pa','psh',true);
+  else if(ty==='請假'||ty==='加班')autoSh9(p,'pa','psh',ty==='請假');
   calc9(p);if(ty!=='調班'&&ty!=='換班')on9(p,false)
 }
 /* ---- 匯出 Excel（D2690） ---- */
