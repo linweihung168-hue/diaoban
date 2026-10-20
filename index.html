@@ -280,7 +280,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.20.2';
+const APPV='2026.10.21';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 function applySys(r){S.pwList=(r&&r.pwList)||[];S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
@@ -501,7 +501,7 @@ function entryCard(e,adm){
   const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span>`:'', ed=e.edited?`<span class="warn">（已修改）</span>`:'';
   const dn1=e.doneAt?`<span class="ok">✓ 已處理${adm&&e.doneBy?'（'+esc(e.doneBy)+'）':''}${adm?'':'，不能再修改'}</span><br>`:'';
   const ID=esc(e.id),B=(a,t)=>`<button type="button" data-act="${a}" data-id="${ID}">${t}</button>`;
-  const bt=adm?`<div class="bt">${e.doneAt?B('undone','取消已處理'):B('done','已處理')+B('edit','編輯')+B('del','刪除')}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${B('edit','修改')+B('del','刪除')}</div>`:'');
+  const bt=adm?`<div class="bt">${(e.doneAt?B('undone','取消已處理'):B('done','已處理'))+B('edit','編輯')+B('del','刪除')}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${B('edit','修改')+B('del','刪除')}</div>`:'');
   return `<details class="ec"><summary>${esc(md9(e.date))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}${e.doneAt?'　<span class="ok">✓</span>':''}</summary>${e.shift!=='—'?esc(dn(e.shift))+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k)+(e.kt?'　'+esc(e.kt):''):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${dn1}${bt}</details>`;
 }
 function daysTable(days,adm){
@@ -610,9 +610,10 @@ document.addEventListener('click',async ev=>{
   const e=(S.bv&&S.bv.entries.find(x=>x.id===id))||(S.fv&&S.fv.entries.find(x=>x.id===id));if(!e)return;
   if(act==='del'){
     const body=[e.date,TY[e.ty],e.shift==='—'?'':e.shift,whenOf(e),e.doc,e.k,e.kt,e.note?'備註：'+e.note:''].filter(Boolean).map(esc).join('<br>');
-    if(!await ask('確定要刪除這筆資料嗎？',body,'確定刪除',true))return;
+    if(!await ask('確定要刪除這筆資料嗎？',body+(e.doneAt&&isAdmin()?'<br><span class="warn">這筆已處理過，刪除後不會自動從醫院系統移除。</span>':''),'確定刪除',true))return;
     try{await call('del',{id});toast('已刪除');reload()}catch(er){msg(er.message)}
   }else if(act==='edit'){
+    if(e.doneAt&&isAdmin()&&!await ask('這筆已處理','<p style="margin:0">修改後會變回「未處理」，需要重新處理一次。<br>確定要編輯嗎？</p>','編輯',false))return;
     EID=id;$('es').innerHTML=S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
     $('edoc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
     $('ed').value=e.date;$('es').value=e.shift;$('ea').value=e.a;$('eb').value=e.b;$('edoc').value=e.doc;$('ek').value=e.k;$('ekt').value=e.kt||'';$('ent').value=e.note;
@@ -877,7 +878,7 @@ function card9(e,adm){
   R.push('登記日期：'+esc(String(e.at||'').slice(0,10))+(adm?'　登記人：'+esc(e.by):''));
   const done=e.doneAt?`<span class="ok">✓ 已處理${adm?'（'+esc(e.doneBy)+'　'+esc(md9(e.doneAt)+' '+String(e.doneAt).slice(11,16))+'）':'，不能再修改'}</span><br>`:'';
   const EB=`<button type="button" data-a9="edit" data-id="${esc(e.id)}">${adm?'編輯':'修改'}</button><button type="button" data-a9="del" data-id="${esc(e.id)}">刪除</button>`;
-  const btn=adm?`<div class="bt">${e.doneAt?`<button type="button" data-a9="undone" data-id="${esc(e.id)}">取消已處理</button>`:`<button type="button" data-a9="done" data-id="${esc(e.id)}">已處理</button>`+EB}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${EB}</div>`:'');
+  const btn=adm?`<div class="bt">${(e.doneAt?`<button type="button" data-a9="undone" data-id="${esc(e.id)}">取消已處理</button>`:`<button type="button" data-a9="done" data-id="${esc(e.id)}">已處理</button>`)+EB}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${EB}</div>`:'');
   return `<details class="e9r"><summary class="r9"><span>${esc(md9(e.date))}</span><span>${esc(e.a||'—')}</span><span>${esc(e.sa||'')}</span><span>${c4_9(e)}</span><span class="ok">${e.doneAt?'✓':''}</span></summary><div class="dt">${R.join('<br>')}<br>${done}${ed}${btn}</div></details>`;
 }
 function pendRow9(e){
@@ -943,9 +944,10 @@ document.addEventListener('click',async ev=>{
     const e=(S.bv9&&S.bv9.entries.find(x=>x.id===id))||(S.bv9&&S.bv9.pending.find(x=>x.id===id))||(S.v9&&S.v9.entries.find(x=>x.id===id));if(!e)return;
     const rl9=()=>isAdmin()?loadBack90():loadFill90();
     if(act==='del'){const d=desc9(e);
-      if(!await ask('確定要刪除這筆資料嗎？',esc(e.date)+'　'+tyN9(e.ty)+'<br>'+d.h+(d.r.length?'<br>'+d.r.join('<br>'):'')+(e.note?'<br>備註：'+esc(e.note):''),'確定刪除',true))return;
+      if(!await ask('確定要刪除這筆資料嗎？',esc(e.date)+'　'+tyN9(e.ty)+'<br>'+d.h+(d.r.length?'<br>'+d.r.join('<br>'):'')+(e.note?'<br>備註：'+esc(e.note):'')+(e.doneAt&&isAdmin()?'<br><span class="warn">這筆已處理過，刪除後不會自動從醫院系統移除。</span>':''),'確定刪除',true))return;
       await call('del90',{id:id});toast('已刪除');rl9();
     }else if(act==='edit'){
+      if(e.doneAt&&isAdmin()&&!await ask('這筆已處理','<p style="margin:0">修改後會變回「未處理」，需要重新處理一次。<br>確定要編輯嗎？</p>','編輯',false))return;
       EID9=id;$('e9body').innerHTML=form9('e9');fill9('e9');wire9('e9');
       $('einfo9').textContent=e.by?'登記人：'+e.by:'';$('e9ty').value=e.ty;$('e9ty').disabled=true;$('e9d').value=e.date;
       ST9.e9.lk=e.ty==='請假'?e.kind:'';ST9.e9.ok=e.ty==='加班'?e.kind:'延後下班';
