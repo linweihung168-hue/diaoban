@@ -49,6 +49,10 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 .mask>.card{max-width:440px;width:100%;margin:0;max-height:92%;overflow:auto}
 #toast{display:none;position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;z-index:40}
 .big input[type=date]{font-size:14px;padding-left:8px;padding-right:4px}
+.ib{position:relative}.bdg{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:#e5322d;color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box;line-height:1}
+.mtb{display:none;align-items:center;gap:10px;justify-content:space-between;background:#fff3e6;border:1px solid #f3c79a;color:#9a4a0a;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:12px}.mtb button{width:auto;flex:none;padding:5px 12px;background:#fff;font-size:13px;color:#9a4a0a}
+.nitem{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--bd)}.nitem:last-child{border:0}.nitem b{font-size:15px}.nitem p{margin:2px 0 0;font-size:13px;color:var(--mut);line-height:1.5;white-space:pre-wrap}.nitem small{color:var(--mut);font-size:11.5px}.ndot{width:9px;height:9px;border-radius:50%;background:#e5322d;flex:none;margin-top:7px}.nitem button.go{margin-top:8px;padding:8px}
+#mt{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:var(--bg);align-items:center;justify-content:center;padding:24px}
 .ib{width:36px;height:36px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--mut);background:var(--card);flex:none}
 .ib svg{width:19px;height:19px}.ib.spin svg{animation:sp .8s linear infinite}.ib.spin{color:var(--ac);border-color:var(--ac)}@keyframes sp{to{transform:rotate(360deg)}}
 .hbar{display:flex;align-items:center;gap:8px}.hbar #who{margin-right:auto}.hbar #out{width:auto}
@@ -68,7 +72,8 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <p class="warn" id="lerr" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgin" style="margin-top:6px">登入</button></section>
 
 <div id="app" style="display:none">
-<div id="bar" class="hbar"><b id="who"></b><button type="button" id="gear" class="ib" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button type="button" id="out" class="x">登出</button></div>
+<div id="bar" class="hbar"><b id="who"></b><button type="button" id="bell" class="ib" aria-label="通知"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="bdg" id="bdg"></span></button><button type="button" id="gear" class="ib" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button type="button" id="out" class="x">登出</button></div>
+<div id="mbn" class="mtb"></div>
 <div id="units" class="chips" style="margin-bottom:10px;display:none"></div>
 <div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">填寫</button><button type="button" id="tabB">後台管理</button></div>
 
@@ -91,6 +96,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 </section>
 
 <section id="back" style="display:none">
+<div id="sys94"></div>
 <div class="card"><label style="margin-top:0">月份</label><div class="mnav"><button type="button" data-id="bm" data-d="-1" aria-label="上個月">‹</button><span id="bml"></span><button type="button" data-id="bm" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm"></div>
 <div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：每日彙總、所有登記、月結、已刪除、修改紀錄、登入紀錄</p></div>
 <div class="card"><details><summary>每日彙總</summary><div id="dpb" class="seg" style="margin-bottom:10px"></div><div class="scroll"><table id="bDays"></table></div></details></div>
@@ -114,6 +120,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 </section>
 
 <section id="back90" style="display:none">
+<div id="sys90"></div>
 <div class="card"><label style="margin-top:0">月份</label><div class="mnav"><button type="button" data-id="bm9" data-d="-1" aria-label="上個月">‹</button><span id="bm9l"></span><button type="button" data-id="bm9" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm9"></div>
 <div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr9"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo9" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：班表變動、請假、加班、所有登記、每人彙總、已刪除、修改紀錄</p></div>
 <div class="card"><details id="dRs9"><summary>班表檔（登記時自動帶入班別）</summary><p class="note" style="margin:8px 0">先在 D2690 排班工具的第 3 個頁籤輸出「班表檔」，再在這裡選那個檔案上傳。同一個月重傳會整月取代。</p><div id="rs9" class="note"></div><input type="file" id="rf9" accept=".json,application/json" style="margin-top:8px"><div id="rp9" class="note" style="margin:8px 0"></div><button type="button" class="go" id="ru9" style="display:none">上傳班表</button></details></div>
@@ -127,7 +134,6 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div class="card"><details id="dEdits9"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits9"></table></div></details></div>
 </section>
 </div>
-<p class="note" style="text-align:center;margin:18px 0 6px"><a href="manual.html" target="_blank" rel="noopener" style="color:var(--mut)">使用說明</a></p>
 </main>
 
 <div id="toast">已送出</div>
@@ -138,10 +144,12 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div id="edk"><label>醫師</label><select id="edoc"></select><div class="row"><div><label>最後一張領藥號</label><input id="ek"></div><div><label>處方時間</label><input id="ekt" inputmode="numeric" maxlength="5"></div></div></div>
 <label>備註</label><input id="ent" maxlength="200">
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel">取消</button><button type="button" class="go" id="esave" style="margin:0">儲存修改</button></div></div></div>
+<div id="nm" class="mask"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">通知</h2><button type="button" class="x" id="nclose" aria-label="關閉">✕</button></div><div id="nl" style="margin-top:6px"></div></div></div>
+<div id="mt"><div style="text-align:center;max-width:340px"><div style="width:64px;height:64px;border-radius:50%;background:var(--card);border:1px solid var(--bd);color:var(--ac);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div><h2 style="font-size:22px;margin:0 0 8px">系統更新中</h2><p class="note" id="mtn" style="margin:0 0 4px"></p><div id="mtt" style="font-size:26px;font-weight:700;color:var(--ac);margin:10px 0 4px"></div><p class="note" id="mth" style="margin:0 0 16px">時間到會自動恢復，不用重新登入</p><button type="button" id="mtr" class="go" style="margin-top:0">重新整理</button></div></div>
 <div id="sm" class="mask"><div class="card"><h2>設定</h2>
 <label>字體大小</label><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>大班表預設展開</span><button type="button" id="sro" class="x" style="border:1px solid var(--bd);min-width:64px"></button></div>
-<p class="note" style="margin:10px 0 0">設定只存在這支手機（這個瀏覽器），不影響其他人。</p>
+<p class="note" style="margin:10px 0 0">設定只存在這支手機（這個瀏覽器），不影響其他人。</p><p class="note" style="margin:6px 0 0" id="ver"></p>
 <button type="button" class="go" id="sclose">完成</button></div></div>
 <div id="em9" class="mask"><div class="card"><h2>編輯登記</h2><p class="note" id="einfo9"></p><div id="e9body"></div>
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel9">取消</button><button type="button" class="go" id="esave9" style="margin:0">儲存修改</button></div></div></div>
@@ -173,11 +181,12 @@ const API='https://moljaswicnyuapldqvfz.supabase.co/functions/v1/api';   // ← 
 async function rpc(action,token,payload){
   let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:action,token:token,payload:payload||{}})});r=await r.json()}
   catch(e){throw new Error('連線失敗，請檢查網路後再試')}
+  if(r&&r.error==='MAINT')showMaint(r.maint);
   return r;
 }
 async function call(action,payload){
   const r=await rpc(action,S.token,payload);
-  if(r&&r.ok===false){if(r.error==='AUTH'){lostAuth();throw new Error('登入已失效，請重新登入')}throw new Error(r.error)}
+  if(r&&r.ok===false){if(r.error==='AUTH'){lostAuth();throw new Error('登入已失效，請重新登入')}if(r.error==='MAINT'){const e=new Error('系統更新中');e.maint=true;throw e}throw new Error(r.error)}
   return r;
 }
 /* ---- 小視窗 ---- */
@@ -192,15 +201,15 @@ let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.style.display='block
 function showLogin(m){$('app').style.display='none';$('login').style.display='';$('lerr').textContent=m||'';$('code').value='';S.token=null;S.me=null}
 function lostAuth(){store.removeItem(TK);showLogin('登入已失效，請重新輸入員工代號')}
 async function doLogin(code,unlock){return call0('login',{code:code,dev:dev(),unlock:!!unlock})}
-async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;throw new Error((r&&r.error)||'登入失敗')}
-async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;enter()}
+async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;if(r&&r.error==='MAINT')throw new Error('系統更新中');throw new Error((r&&r.error)||'登入失敗')}
+async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;applySys(r);enter()}
 $('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
   $('lgin').disabled=true;try{await afterLogin(await doLogin(c))}catch(e){$('lerr').textContent=e.message}$('lgin').disabled=false};
 $('code').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
 $('out').onclick=()=>{store.removeItem(TK);showLogin('')};
 async function boot(){
   const t=store.getItem(TK);
-  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;S.last=null;S.pre=r.view||null;enter();return}catch(e){store.removeItem(TK)}}
+  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;S.last=null;S.pre=r.view||null;applySys(r);enter();return}catch(e){if(e.maint)return;store.removeItem(TK)}}
   showLogin('');
 }
 
@@ -239,10 +248,83 @@ function renderRoster(u){
 document.addEventListener('click',async e=>{
   const rs=e.target.closest('[data-rs]');if(rs){RSM[rs.dataset.rs]=shiftYm(RSM[rs.dataset.rs],+rs.dataset.d,rs.dataset.rs);renderRoster(rs.dataset.rs);return}
   const rf=e.target.closest('[data-rf]');if(rf){e.preventDefault();e.stopPropagation();rf.classList.add('spin');
-    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;renderRoster('D2694');renderRoster('D2690');toast('已更新')}catch(er){msg(er.message)}
+    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;applySys(r);renderRoster('D2694');renderRoster('D2690');toast('已更新')}catch(er){msg(er.message)}
     rf.classList.remove('spin')}
 });
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
+
+/* ---- 版本、通知、維護模式 ---- */
+const APPV='2026.10.21';
+const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
+const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
+function applySys(r){S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
+function renderBell(){
+  const rd=readSet(),n=(S.notices||[]).filter(x=>rd.indexOf(x.id)<0).length+(S.newV?1:0),b=$('bdg');
+  b.textContent=n>9?'9+':String(n);b.style.display=n>0?'flex':'none';
+  $('bell').setAttribute('aria-label',n>0?'通知（'+n+' 則未讀）':'通知');
+}
+function openBell(){
+  const rd=readSet(),L=[];
+  if(S.newV)L.push(`<div class="nitem"><div style="flex:1"><b>有新版本可以使用</b><p>更新後才能使用最新功能，不用重新登入。</p><button type="button" class="go" data-upd="1">立即更新</button></div><i class="ndot"></i></div>`);
+  (S.notices||[]).forEach(x=>L.push(`<div class="nitem"><div style="flex:1"><b>${esc(x.title)}</b>${x.body?'<p>'+esc(x.body)+'</p>':''}<small>${esc(x.at.slice(5,10).replace('-','/'))}　${esc(x.by||'')}</small></div>${rd.indexOf(x.id)<0?'<i class="ndot"></i>':''}</div>`));
+  $('nl').innerHTML=L.join('')||'<p class="note" style="margin:10px 0">目前沒有通知</p>';
+  $('nm').style.display='flex';
+  saveRead(rd.concat((S.notices||[]).map(x=>x.id).filter(id=>rd.indexOf(id)<0)));renderBell();
+}
+$('bell').onclick=openBell;$('nclose').onclick=()=>{$('nm').style.display='none'};
+$('nl').onclick=e=>{if(e.target.closest('[data-upd]'))location.replace(location.pathname+'?v='+encodeURIComponent(S.newV||Date.now()))};
+async function chkVer(){
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});const j=await r.json();S.newV=(j&&j.v&&j.v!==APPV)?String(j.v):'';renderBell()}catch(e){}
+}
+setInterval(()=>{if(S.me)chkVer()},5*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.me)chkVer()});
+const untilTxt=u=>{if(!u)return '';return u.slice(0,10)===dayNow()?u.slice(11,16):u.slice(5,10).replace('-','/')+' '+u.slice(11,16)};
+let mtTimer=null;
+function showMaint(m){
+  m=m||{};$('mtn').textContent=m.note||'更新完成後就能繼續使用';
+  $('mtt').textContent=m.until?'預計 '+untilTxt(m.until)+' 恢復':'';$('mth').style.display=m.until?'':'none';
+  $('mt').style.display='flex';
+  if(!mtTimer)mtTimer=setInterval(()=>checkMaint(false),20000);
+}
+async function checkMaint(manual){
+  try{const r=await rpc('status',null,{});
+    if(r&&r.ok&&!r.active){$('mt').style.display='none';clearInterval(mtTimer);mtTimer=null;boot();return}
+    if(manual)toast('還在更新中，請稍後再試')}catch(e){if(manual)toast('連線失敗，請稍後再試')}
+}
+$('mtr').onclick=()=>checkMaint(true);
+function renderBanner(){
+  const b=$('mbn'),m=S.maint;
+  if(isAdmin()&&m&&m.active){b.style.display='flex';b.innerHTML='<span>維護模式開啟中，同事暫時無法使用'+(m.until?'（預計 '+esc(untilTxt(m.until))+' 自動恢復）':'')+'</span><button type="button" data-sys="moff">立即關閉</button>'}
+  else{b.style.display='none';b.innerHTML=''}
+}
+/* ---- 管理者後台：維護模式、公告 ---- */
+function renderSys(){
+  ['sys94','sys90'].forEach(id=>{const el=$(id);if(!el)return;
+    if(!isAdmin()){el.innerHTML='';return}
+    const old=el.querySelectorAll('details'),o1=old[0]?old[0].open:null,o2=old[1]?old[1].open:false;
+    const m=S.maint||{},on=m.on&&m.active,
+      def=new Date(Date.now()+8*36e5+36e5).toISOString().slice(0,16),
+      d7=new Date(Date.now()+8*36e5+7*864e5).toISOString().slice(0,10);
+    el.innerHTML=`<div class="card sys"><details${(o1===null?on:(o1||on))?' open':''}><summary>維護模式${on?'（開啟中）':''}</summary>`+(on
+      ?`<p class="note" style="margin:0 0 10px">開啟中，一般人員暫時無法使用。管理者不受影響。${m.until?'<br>預計 <b>'+esc(untilTxt(m.until))+'</b> 自動恢復。':'<br>沒有設定時間，要手動關閉。'}</p><button type="button" class="go" data-sys="moff" style="margin-top:0">立即關閉</button>`
+      :`<p class="note" style="margin:0 0 6px">更新前先開啟，同事會看到「系統更新中」。到了預計時間會自動關閉。</p><label>預計恢復時間（留空＝要手動關閉）</label><input type="datetime-local" class="mu" value="${def}"><label>給同事看的說明（選填）</label><input class="mn" maxlength="100" placeholder="例如：更新功能中"><button type="button" class="go" data-sys="mon">開啟維護模式</button>`)
+      +`</details></div><div class="card sys"><details${o2?' open':''}><summary>公告</summary><label style="margin-top:0">標題</label><input class="nt1" maxlength="60"><label>內容（選填）</label><input class="nb1" maxlength="300"><label>顯示到</label><input type="date" class="nu" value="${d7}"><button type="button" class="go" data-sys="npub">發布</button>`
+      +((S.notices||[]).length?'<div style="margin-top:14px"><div class="note" style="margin:0 0 4px">已發布</div>'+S.notices.map(x=>`<div class="nitem" style="align-items:center"><div style="flex:1"><b style="font-size:14px">${esc(x.title)}</b><br><small>顯示到 ${esc(x.until||'')}${x.by==='系統'?'　（自動）':''}</small></div><button type="button" class="x" style="border:1px solid var(--bd)" data-sys="ndel" data-id="${esc(x.id)}">刪除</button></div>`).join('')+'</div>':'')
+      +`</details></div>`});
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-sys]');if(!b)return;const k=b.dataset.sys,c=b.closest('.sys')||document;
+  try{
+    if(k==='mon'){const u=c.querySelector('.mu').value.replace('T',' '),n=c.querySelector('.mn').value.trim();
+      if(!await ask('開啟維護模式','<p style="margin:0">開啟後，一般人員會看到「系統更新中」，無法使用。'+(u?'<br>預計 '+esc(untilTxt(u))+' 自動恢復。':'<br>沒有設定時間，要手動關閉。')+'</p>','開啟',true))return;
+      await call('setMaint',{on:true,until:u,note:n});toast('維護模式已開啟')}
+    else if(k==='moff'){await call('setMaint',{on:false});toast('維護模式已關閉')}
+    else if(k==='npub'){const t=c.querySelector('.nt1').value.trim();if(!t){msg('請先填寫：標題');return}
+      await call('addNotice',{title:t,body:c.querySelector('.nb1').value.trim(),until:c.querySelector('.nu').value});toast('已發布')}
+    else if(k==='ndel'){if(!await ask('刪除公告','<p style="margin:0">確定要刪除這則公告嗎？</p>','刪除',true))return;await call('delNotice',{id:b.dataset.id});toast('已刪除')}
+    const r=await call('init');applySys(r)
+  }catch(er){msg(er.message)}
+});
 const myUnits=()=>((S.me&&S.me.units&&S.me.units.length)?S.me.units:['D2694']).filter(u=>u!=='D2690'||S.cfg90);
 function enter(){
   $('login').style.display='none';$('app').style.display='';$('who').textContent=S.me.name;
@@ -251,7 +333,7 @@ function enter(){
   S.unit=us.indexOf(u)>=0?u:(us.indexOf('D2694')>=0?'D2694':us[0]);
   $('units').style.display=us.length>1?'':'none';
   $('units').innerHTML=['D2690','D2694'].filter(x=>us.indexOf(x)>=0).map(x=>`<button type="button" data-u="${x}">${x}</button>`).join('');
-  applyPrefs();initForm();fillPeople();if(S.cfg90)initForm9();switchTab(isAdmin()?'back':S.tab);
+  applyPrefs();$('ver').textContent='版本 '+APPV;chkVer();renderBell();renderBanner();renderSys();initForm();fillPeople();if(S.cfg90)initForm9();switchTab(isAdmin()?'back':S.tab);
 }
 $('units').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.u===S.unit)return;S.unit=b.dataset.u;try{store.setItem('diaoban_unit',S.unit)}catch(er){}switchTab(S.tab)};
 function fillPeople(){
@@ -564,7 +646,7 @@ const optSG=(list,ph)=>{const used={};let h=ph?`<option value="">${ph}</option>`
   G9.forEach(([g,ns])=>{const a=ns.filter(n=>list.indexOf(n)>=0);if(a.length){a.forEach(n=>used[n]=1);h+=`<optgroup label="${g}">`+a.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')+'</optgroup>'}});
   const o=list.filter(n=>!used[n]);if(o.length)h+='<optgroup label="其他">'+o.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')+'</optgroup>';return h};
 const optS=(list,ph)=>(ph?`<option value="">${ph}</option>`:'')+list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
-async function raw(action,payload){const r=await rpc(action,S.token,payload);if(r&&r.ok===false&&r.error==='AUTH'){lostAuth();throw new Error('登入已失效，請重新登入')}return r}
+async function raw(action,payload){const r=await rpc(action,S.token,payload);if(r&&r.ok===false&&r.error==='AUTH'){lostAuth();throw new Error('登入已失效，請重新登入')}if(r&&r.ok===false&&r.error==='MAINT')throw new Error('系統更新中');return r}
 function form9(p){return `
 <div class="row"><div><label>日期</label><input type="date" id="${p}d"></div><div><label>類型</label><select id="${p}ty"><option value="換班">調班</option><option>請假</option><option>加班</option><option>其他</option></select></div></div>
 <div id="${p}sw">
