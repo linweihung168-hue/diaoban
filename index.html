@@ -254,7 +254,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.21';
+const APPV='2026.10.22';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 function applySys(r){S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
@@ -307,15 +307,17 @@ function renderSys(){
       d7=new Date(Date.now()+8*36e5+7*864e5).toISOString().slice(0,10);
     el.innerHTML=`<div class="card sys"><details${(o1===null?on:(o1||on))?' open':''}><summary>維護模式${on?'（開啟中）':''}</summary>`+(on
       ?`<p class="note" style="margin:0 0 10px">開啟中，一般人員暫時無法使用。管理者不受影響。${m.until?'<br>預計 <b>'+esc(untilTxt(m.until))+'</b> 自動恢復。':'<br>沒有設定時間，要手動關閉。'}</p><button type="button" class="go" data-sys="moff" style="margin-top:0">立即關閉</button>`
-      :`<p class="note" style="margin:0 0 6px">更新前先開啟，同事會看到「系統更新中」。到了預計時間會自動關閉。</p><label>預計恢復時間（留空＝要手動關閉）</label><input type="datetime-local" class="mu" value="${def}"><label>給同事看的說明（選填）</label><input class="mn" maxlength="100" placeholder="例如：更新功能中"><button type="button" class="go" data-sys="mon">開啟維護模式</button>`)
+      :`<p class="note" style="margin:0 0 6px">更新前先開啟，同事會看到「系統更新中」。到了預計時間會自動關閉。</p><label>預計恢復時間</label><select class="mq"><option value="">不設定（要手動關閉）</option><option value="30">30 分鐘後自動恢復</option><option value="60">1 小時後自動恢復</option><option value="120">2 小時後自動恢復</option><option value="c">自訂時間…</option></select><input type="datetime-local" class="mu" value="${def}" style="display:none"><label>給同事看的說明（選填）</label><input class="mn" maxlength="100" placeholder="例如：更新功能中"><button type="button" class="go" data-sys="mon">開啟維護模式</button>`)
       +`</details></div><div class="card sys"><details${o2?' open':''}><summary>公告</summary><label style="margin-top:0">標題</label><input class="nt1" maxlength="60"><label>內容（選填）</label><input class="nb1" maxlength="300"><label>顯示到</label><input type="date" class="nu" value="${d7}"><button type="button" class="go" data-sys="npub">發布</button>`
       +((S.notices||[]).length?'<div style="margin-top:14px"><div class="note" style="margin:0 0 4px">已發布</div>'+S.notices.map(x=>`<div class="nitem" style="align-items:center"><div style="flex:1"><b style="font-size:14px">${esc(x.title)}</b><br><small>顯示到 ${esc(x.until||'')}${x.by==='系統'?'　（自動）':''}</small></div><button type="button" class="x" style="border:1px solid var(--bd)" data-sys="ndel" data-id="${esc(x.id)}">刪除</button></div>`).join('')+'</div>':'')
       +`</details></div>`});
 }
+document.addEventListener('change',e=>{const q=e.target.closest&&e.target.closest('.mq');if(q){const i=q.parentNode.querySelector('.mu');if(i)i.style.display=q.value==='c'?'':'none'}});
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-sys]');if(!b)return;const k=b.dataset.sys,c=b.closest('.sys')||document;
   try{
-    if(k==='mon'){const u=c.querySelector('.mu').value.replace('T',' '),n=c.querySelector('.mn').value.trim();
+    if(k==='mon'){const q=c.querySelector('.mq').value,u=q===''?'':q==='c'?c.querySelector('.mu').value.replace('T',' '):new Date(Date.now()+8*36e5+(+q)*6e4).toISOString().slice(0,16).replace('T',' '),n=c.querySelector('.mn').value.trim();
+      if(q==='c'&&!u){msg('請先填寫：自訂的恢復時間');return}
       if(!await ask('開啟維護模式','<p style="margin:0">開啟後，一般人員會看到「系統更新中」，無法使用。'+(u?'<br>預計 '+esc(untilTxt(u))+' 自動恢復。':'<br>沒有設定時間，要手動關閉。')+'</p>','開啟',true))return;
       await call('setMaint',{on:true,until:u,note:n});toast('維護模式已開啟')}
     else if(k==='moff'){await call('setMaint',{on:false});toast('維護模式已關閉')}
