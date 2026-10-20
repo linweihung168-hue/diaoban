@@ -69,6 +69,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 
 <section id="login" class="card" style="display:none"><h1>調班表</h1>
 <label>員工代號</label><input id="code" inputmode="numeric" autocomplete="off">
+<div id="pwrow" style="display:none"><label>密碼</label><input id="lpw" type="password" autocomplete="current-password"></div>
 <p class="warn" id="lerr" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgin" style="margin-top:6px">登入</button></section>
 
 <div id="app" style="display:none">
@@ -132,6 +133,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <p class="note" id="fcnt9" style="margin:8px 0"></p><div id="bList9"></div></details></div>
 <div class="card"><details id="dTrash9"><summary>已刪除</summary><div class="scroll"><table id="bTrash9"></table></div></details></div>
 <div class="card"><details id="dEdits9"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits9"></table></div></details></div>
+<div class="card"><details id="dLogins9"><summary>登入紀錄</summary><div class="scroll"><table id="bLogins9"></table></div></details></div>
 </section>
 </div>
 </main>
@@ -149,12 +151,14 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <div id="sm" class="mask"><div class="card"><h2>設定</h2>
 <label>字體大小</label><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>大班表預設展開</span><button type="button" id="sro" class="x" style="border:1px solid var(--bd);min-width:64px"></button></div>
-<p class="note" style="margin:10px 0 0" id="ver"></p>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>登入密碼</span><button type="button" id="spw" class="x" style="border:1px solid var(--bd)"></button></div><p class="note" style="margin:6px 0 0" id="spwn"></p>
+<p class="note" style="margin:12px 0 0" id="ver"></p>
 <button type="button" class="go" id="sclose">完成</button></div></div>
 <div id="em9" class="mask"><div class="card"><h2>編輯登記</h2><p class="note" id="einfo9"></p><div id="e9body"></div>
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel9">取消</button><button type="button" class="go" id="esave9" style="margin:0">儲存修改</button></div></div></div>
-<div id="lockm" class="mask" style="z-index:50"><div class="card"><h2>已鎖定</h2><p class="note">閒置時間較長，請輸入員工代號繼續使用。</p>
-<input id="lcode" inputmode="numeric" autocomplete="off"><p class="warn" id="lerr2" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgo" style="margin-top:6px">繼續</button></div></div>
+<div id="pm" class="mask" style="z-index:900"><div class="card"><h2 id="pmt">設定登入密碼</h2><p class="note" id="pmn"></p><div id="pmo"><label>目前密碼</label><input id="pm0" type="password" autocomplete="current-password"></div><label>新密碼（至少 4 個字）</label><input id="pm1" type="password" autocomplete="new-password"><label>再輸入一次</label><input id="pm2" type="password" autocomplete="new-password"><p class="warn" id="pme" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="pmg" style="margin-top:6px">儲存</button><button type="button" class="x" id="pmc" style="width:100%;margin-top:8px;border:1px solid var(--bd)">取消</button><p class="note" id="pmf" style="text-align:center;margin:10px 0 0"></p></div></div>
+<div id="lockm" class="mask" style="z-index:50"><div class="card"><h2>已鎖定</h2><p class="note">請輸入員工代號解鎖，或登入其他使用者。</p>
+<input id="lcode" inputmode="numeric" autocomplete="off" placeholder="員工代號"><div id="lpwr" style="display:none;margin-top:8px"><input id="lpw2" type="password" autocomplete="current-password" placeholder="密碼"></div><p class="warn" id="lerr2" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgo" style="margin-top:6px">解鎖</button></div></div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -198,14 +202,19 @@ const ask=(title,body,ok,danger)=>modal(title,body,[{t:'取消',v:false},{t:ok,v
 let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',2500)};
 
 /* ---- 登入 ---- */
-function showLogin(m){$('app').style.display='none';$('login').style.display='';$('lerr').textContent=m||'';$('code').value='';S.token=null;S.me=null}
+function showLogin(m){$('app').style.display='none';$('login').style.display='';$('lerr').textContent=m||'';$('code').value='';$('lpw').value='';$('pwrow').style.display='none';$('pm').style.display='none';S.token=null;S.me=null}
 function lostAuth(){store.removeItem(TK);showLogin('登入已失效，請重新輸入員工代號')}
-async function doLogin(code,unlock){return call0('login',{code:code,dev:dev(),unlock:!!unlock})}
-async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;if(r&&r.error==='MAINT')throw new Error('系統更新中');throw new Error((r&&r.error)||'登入失敗')}
+async function doLogin(code,unlock,pw){return call0('login',{code:code,pw:pw||'',dev:dev(),unlock:!!unlock})}
+async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;if(r&&r.error==='MAINT')throw new Error('系統更新中');if(r&&r.error==='NEEDPW'){const e=new Error('請輸入密碼');e.needPw=true;throw e}throw new Error((r&&r.error)||'登入失敗')}
 async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;applySys(r);enter()}
 $('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
-  $('lgin').disabled=true;try{await afterLogin(await doLogin(c))}catch(e){$('lerr').textContent=e.message}$('lgin').disabled=false};
+  $('lgin').disabled=true;try{await afterLogin(await doLogin(c,false,$('lpw').value))}catch(e){
+    if(e.needPw){const first=$('pwrow').style.display==='none';$('pwrow').style.display='';$('lerr').textContent=first?'':'請輸入密碼';$('lpw').focus()}
+    else{$('lerr').textContent=e.message;if($('pwrow').style.display!=='none')$('lpw').select()}}
+  $('lgin').disabled=false};
 $('code').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
+$('code').oninput=()=>{$('pwrow').style.display='none';$('lpw').value=''};
+$('lpw').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
 $('out').onclick=()=>{store.removeItem(TK);showLogin('')};
 async function boot(){
   const t=store.getItem(TK);
@@ -219,7 +228,24 @@ const setPref=(k,v)=>{try{localStorage.setItem('diaoban_'+k,v)}catch(e){}};
 function applyPrefs(){document.documentElement.style.zoom=pref('fs','0')==='1'?'1.15':'';document.documentElement.classList.toggle('big',pref('fs','0')==='1');
   document.querySelectorAll('#sfs button').forEach(b=>b.classList.toggle('on',b.dataset.v===pref('fs','0')));
   $('sro').textContent=pref('ro','0')==='1'?'開':'關';$('sro').style.background=pref('ro','0')==='1'?'var(--ac)':'';$('sro').style.color=pref('ro','0')==='1'?'#fff':''}
-$('gear').onclick=()=>{applyPrefs();$('sm').style.display='flex'};
+function renderPwRow(){const h=S.me&&S.me.hasPw;$('spw').textContent=h?'修改密碼':'設定登入密碼';$('spwn').textContent=h?'已設定：登入時要輸入密碼':'未設定：只用員工代號登入'}
+function pwModal(force){
+  const h=S.me.hasPw;$('pmt').textContent=force?'請先設定密碼':h?'修改密碼':'設定登入密碼';
+  $('pmn').textContent=force?'管理者帳號需要密碼保護。之後登入時，代號之外還要輸入這組密碼。':h?'':'設定後，登入時除了員工代號，還要輸入這組密碼。';$('pmn').style.display=$('pmn').textContent?'':'none';
+  $('pmo').style.display=h?'':'none';['pm0','pm1','pm2'].forEach(i=>$(i).value='');$('pme').textContent='';
+  $('pmc').style.display=force?'none':'';$('pmf').innerHTML=force?'<a href="#" id="pmo2" style="color:var(--mut)">登出</a>':(h?'忘記密碼請找管理者重置':'');
+  $('pm').dataset.force=force?'1':'';$('pm').style.display='flex';setTimeout(()=>$(h?'pm0':'pm1').focus(),50);
+  const o=$('pmo2');if(o)o.onclick=e=>{e.preventDefault();$('out').click()}}
+$('spw').onclick=()=>{$('sm').style.display='none';pwModal(false)};
+$('pmc').onclick=()=>{$('pm').style.display='none'};
+$('pmg').onclick=async()=>{const o=$('pm0').value,a=$('pm1').value,b=$('pm2').value;
+  if($('pmo').style.display!=='none'&&!o){$('pme').textContent='請輸入目前的密碼';return}
+  if(a.length<4){$('pme').textContent='新密碼至少要 4 個字';return}
+  if(a!==b){$('pme').textContent='兩次輸入的密碼不一樣';return}
+  $('pmg').disabled=true;try{const r=await call('setPw',{old:o,pw:a});S.token=r.token;store.setItem(TK,r.token);S.me=r.me;const f=$('pm').dataset.force==='1';$('pm').style.display='none';renderPwRow();toast('密碼已設定');S.lockAt=Date.now();if(f)enter()}
+  catch(e){$('pme').textContent=e.message}$('pmg').disabled=false};
+['pm0','pm1','pm2'].forEach(i=>$(i).onkeydown=e=>{if(e.key==='Enter')$('pmg').click()});
+$('gear').onclick=()=>{applyPrefs();renderPwRow();$('sm').style.display='flex'};
 $('sclose').onclick=()=>{$('sm').style.display='none'};
 $('sfs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setPref('fs',b.dataset.v);applyPrefs()};
 $('sro').onclick=()=>{setPref('ro',pref('ro','0')==='1'?'0':'1');applyPrefs()};
@@ -254,10 +280,10 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.22';
+const APPV='2026.10.20.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
-function applySys(r){S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
+function applySys(r){S.pwList=(r&&r.pwList)||[];S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
 function renderBell(){
   const rd=readSet(),n=(S.notices||[]).filter(x=>rd.indexOf(x.id)<0).length+(S.newV?1:0),b=$('bdg');
   b.textContent=n>9?'9+':String(n);b.style.display=n>0?'flex':'none';
@@ -308,7 +334,7 @@ function renderBanner(){
 function renderSys(){
   ['sys94','sys90'].forEach(id=>{const el=$(id);if(!el)return;
     if(!isAdmin()){el.innerHTML='';return}
-    const old=el.querySelectorAll('details'),o1=old[0]?old[0].open:null,o2=old[1]?old[1].open:false;
+    const old=el.querySelectorAll('details'),o1=old[0]?old[0].open:null,o2=old[1]?old[1].open:false,o3=old[2]?old[2].open:false;
     const m=S.maint||{},on=m.on&&m.active,
       def=new Date(Date.now()+8*36e5+36e5).toISOString().slice(0,16),
       d7=new Date(Date.now()+8*36e5+7*864e5).toISOString().slice(0,10);
@@ -317,7 +343,10 @@ function renderSys(){
       :`<p class="note" style="margin:0 0 6px">更新前先開啟，同事會看到「系統更新中」。到了預計時間會自動關閉。</p><label>預計恢復時間</label><select class="mq"><option value="">不設定（要手動關閉）</option><option value="30">30 分鐘後自動恢復</option><option value="60">1 小時後自動恢復</option><option value="120">2 小時後自動恢復</option><option value="c">自訂時間…</option></select><input type="datetime-local" class="mu" value="${def}" style="display:none"><label>給同事看的說明（選填）</label><input class="mn" maxlength="100" placeholder="例如：更新功能中"><button type="button" class="go" data-sys="mon">開啟維護模式</button>`)
       +`</details></div><div class="card sys"><details${o2?' open':''}><summary>公告</summary><label style="margin-top:0">標題</label><input class="nt1" maxlength="60"><label>內容（選填）</label><input class="nb1" maxlength="300"><label>顯示到</label><input type="date" class="nu" value="${d7}"><button type="button" class="go" data-sys="npub">發布</button>`
       +((S.notices||[]).length?'<div style="margin-top:14px"><div class="note" style="margin:0 0 4px">已發布</div>'+S.notices.map(x=>`<div class="nitem" style="align-items:center"><div style="flex:1"><b style="font-size:14px">${esc(x.title)}</b><br><small>顯示到 ${esc(x.until||'')}${x.by==='系統'?'　（自動）':''}</small></div><button type="button" class="x" style="border:1px solid var(--bd)" data-sys="ndel" data-id="${esc(x.id)}">刪除</button></div>`).join('')+'</div>':'')
-      +`</details></div>`});
+      +`</details></div>`
+      +`<div class="card sys"><details${o3?' open':''}><summary>重置密碼</summary>`+((S.pwList||[]).filter(x=>x.hasPw).length
+        ?`<p class="note" style="margin:0 0 6px">同事忘記密碼時使用。重置後，他只用員工代號就能登入，再自己重新設定。</p><label>人員</label><select class="rp">${S.pwList.filter(x=>x.hasPw).map(x=>`<option value="${esc(x.code)}">${esc(x.name)}　${esc(x.code)}</option>`).join('')}</select><button type="button" class="go" data-sys="rpw" style="background:var(--danger)">重置密碼</button>`
+        :`<p class="note" style="margin:0">目前沒有人設定密碼。</p>`)+`</details></div>`});
 }
 document.addEventListener('change',e=>{const q=e.target.closest&&e.target.closest('.mq');if(q){const i=q.parentNode.querySelector('.mu');if(i)i.style.display=q.value==='c'?'':'none'}});
 document.addEventListener('click',async e=>{
@@ -330,6 +359,9 @@ document.addEventListener('click',async e=>{
     else if(k==='moff'){await call('setMaint',{on:false});toast('維護模式已關閉')}
     else if(k==='npub'){const t=c.querySelector('.nt1').value.trim();if(!t){msg('請先填寫：標題');return}
       await call('addNotice',{title:t,body:c.querySelector('.nb1').value.trim(),until:c.querySelector('.nu').value});toast('已發布')}
+    else if(k==='rpw'){const sel=c.querySelector('.rp'),nm=sel.options[sel.selectedIndex].text.split('　')[0];
+      if(!await ask('重置密碼','<p style="margin:0">確定要重置「'+esc(nm)+'」的密碼嗎？<br>重置後，他只用員工代號就能登入，再自己重新設定。</p>','重置',true))return;
+      await call('resetPw',{code:sel.value});toast('已重置')}
     else if(k==='ndel'){if(!await ask('刪除公告','<p style="margin:0">確定要刪除這則公告嗎？</p>','刪除',true))return;await call('delNotice',{id:b.dataset.id});toast('已刪除')}
     const r=await call('init');applySys(r)
   }catch(er){msg(er.message)}
@@ -337,6 +369,7 @@ document.addEventListener('click',async e=>{
 const myUnits=()=>((S.me&&S.me.units&&S.me.units.length)?S.me.units:['D2694']).filter(u=>u!=='D2690'||S.cfg90);
 function enter(){
   $('login').style.display='none';$('app').style.display='';$('who').textContent=S.me.name;
+  if(S.me.mustPw){pwModal(true);return}
   $('tabs').style.display=isAdmin()?'':'none';
   const us=myUnits();let u=null;try{u=store.getItem('diaoban_unit')}catch(e){}
   S.unit=us.indexOf(u)>=0?u:(us.indexOf('D2694')>=0?'D2694':us[0]);
@@ -604,17 +637,21 @@ let idle=null;
 function armIdle(){
   if(touch)return;
   ['click','keydown','mousemove','scroll'].forEach(ev=>document.addEventListener(ev,()=>{S.lockAt=Date.now()},{passive:true}));
-  setInterval(()=>{if(S.me&&$('lockm').style.display!=='flex'&&Date.now()-S.lockAt>((S.cfg&&S.cfg.lockSec)||120)*1000){$('lockm').style.display='flex';$('lcode').value='';$('lerr2').textContent='';setTimeout(()=>$('lcode').focus(),50)}},5000);
+  setInterval(()=>{if(S.me&&$('lockm').style.display!=='flex'&&Date.now()-S.lockAt>((S.cfg&&S.cfg.lockSec)||120)*1000){$('lockm').style.display='flex';$('lcode').value='';$('lpw2').value='';$('lpwr').style.display='none';$('lerr2').textContent='';setTimeout(()=>$('lcode').focus(),50)}},5000);
 }
 $('lgo').onclick=async()=>{
   const c=$('lcode').value.trim();if(!c)return;
   try{
-    const r=await doLogin(c,true);
+    const pw=$('lpw2').value,r=await doLogin(c,true,pw);
     if(r.me.name===S.me.name){S.token=r.token;store.setItem(TK,r.token);S.lockAt=Date.now();$('lockm').style.display='none'}
-    else{const r2=await doLogin(c,false);$('lockm').style.display='none';S.lockAt=Date.now();await afterLogin(r2)}
-  }catch(e){$('lerr2').textContent=e.message}
+    else{const r2=await doLogin(c,false,pw);$('lockm').style.display='none';S.lockAt=Date.now();await afterLogin(r2)}
+  }catch(e){
+    if(e.needPw){const first=$('lpwr').style.display==='none';$('lpwr').style.display='';$('lerr2').textContent=first?'':'請輸入密碼';$('lpw2').focus()}
+    else $('lerr2').textContent=e.message}
 };
 $('lcode').onkeydown=e=>{if(e.key==='Enter')$('lgo').click()};
+$('lcode').oninput=()=>{$('lpwr').style.display='none';$('lpw2').value=''};
+$('lpw2').onkeydown=e=>{if(e.key==='Enter')$('lgo').click()};
 
 /* ================= D2690 西藥局 ================= */
 const sh9=()=>S.cfg90?S.cfg90.shifts:[];
@@ -866,7 +903,7 @@ async function loadBack90(){
   showM('bm9');
   $('fp9').innerHTML='<option value="">全部</option>'+staff9().map(n=>`<option>${esc(n)}</option>`).join('');
   try{S.bv9=await call('view90',{month:S.month});renderBack90()}catch(e){msg(e.message)}
-  ['dTrash9','dEdits9'].forEach(id=>{if($(id).open)loadExtra9(id)});
+  ['dTrash9','dEdits9','dLogins9'].forEach(id=>{if($(id).open)loadExtra9(id)});
 }
 function renderBack90(){
   const v=S.bv9;if(!v)return;
@@ -888,11 +925,13 @@ async function loadExtra9(id){
     if(id==='dTrash9'){const r=await call('trash90');
       $('bTrash9').innerHTML='<tr><th>刪除時間</th><th>刪除者</th><th>日期</th><th>內容</th><th></th></tr>'+(r.rows.map(x=>{const e={ty:x[3],date:x[4],a:x[5],sa:x[6],b:x[7],sb:x[8],kind:x[9],t1:x[10],t2:x[11]},d=desc9(e);
         return `<tr><td>${esc(x[16])}</td><td>${esc(x[17])}</td><td>${esc(x[4])}</td><td>${esc(tyN9(x[3]))}　${d.h}${x[12]?'　備註：'+esc(x[12]):''}</td><td><button type="button" class="x" style="border:1px solid var(--bd)" data-a9="restore" data-id="${esc(x[0])}">還原</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">目前沒有已刪除的資料</td></tr>')}
+    else if(id==='dLogins9'){const r=await call('logs');
+      $('bLogins9').innerHTML='<tr><th>時間</th><th>姓名</th><th>裝置</th></tr>'+(r.logins.map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="3" class="note">目前沒有登入紀錄</td></tr>')}
     else{const r=await call('logs');
       $('bEdits9').innerHTML='<tr><th>時間</th><th>修改者</th><th>動作</th><th>對象</th><th>修改前</th><th>修改後</th></tr>'+(r.edits.filter(isD90).map(x=>'<tr>'+x.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="6" class="note">目前沒有修改紀錄</td></tr>')}
   }catch(e){msg(e.message)}
 }
-['dTrash9','dEdits9'].forEach(id=>$(id).addEventListener('toggle',()=>{if($(id).open)loadExtra9(id)}));
+['dTrash9','dEdits9','dLogins9'].forEach(id=>$(id).addEventListener('toggle',()=>{if($(id).open)loadExtra9(id)}));
 
 /* ---- 已處理／編輯／刪除／還原 ---- */
 let EID9=null;
