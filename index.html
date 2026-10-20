@@ -35,7 +35,7 @@ details.e9r{border-bottom:1px solid var(--bd)}details.e9r>summary{list-style:non
 details.e9r>summary::-webkit-details-marker{display:none}.e9r small{color:var(--mut)}
 .e9r .dt{padding:2px 6px 10px;font-size:13px;line-height:1.8;color:var(--mut)}.e9r .dt b{color:var(--fg)}
 #sg9{position:fixed;z-index:99999;display:none;background:#fff;border:1px solid var(--bd);border-radius:10px;box-shadow:0 6px 20px #0003;max-height:240px;overflow:auto}#sg9 div{padding:10px 16px;font-size:16px;cursor:pointer}#sg9 div.on,#sg9 div:hover{background:#e8f0fe}
-.sc9{text-transform:uppercase}input.bad{border-color:#c62828!important}.ferr{color:#c62828;font-size:12px;margin-top:2px}.ferr:empty{display:none}
+.sc9{text-transform:uppercase}input.bad{border-color:#c62828!important}.ferr{color:#c62828;font-size:12px;margin-top:2px}.ferr:empty{display:none}.hint9{color:var(--mut)!important}
 .chips{display:flex;gap:8px}.chips button{width:auto;flex:0 0 auto;height:auto;padding:4px 16px;border-radius:99px;font-size:13px}.chips button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .calc{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:14px}
@@ -103,6 +103,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 <section id="back90" style="display:none">
 <div class="card"><label style="margin-top:0">月份</label><div class="mnav"><button type="button" data-id="bm9" data-d="-1" aria-label="上個月">‹</button><span id="bm9l"></span><button type="button" data-id="bm9" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm9"></div>
 <div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr9"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo9" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：班表變動、請假、加班、所有登記、每人彙總、已刪除、修改紀錄</p></div>
+<div class="card"><details id="dRs9"><summary>班表檔（登記時自動帶入班別）</summary><p class="note" style="margin:8px 0">先在 D2690 排班工具的第 3 個頁籤輸出「班表檔」，再在這裡選那個檔案上傳。同一個月重傳會整月取代。</p><div id="rs9" class="note"></div><input type="file" id="rf9" accept=".json,application/json" style="margin-top:8px"><div id="rp9" class="note" style="margin:8px 0"></div><button type="button" class="go" id="ru9" style="display:none">上傳班表</button></details></div>
 <div class="card"><h2>待處理</h2><p class="note" style="margin:0 0 8px">改好 Word 大班表或輸入完成後，按「已處理」。</p><div id="pend9"></div></div>
 <div class="card"><details><summary>本月彙總</summary><div class="scroll"><table id="bStat9"></table></div></details></div>
 <div class="card"><details><summary>每日加班與小時假</summary><div class="scroll" style="margin-top:8px"><table id="bDays9"></table></div></details></div>
@@ -486,7 +487,7 @@ function form9(p){return `
 function fill9(p){
   const adm=isAdmin(),me=S.me.name,st=staff9(),all=sh9().map(s=>s.name),noR=all.filter(n=>n!=='R');
   $(p+'swa').innerHTML=optS(st,'請選擇');$(p+'swb').innerHTML=optS(st,'請選擇');
-  ['sws','swbs','psh'].forEach(k=>{$(p+k).value='';$(p+k).classList.remove('bad');$(p+k).nextElementSibling.textContent=''});
+  ['sws','swbs','psh'].forEach(k=>{$(p+k).value='';$(p+k).dataset.auto='';$(p+k).classList.remove('bad');$(p+k).nextElementSibling.textContent='';$(p+k).nextElementSibling.className='ferr'});
 $(p+'cv').innerHTML=optS(st,'請選擇');
   const pa=$(p+'pa');
   if(adm){pa.innerHTML=optS(st,'請選擇');pa.disabled=false}else{pa.innerHTML=optS([me]);pa.disabled=true}
@@ -497,10 +498,12 @@ function wire9(p){
   ['sws','swbs','psh'].forEach(k=>{const el=$(p+k);el.oninput=()=>{el.value=el.value.toUpperCase().replace(/\s/g,'');
     const bad=el.value&&!okS9(el.value,k==='psh');el.classList.toggle('bad',!!bad);el.nextElementSibling.textContent=bad?'請確認班別代號':'';
     sg9Show(el,k==='psh');k==='psh'?on9(p,false):calc9(p)};
+    el.addEventListener('input',()=>{el.dataset.auto='';el.nextElementSibling.className='ferr'});
     el.onfocus=()=>sg9Show(el,k==='psh');el.onblur=()=>setTimeout(sg9Hide,150);el.onkeydown=e=>sg9Key(e,el,k==='psh')});
   $(p+'lk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;ST9[p].lk=b.dataset.k;on9(p,true)};
   $(p+'ok').onclick=e=>{const b=e.target.closest('button');if(!b)return;ST9[p].ok=b.dataset.k;on9(p,true)};
   ['x1','x2'].forEach(k=>$(p+k).oninput=function(){fmt(this);calc9(p)});
+  ['d','swa','swb','pa','ty'].forEach(k=>$(p+k).addEventListener('change',()=>autoFill9(p)));
 }
 function on9(p,reset){
   const ty=$(p+'ty').value,s=ST9[p],sh=shift9($(p+'psh').value)||{},cover=!!sh.cover;
@@ -578,7 +581,7 @@ function resetForm9(keepDate){
   ST9.f9.lk='';ST9.f9.ok='延後下班';$('f9ty').value=$('f9ty').value||'換班';
   fill9('f9');
   if(!isAdmin()){$('f9swa').value=S.me.name}
-  $('f9nt').value='';on9('f9',true);
+  $('f9nt').value='';on9('f9',true);autoFill9('f9');
 }
 function summary9(o,adm){
   const L=['日期：<b>'+esc(o.date)+'</b>　類型：<b>'+tyN9(o.ty)+'</b>'];
@@ -731,6 +734,52 @@ $('esave9').onclick=async()=>{
     $('em9').style.display='none';EID9=null;toast('已儲存');loadBack90()}catch(err){msg(err.message)}
 };
 
+/* ---- 班表檔上傳（D2690） ---- */
+const ymTxt9=ym=>ym.slice(0,4)+'年'+(+ym.slice(5))+'月';
+async function loadRoster9(){
+  try{const r=await call('roster90');$('rs9').innerHTML=r.list.length?'已上傳：'+r.list.map(x=>ymTxt9(x.ym)+'（'+x.count+' 人）').join('、'):'目前還沒有上傳班表。'}catch(e){$('rs9').textContent=''}
+}
+$('dRs9').addEventListener('toggle',()=>{if($('dRs9').open)loadRoster9()});
+let RS9=null;
+$('rf9').onchange=async()=>{
+  RS9=null;$('ru9').style.display='none';$('rp9').textContent='';
+  const f=$('rf9').files[0];if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(d.version!==1||!Array.isArray(d.people)||!d.year||!d.month)throw 0;
+    RS9=d;$('rp9').innerHTML='已選檔案：<b>'+ymTxt9(d.year+'-'+String(d.month).padStart(2,'0'))+'</b>，共 '+d.people.length+' 人。確認無誤後按「上傳班表」。';$('ru9').style.display='';
+  }catch(e){$('rp9').innerHTML='<span class="warn">這不是排班工具輸出的班表檔，請重新選擇。</span>'}
+};
+$('ru9').onclick=async()=>{
+  if(!RS9)return;const d=RS9,ym=d.year+'-'+String(d.month).padStart(2,'0');
+  if(!await ask('上傳班表','<p style="margin:0">'+ymTxt9(ym)+'，共 '+d.people.length+' 人。<br>如果這個月已經上傳過，會整月取代。</p>','上傳'))return;
+  const b=$('ru9');b.disabled=true;
+  try{
+    const r=await call('setRoster90',{data:d});
+    const nd=new Date(d.year,d.month,0).getDate(),m={};
+    d.people.forEach(p=>{const a=[];for(let i=1;i<=nd;i++)a.push((p.days||{})[i]||'');m[p.name]=a});
+    S.cfg90.roster=S.cfg90.roster||{};S.cfg90.roster[ym]=m;
+    RS9=null;$('rf9').value='';$('rp9').innerHTML='<span class="ok">已上傳 '+ymTxt9(ym)+'（'+r.count+' 人）。</span>';b.style.display='none';loadRoster9();
+  }catch(e){msg(e.message)}finally{b.disabled=false}
+};
+/* ---- 登記時依班表自動帶入班別 ---- */
+function rosterCode9(date,name){
+  if(!date||!name||!S.cfg90||!S.cfg90.roster)return '';
+  const a=(S.cfg90.roster[date.slice(0,7)]||{})[name];return a?(a[+date.slice(8,10)-1]||''):'';
+}
+function autoSh9(p,srcId,shId,noR){
+  const el=$(p+shId),name=$(p+srcId).value,c=rosterCode9($(p+'d').value,name);
+  if(el.value&&el.dataset.auto!=='1')return;               // 使用者自己打的，不覆蓋
+  const ok=c&&okS9(c,noR);
+  el.value=ok?c:'';el.dataset.auto=ok?'1':'';el.classList.remove('bad');
+  el.nextElementSibling.textContent=ok?'依班表帶入':'';el.nextElementSibling.className=ok?'ferr hint9':'ferr';
+}
+function autoFill9(p){
+  if(p!=='f9')return;const ty=$(p+'ty').value;
+  if(ty==='調班'||ty==='換班'){autoSh9(p,'swa','sws',false);autoSh9(p,'swb','swbs',false)}
+  else if(ty==='請假'||ty==='加班')autoSh9(p,'pa','psh',true);
+  calc9(p);if(ty!=='調班'&&ty!=='換班')on9(p,false)
+}
 /* ---- 匯出 Excel（D2690） ---- */
 $('xgo9').onclick=async()=>{
   const btn=$('xgo9');btn.disabled=true;btn.textContent='準備中…';
