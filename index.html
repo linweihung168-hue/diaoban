@@ -229,7 +229,7 @@ function renderRoster(u){
   else{
     const y=+ym.slice(0,4),m=+ym.slice(5),n=new Date(y,m,0).getDate(),rows=map[ym]||{},today=ym===ymNow()?+dayNow().slice(8):0,i=avail.indexOf(ym);
     const wk=d=>{const w=new Date(y,m-1,d).getDay();return w===0||w===6?'we':''};
-    const shown=Object.keys(rows).filter(x=>u==='D2690'||names.indexOf(x)>=0);   // 順序＝班表檔（Word）的順序
+    const shown=Object.keys(rows);   // 順序＝班表檔（Word）的順序
     const cell=c=>{c=String(c||'');return esc(c.slice(0,2)==='?:'?c.slice(2):c)};
     body=`<div class="rmn"><button type="button" data-rs="${u}" data-d="-1"${i<=0?' disabled':''}>‹</button><span>${y} / ${String(m).padStart(2,'0')}</span><button type="button" data-rs="${u}" data-d="1"${i>=avail.length-1?' disabled':''}>›</button></div>
 <div class="scroll"><table class="rt"><thead><tr><th class="nm">姓名</th>${Array.from({length:n},(_,k)=>`<th class="${wk(k+1)}${k+1===today?' td':''}">${k+1}</th>`).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:n},(_,k)=>`<td class="${wk(k+1)}${k+1===today?' td':''}">${cell(rows[x][k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
