@@ -216,7 +216,7 @@ $('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');
 
 /* ---- 填寫表單 ---- */
 function initForm(){
-  $('s').innerHTML=S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
+  $('s').innerHTML='<option value="">請選擇</option>'+S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
   $('doc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
   $('d').value=dayNow();$('ty').value='OT';S.lk=null;$('nt').value='';$('k').value='';$('kt').value='';onForm(true);
 }
@@ -258,13 +258,18 @@ function auto94(){
   const a=S.roster94&&name?((S.roster94[d.slice(0,7)]||{})[name]||[]):[];
   const o=map94(a[+d.slice(8,10)-1]||'',d);
   if(o){$('s').value=o.name;$('s').dataset.auto='1';$('sh94').textContent='依班表帶入';onForm(true)}
-  else{$('sh94').textContent='';if($('s').dataset.auto==='1'){$('s').selectedIndex=0;$('s').dataset.auto='';onForm(true)}}
+  else{
+    const c=a[+d.slice(8,10)-1]||'';
+    $('sh94').textContent=c?'班表：'+(c==='R'?'R（休假）':c)+'，請自行選擇班別':'';
+    if($('s').dataset.auto==='1'){$('s').selectedIndex=0;$('s').dataset.auto='';onForm(true)}
+  }
 }
 function overlap(sh,a,b){return (sh.windows||[]).some(w=>tm(a)<tm(w[1])&&tm(b)>tm(w[0]))}
 function readForm(){return{date:$('d').value,shift:$('ty').value==='OTH'?'—':$('s').value,a:$('a').value.trim(),b:$('b').value.trim(),doc:$('doc').value,k:$('k').value.trim().toUpperCase(),kt:$('kt').value.trim(),note:$('nt').value.trim()}}
 function chk(t,o){
   const sh=shiftOf(o.shift)||{},np=sh.type==='N+',miss=[];
   if(!o.date)miss.push('日期');
+  if((t==='OT'||t==='LV')&&!o.shift)miss.push('班別');
   if(t==='OT'){if(!o.b)miss.push(np?'下班時間':'實際下班時間');if(!np&&!o.a)miss.push('原下班時間');if(!o.doc)miss.push('醫師');if(!o.k)miss.push('最後一張領藥號');if(!o.kt)miss.push('處方時間')}
   if(t==='LV'){if(!o.a)miss.push('請假開始');if(!o.b)miss.push('請假結束')}
   if(t==='OTH'&&!o.note)miss.push('備註');
@@ -337,7 +342,7 @@ $('go').onclick=async()=>{
   L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
   if(!await ask('請確認內容',L.join('<br>'),'確認送出'))return;
   $('go').disabled=true;
-  try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('kt').value='';$('nt').value='';$('s').dataset.manual='';onForm(true);auto94();await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
+  try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('kt').value='';$('nt').value='';$('s').dataset.manual='';if(S.roster94)$('s').selectedIndex=0;onForm(true);auto94();await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
   $('go').disabled=false;
 };
 
