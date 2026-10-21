@@ -280,7 +280,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.21.2';
+const APPV='2026.10.21.3';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 function applySys(r){S.pwList=(r&&r.pwList)||[];S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
@@ -827,6 +827,17 @@ function summary9(o,adm){
   L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
   return L.join('<br>');
 }
+/* 登記成功後，告訴管理者「紙本大班表要怎麼改」 */
+function paper9(o){
+  const d=md9(o.date),L=[];
+  if(o.ty==='換班'){L.push(d+'　'+o.a+'　'+o.sa+' → '+o.sb);L.push(d+'　'+o.b+'　'+o.sb+' → '+o.sa)}
+  else if(o.ty==='請假'){
+    if(o.kind==='DAY')L.push(d+'　'+o.a+'　寫 X');
+    else if(o.kind==='AM'||o.kind==='PM'){L.push(d+'　'+o.a+'　加註 '+o.kind);if(o.b&&o.sb)L.push(d+'　'+o.b+'　'+o.sb+'（貼班）')}
+    else if(o.kind==='LV'){const w=hw9(o,hwList9().concat([o]));L.push(d+'　'+o.a+'　'+(w&&w.auto?'標 '+w.h+'h':'小時假（Word 標示請人工計算）'))}
+  }
+  return L;
+}
 $('go9').onclick=async()=>{
   const o=read9('f9'),er=chk9(o);if(er){msg(er);return}
   if(!await ask('請確認內容',summary9(o),'確認送出'))return;
@@ -835,7 +846,9 @@ $('go9').onclick=async()=>{
     let r=await raw('submit90',o);
     if(r&&r.dup){if(!await ask('重複提醒','<p style="margin:0">'+esc(String(r.error).replace('換班','調班'))+'</p>','仍要登記'))return;r=await raw('submit90',Object.assign({force:true},o))}
     if(!r||r.ok===false)throw new Error((r&&r.error)||'送出失敗');
+    const pl=isAdmin()?paper9(o):[];
     toast('已送出');resetForm9(true);await loadFill90();
+    if(pl.length)await modal('紙本大班表請修改','<p style="margin:0;line-height:1.9">'+pl.map(x=>esc(x)).join('<br>')+'</p>',[{t:'知道了',v:true,go:true}]);
   }catch(err){msg(err.message)}
   finally{$('go9').disabled=false}
 };
