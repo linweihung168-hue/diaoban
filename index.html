@@ -280,7 +280,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.21';
+const APPV='2026.10.21.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 function applySys(r){S.pwList=(r&&r.pwList)||[];S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
@@ -702,7 +702,7 @@ function form9(p){return `
 </div>
 <div id="${p}ps">
 <div class="row" id="${p}pr"><div><label id="${p}pal">人員</label><select id="${p}pa"></select></div><div id="${p}psW"><label>班別</label><input id="${p}psh" class="sc9" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder=""><div class="ferr"></div></div></div>
-<div id="${p}lk"><label>請假種類</label><div class="seg" style="grid-template-columns:repeat(3,1fr)"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button></div></div>
+<div id="${p}lk"><label>請假種類</label><div class="seg" style="grid-template-columns:repeat(2,1fr)"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="DAY">整天</button><button type="button" data-k="LV">小時假</button></div></div>
 <div id="${p}ok" class="seg" style="grid-template-columns:1fr 1fr;margin-top:12px"><button type="button" data-k="延後下班">延後下班</button><button type="button" data-k="提早上班">提早上班</button></div>
 <div class="row" id="${p}xr"><div><label id="${p}xl1"></label><input id="${p}x1" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="${p}xl2"></label><input id="${p}x2" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
 <div id="${p}cvW"><label>貼班人員（必填）</label><select id="${p}cv"></select></div>
@@ -817,7 +817,7 @@ function summary9(o,adm){
     L.push('結果：'+esc(o.a)+' → <b>'+esc(o.sb)+'</b>　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>');
   }else if(o.ty==='請假'){
     L.push('人員：<b>'+esc(o.a)+'</b>　班別：<b>'+esc(o.sa)+'</b>');
-    L.push(o.kind==='LV'?'小時假：<b>'+o.t1+'–'+o.t2+'</b>（'+hm(tm(o.t2)-tm(o.t1))+'）':'請假：<b>'+o.kind+'</b>');
+    L.push(o.kind==='LV'?'小時假：<b>'+o.t1+'–'+o.t2+'</b>（'+hm(tm(o.t2)-tm(o.t1))+'）':'請假：<b>'+(KIND9[o.kind]||o.kind)+'</b>');
     if(o.b)L.push('貼班：<b>'+esc(o.b)+'　'+esc(o.sb)+'</b>');
   }else if(o.ty==='加班'){
     L.push('人員：<b>'+esc(o.a)+'</b>　班別：<b>'+esc(o.sa)+'</b>');
@@ -841,7 +841,7 @@ $('go9').onclick=async()=>{
 };
 
 /* ---- 登記內容顯示 ---- */
-const KIND9={AM:'AM',PM:'PM',LV:'小時假'};
+const KIND9={AM:'AM',PM:'PM',DAY:'整天',LV:'小時假'};
 function desc9(e){
   if(e.ty==='換班')return{h:esc(e.a)+' ⇄ '+esc(e.b),r:[esc(e.a)+'：'+esc(e.sa)+' → '+esc(e.sb),esc(e.b)+'：'+esc(e.sb)+' → '+esc(e.sa)]};
   if(e.ty==='請假')return{h:esc(e.a)+'　'+esc(e.sa)+'　'+KIND9[e.kind]+(e.kind==='LV'?' '+esc(e.t1)+'–'+esc(e.t2)+'（'+hm(tm(e.t2)-tm(e.t1))+'）':''),r:e.b?['貼班：'+esc(e.b)+'　'+esc(e.sb)]:[]};
