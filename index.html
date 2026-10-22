@@ -274,16 +274,24 @@ function renderRoster(u){
 document.addEventListener('click',async e=>{
   const rs=e.target.closest('[data-rs]');if(rs){RSM[rs.dataset.rs]=shiftYm(RSM[rs.dataset.rs],+rs.dataset.d,rs.dataset.rs);renderRoster(rs.dataset.rs);return}
   const rf=e.target.closest('[data-rf]');if(rf){e.preventDefault();e.stopPropagation();rf.classList.add('spin');
-    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;applySys(r);renderRoster('D2694');renderRoster('D2690');toast('已更新')}catch(er){msg(er.message)}
+    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;S.rl0=twNow();applySys(r);renderRoster('D2694');renderRoster('D2690');toast('已更新')}catch(er){msg(er.message)}
     rf.classList.remove('spin')}
 });
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.21.3';
+const APPV='2026.10.22.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
-function applySys(r){S.pwList=(r&&r.pwList)||[];S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;renderBell();renderBanner();renderSys()}
+const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
+const isRoN=x=>x.by==='系統'&&/月班表已更新$/.test(x.title||'');
+function applySys(r){S.pwList=(r&&r.pwList)||[];S.notices=(r&&r.notices)||[];S.maint=(r&&r.maint)||null;
+  /* 班表更新通知：比「這台裝置上次載入班表」更早的，視為已看過 */
+  if(S.rl0===undefined){try{S.rl0=localStorage.getItem('diaoban_rl')||''}catch(e){S.rl0=''}}
+  const old=S.notices.filter(x=>isRoN(x)&&x.at<=S.rl0).map(x=>x.id);
+  if(old.length){const rd=readSet();saveRead(rd.concat(old.filter(id=>rd.indexOf(id)<0)))}
+  try{localStorage.setItem('diaoban_rl',twNow())}catch(e){}
+  renderBell();renderBanner();renderSys()}
 function renderBell(){
   const rd=readSet(),n=(S.notices||[]).filter(x=>rd.indexOf(x.id)<0).length+(S.newV?1:0),b=$('bdg');
   b.textContent=n>9?'9+':String(n);b.style.display=n>0?'flex':'none';
