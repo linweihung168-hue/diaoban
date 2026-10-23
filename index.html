@@ -28,7 +28,7 @@ button.go{background:var(--ac);color:#fff;border:0;margin-top:14px;font-weight:6
 button.x{width:auto;padding:4px 10px;height:auto;background:transparent;color:var(--fg)}
 button:disabled{opacity:.4}
 .seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:8px}.seg button{height:44px;padding:6px}
-.mnav{display:flex;align-items:center;justify-content:space-between;margin-top:6px}.mnav button{width:48px;height:44px;font-size:22px;padding:0}.mnav span{font-weight:600;font-size:17px}
+.mnav{display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 0 12px}.mnav button{width:44px;height:40px;font-size:22px;padding:0;background:none;border:0;color:var(--ac)}.mmid{position:relative;display:inline-flex;align-items:center;gap:4px;margin:0;padding:8px 18px;border-radius:999px;background:var(--card,#fff);border:1px solid var(--bd);font-weight:600;font-size:17px;cursor:pointer}.mmid i{font-style:normal;font-size:12px;opacity:.6}.mmid input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;padding:0;border:0}
 .l9h,.r9{display:grid;grid-template-columns:58px minmax(0,1fr) 34px minmax(0,1.4fr) 16px;gap:6px;align-items:center}
 .l9h{font-size:12px;color:var(--mut);padding:4px 6px;border-bottom:2px solid var(--bd)}
 details.e9r{border-bottom:1px solid var(--bd)}details.e9r>summary{list-style:none;padding:9px 6px;font-size:14px;font-weight:400;cursor:pointer;margin:0}
@@ -63,6 +63,11 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 .rt .nm{position:sticky;left:0;background:var(--card);text-align:left;min-width:62px;border-right:1px solid var(--bd);z-index:1;font-weight:600;color:var(--fg)}
 .rt .we{background:var(--we)}.rt .td{background:var(--tdc);font-weight:700}.rt tr.me td:not(.we):not(.td),.rt tr.me .nm{background:var(--me);font-weight:700}
 .rt thead th{color:var(--mut);font-weight:600}
+.shd{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}.shd b{font-size:17px;flex:1;text-align:center;white-space:nowrap}.shd button{background:none;border:0;color:var(--ac);font-size:17px;padding:6px 0;min-width:64px;text-align:left}.shd span{min-width:64px}
+.sgl{font-size:13px;color:var(--mut);margin:18px 14px 6px}.sgrp{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
+.srow{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:48px;cursor:pointer}.srow+.srow{border-top:1px solid var(--bd)}.srow.nc{cursor:default}
+.srow .si{width:22px;height:22px;flex:none;color:var(--mut)}.srow .sn{flex:1;font-size:16px}.srow .sv{font-size:15px;color:var(--mut)}.srow .sv.warn{color:var(--warn);font-weight:600}.srow .ch2{width:16px;height:16px;flex:none;color:var(--mut);opacity:.7}
+.sp .card>h2{display:none}.sp .card details>summary{display:none}.sp .card details{margin:0}
 #bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:18px}
 .ic{width:18px;height:18px;vertical-align:middle}
 /* ===== iOS 風格外觀（只改樣式，不改功能） ===== */
@@ -213,7 +218,8 @@ details.e9r>summary::after{display:none}
 </style></head><body><main>
 
 <section id="login" class="card" style="display:none"><h1>調班表</h1>
-<label>員工代號</label><input id="code" inputmode="numeric" autocomplete="off">
+<div id="lwho" style="display:none;text-align:center;margin:4px 0 6px"><div style="font-size:19px;font-weight:600" id="lwn"></div><button type="button" class="x" id="lsw" style="background:none;border:0;color:var(--ac);padding:6px">換人登入</button></div>
+<label id="lcl">員工代號</label><input id="code" inputmode="numeric" autocomplete="off">
 <div id="pwrow" style="display:none"><label>密碼</label><input id="lpw" type="password" autocomplete="current-password"></div>
 <p class="warn" id="lerr" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgin" style="margin-top:6px">登入</button></section>
 
@@ -241,23 +247,19 @@ details.e9r>summary::after{display:none}
 </section>
 
 <section id="back" style="display:none">
-<div id="sys94"></div>
 <div class="card"><h2>待處理</h2><p class="note" style="margin:0 0 8px">改好大班表或輸入完成後，按「已處理」。</p><div id="pend94"></div></div>
-<div class="card"><label style="margin-top:0">月份</label><div class="mnav"><button type="button" data-id="bm" data-d="-1" aria-label="上個月">‹</button><span id="bml"></span><button type="button" data-id="bm" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm"></div>
-<div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：每日彙總、所有登記、月結、已刪除、修改紀錄、登入紀錄</p></div>
+<div class="mnav"><button type="button" data-id="bm" data-d="-1" aria-label="上個月">‹</button><label class="mmid"><span id="bml"></span><i aria-hidden="true">⌄</i><input type="month" id="bmp" aria-label="選擇月份"></label><button type="button" data-id="bm" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm">
 <div class="card"><details><summary>每日彙總</summary><div id="dpb" class="seg" style="margin-bottom:10px"></div><div class="scroll"><table id="bDays"></table></div></details></div>
-<div class="card"><h2>需人工核對</h2><div class="scroll"><table id="bMan"></table></div></div>
 <div class="card"><h2>月結</h2><div class="scroll"><table id="bStat"></table></div></div>
+<div class="card"><h2>需人工核對</h2><div class="scroll"><table id="bMan"></table></div></div>
 <div class="card"><details id="dAll"><summary>所有登記</summary>
 <div class="row" style="margin-top:8px"><div><label>人員</label><select id="fp"></select></div><div><label>類型</label><select id="ft"><option value="">全部</option><option value="OT">加班</option><option value="AM">請假/AM</option><option value="PM">請假/PM</option><option value="LV">小時假</option><option value="DAY">請假/整天</option><option value="OTH">其他</option></select></div></div>
 <p class="note" id="fcnt" style="margin:8px 0"></p><div id="bList"></div></details></div>
-<div class="card"><details id="dTrash"><summary>已刪除</summary><div class="scroll"><table id="bTrash"></table></div></details></div>
-<div class="card"><details id="dEdits"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits"></table></div></details></div>
-<div class="card"><details id="dLogins"><summary>登入紀錄</summary>
-<p><button type="button" id="clrLog" class="x" title="清空登入紀錄" aria-label="清空登入紀錄" style="border:1px solid var(--bd)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></p>
-<div class="scroll"><table id="bLogins"></table></div></details></div>
 </section>
 
+<section id="setSec" style="display:none"><div class="shd"><button type="button" id="sback" aria-label="返回">‹ <span id="sbt">返回</span></button><b id="stitle">設定</b><span></span></div><div id="setMain"><div class="sgl">一般</div><div class="sgrp"><div class="srow nc"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19L9.5 5 15 19M6.2 14h6.6M17 19h4M19 12v7"/></svg><span class="sn">字體大小</span><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr;width:150px;margin:0"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div></div><div class="srow" id="spw"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="sn">登入密碼</span><span class="sv" id="spwn"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div></div><div id="setAdm"><div class="sgl">管理者</div><div class="sgrp"><div class="srow" data-sp="maint"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg><span class="sn">維護模式</span><span class="sv" id="vMaint">關閉</span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="notice"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg><span class="sn">公告</span><span class="sv" id="vNotice"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="reset"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l3 3"/></svg><span class="sn">重置密碼</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="export"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><span class="sn">匯出資料</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="roster"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg><span class="sn">班表檔（D2690）</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div></div><div class="sgl">紀錄</div><div class="sgrp"><div class="srow" data-sp="logins"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span class="sn">登入紀錄</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="edits"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg><span class="sn">修改紀錄</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="trash"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg><span class="sn">已刪除</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div></div></div><p class="note" style="text-align:center;margin:18px 0 0" id="ver"></p></div><div id="setSub" style="display:none"><div id="suChips" class="chips" style="display:none;margin-bottom:12px"><button type="button" data-su="D2690">D2690</button><button type="button" data-su="D2694">D2694</button></div><div class="sp" id="sp_maint"><div id="sysM"></div></div><div class="sp" id="sp_notice"><div id="sysN"></div></div><div class="sp" id="sp_reset"><div id="sysR"></div></div><div class="sp" id="sp_export"><div class="mnav"><button type="button" data-id="xm" data-d="-1" aria-label="上個月">‹</button><label class="mmid"><span id="xml"></span><i aria-hidden="true">⌄</i><input type="month" id="xmp" aria-label="選擇月份"></label><button type="button" data-id="xm" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="xm"><div class="u94"><div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr"><option value="m">所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：每日彙總、所有登記、月結、已刪除、修改紀錄、登入紀錄</p></div></div><div class="u90"><div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr9"><option value="m">所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo9" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：班表變動、請假、加班、所有登記、每人彙總、已刪除、修改紀錄</p></div></div></div><div class="sp" id="sp_roster"><div class="card"><details id="dRs9"><summary>班表檔（登記時自動帶入班別）</summary><p class="note" style="margin:8px 0">先在 D2690 排班工具的第 3 個頁籤輸出「班表檔」，再在這裡選那個檔案上傳。同一個月重傳會整月取代。</p><div id="rs9" class="note"></div><input type="file" id="rf9" accept=".json,application/json" style="margin-top:8px"><div id="rp9" class="note" style="margin:8px 0"></div><button type="button" class="go" id="ru9" style="display:none">上傳班表</button></details></div></div><div class="sp" id="sp_logins"><div class="u94"><div class="card"><details id="dLogins"><summary>登入紀錄</summary>
+<p><button type="button" id="clrLog" class="x" title="清空登入紀錄" aria-label="清空登入紀錄" style="border:1px solid var(--bd)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></p>
+<div class="scroll"><table id="bLogins"></table></div></details></div></div><div class="u90"><div class="card"><details id="dLogins9"><summary>登入紀錄</summary><div class="scroll"><table id="bLogins9"></table></div></details></div></div></div><div class="sp" id="sp_edits"><div class="u94"><div class="card"><details id="dEdits"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits"></table></div></details></div></div><div class="u90"><div class="card"><details id="dEdits9"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits9"></table></div></details></div></div></div><div class="sp" id="sp_trash"><div class="u94"><div class="card"><details id="dTrash"><summary>已刪除</summary><div class="scroll"><table id="bTrash"></table></div></details></div></div><div class="u90"><div class="card"><details id="dTrash9"><summary>已刪除</summary><div class="scroll"><table id="bTrash9"></table></div></details></div></div></div></div></section>
 <section id="rosterSec" style="display:none"><div class="card" id="rc94"></div><div class="card" id="rc90"></div></section>
 <section id="fill90" style="display:none">
 <div class="card"><div id="f9body"></div><button type="button" class="go" id="go9">送出</button></div>
@@ -266,19 +268,14 @@ details.e9r>summary::after{display:none}
 </section>
 
 <section id="back90" style="display:none">
-<div id="sys90"></div>
-<div class="card"><label style="margin-top:0">月份</label><div class="mnav"><button type="button" data-id="bm9" data-d="-1" aria-label="上個月">‹</button><span id="bm9l"></span><button type="button" data-id="bm9" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm9"></div>
-<div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr9"><option value="m">只匯出所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo9" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：班表變動、請假、加班、所有登記、每人彙總、已刪除、修改紀錄</p></div>
-<div class="card"><details id="dRs9"><summary>班表檔（登記時自動帶入班別）</summary><p class="note" style="margin:8px 0">先在 D2690 排班工具的第 3 個頁籤輸出「班表檔」，再在這裡選那個檔案上傳。同一個月重傳會整月取代。</p><div id="rs9" class="note"></div><input type="file" id="rf9" accept=".json,application/json" style="margin-top:8px"><div id="rp9" class="note" style="margin:8px 0"></div><button type="button" class="go" id="ru9" style="display:none">上傳班表</button></details></div>
 <div class="card"><h2>待處理</h2><p class="note" style="margin:0 0 8px">改好 Word 大班表或輸入完成後，按「已處理」。</p><div id="pend9"></div></div>
-<div class="card"><details><summary>本月彙總</summary><div class="scroll"><table id="bStat9"></table></div></details></div>
-<div class="card"><details><summary>每日加班與小時假</summary><div class="scroll" style="margin-top:8px"><table id="bDays9"></table></div></details></div>
+<div class="mnav"><button type="button" data-id="bm9" data-d="-1" aria-label="上個月">‹</button><label class="mmid"><span id="bm9l"></span><i aria-hidden="true">⌄</i><input type="month" id="bm9p" aria-label="選擇月份"></label><button type="button" data-id="bm9" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm9">
+<div class="card"><details><summary>每日彙總</summary><div class="scroll" style="margin-top:8px"><table id="bDays9"></table></div></details></div>
+<div class="card"><h2>月結</h2><div class="scroll"><table id="bStat9"></table></div></div>
+<div class="card"><h2>需人工核對</h2><div class="scroll"><table id="bMan9"></table></div></div>
 <div class="card"><details id="dAll9"><summary>所有登記</summary>
 <div class="row" style="margin-top:8px"><div><label>人員</label><select id="fp9"></select></div><div><label>類型</label><select id="ft9"><option value="">全部</option><option value="換班">調班</option><option>請假</option><option>加班</option><option>其他</option></select></div></div>
 <p class="note" id="fcnt9" style="margin:8px 0"></p><div id="bList9"></div></details></div>
-<div class="card"><details id="dTrash9"><summary>已刪除</summary><div class="scroll"><table id="bTrash9"></table></div></details></div>
-<div class="card"><details id="dEdits9"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits9"></table></div></details></div>
-<div class="card"><details id="dLogins9"><summary>登入紀錄</summary><div class="scroll"><table id="bLogins9"></table></div></details></div>
 </section>
 </div>
 </main>
@@ -293,16 +290,11 @@ details.e9r>summary::after{display:none}
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel">取消</button><button type="button" class="go" id="esave" style="margin:0">儲存修改</button></div></div></div>
 <div id="nm" class="mask"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">通知</h2><button type="button" class="x" id="nclose" aria-label="關閉">✕</button></div><div id="nl" style="margin-top:6px"></div></div></div>
 <div id="mt"><div style="text-align:center;width:100%;max-width:320px"><div style="width:88px;height:88px;border-radius:22px;background:linear-gradient(145deg,#4c93ff,#1f6feb);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(31,111,235,.27)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div><h2 style="font-size:26px;margin:20px 0 6px">系統更新中</h2><div id="mtn" style="font-size:16px;margin:0 0 26px;opacity:.85"></div><div id="mtt" style="font-size:20px;font-weight:600"></div><p class="note" id="mth" style="margin:6px 0 28px"></p><button type="button" id="mtr" class="go" style="margin-top:0">重新整理</button></div></div>
-<div id="sm" class="mask"><div class="card"><h2>設定</h2>
-<label>字體大小</label><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div>
-<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>登入密碼</span><button type="button" id="spw" class="x" style="border:1px solid var(--bd)"></button></div><p class="note" style="margin:6px 0 0" id="spwn"></p>
-<p class="note" style="margin:12px 0 0" id="ver"></p>
-<button type="button" class="go" id="sclose">完成</button></div></div>
 <div id="em9" class="mask"><div class="card"><h2>編輯登記</h2><p class="note" id="einfo9"></p><div id="e9body"></div>
 <div class="row" style="margin-top:12px"><button type="button" id="ecancel9">取消</button><button type="button" class="go" id="esave9" style="margin:0">儲存修改</button></div></div></div>
 <div id="pm" class="mask" style="z-index:900"><div class="card"><h2 id="pmt">設定登入密碼</h2><p class="note" id="pmn"></p><div id="pmo"><label>目前密碼</label><input id="pm0" type="password" autocomplete="current-password"></div><label>新密碼（至少 4 個字）</label><input id="pm1" type="password" autocomplete="new-password"><label>再輸入一次</label><input id="pm2" type="password" autocomplete="new-password"><p class="warn" id="pme" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="pmg" style="margin-top:6px">儲存</button><button type="button" class="x" id="pmc" style="width:100%;margin-top:8px;border:1px solid var(--bd)">取消</button><p class="note" id="pmf" style="text-align:center;margin:10px 0 0"></p></div></div>
-<div id="lockm" class="mask" style="z-index:50"><div class="card"><h2>已鎖定</h2><p class="note">請輸入員工代號解鎖，或登入其他使用者。</p>
-<input id="lcode" inputmode="numeric" autocomplete="off" placeholder="員工代號"><div id="lpwr" style="display:none;margin-top:8px"><input id="lpw2" type="password" autocomplete="current-password" placeholder="密碼"></div><p class="warn" id="lerr2" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgo" style="margin-top:6px">解鎖</button></div></div>
+<div id="lockm" class="mask" style="z-index:50"><div class="card"><h2>已鎖定</h2><p class="note" id="lnote">請輸入員工代號解鎖，或登入其他使用者。</p>
+<input id="lcode" inputmode="numeric" autocomplete="off" placeholder="員工代號"><div id="lpwr" style="display:none;margin-top:8px"><input id="lpw2" type="password" autocomplete="current-password" placeholder="密碼"></div><p class="warn" id="lerr2" style="min-height:1.4em;margin:6px 0 0"></p><button type="button" class="go" id="lgo" style="margin-top:6px">解鎖</button><button type="button" class="x" id="lsw2" style="display:none;width:100%;margin-top:6px;background:none;border:0;color:var(--ac)">換人登入</button></div></div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -346,18 +338,24 @@ const ask=(title,body,ok,danger)=>modal(title,body,[{t:'取消',v:false},{t:ok,v
 let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',2500)};
 
 /* ---- 登入 ---- */
-function showLogin(m){$('app').style.display='none';$('login').style.display='';$('lerr').textContent=m||'';$('code').value='';$('lpw').value='';$('pwrow').style.display='none';$('pm').style.display='none';S.token=null;S.me=null}
+function showLogin(m){$('app').style.display='none';$('login').style.display='';$('lerr').textContent=m||'';$('code').value='';$('lpw').value='';$('pwrow').style.display='none';$('pm').style.display='none';S.token=null;S.me=null;loginMode()}
 function lostAuth(){store.removeItem(TK);showLogin('登入已失效，請重新輸入員工代號')}
+const LK='diaoban_last';
+function lastU(){try{const v=JSON.parse(store.getItem(LK)||'null');return v&&v.c&&v.n?v:null}catch(e){return null}}
+function loginMode(){const u=lastU();$('lwho').style.display=u?'':'none';$('code').style.display=$('lcl').style.display=u?'none':'';
+  if(u){$('lwn').textContent=u.n;$('code').value=u.c;$('pwrow').style.display='';setTimeout(()=>{try{$('lpw').focus()}catch(e){}},50)}}
+$('lsw').onclick=()=>{try{store.removeItem(LK)}catch(e){};$('code').value='';$('lpw').value='';$('pwrow').style.display='none';$('lerr').textContent='';loginMode();$('code').focus()};
 async function doLogin(code,unlock,pw){return call0('login',{code:code,pw:pw||'',dev:dev(),unlock:!!unlock})}
 async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;if(r&&r.error==='MAINT')throw new Error('系統更新中');if(r&&r.error==='NEEDPW'){const e=new Error('請輸入密碼');e.needPw=true;throw e}throw new Error((r&&r.error)||'登入失敗')}
-async function afterLogin(r){S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;applySys(r);enter()}
+async function afterLogin(r,c){try{if(c&&r.me.hasPw)store.setItem(LK,JSON.stringify({c:c,n:r.me.name}));else if(c)store.removeItem(LK)}catch(e){}
+  S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;applySys(r);enter()}
 $('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
-  $('lgin').disabled=true;try{await afterLogin(await doLogin(c,false,$('lpw').value))}catch(e){
+  $('lgin').disabled=true;try{await afterLogin(await doLogin(c,false,$('lpw').value),c)}catch(e){
     if(e.needPw){const first=$('pwrow').style.display==='none';$('pwrow').style.display='';$('lerr').textContent=first?'':'請輸入密碼';$('lpw').focus()}
     else{$('lerr').textContent=e.message;if($('pwrow').style.display!=='none')$('lpw').select()}}
   $('lgin').disabled=false};
 $('code').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
-$('code').oninput=()=>{$('pwrow').style.display='none';$('lpw').value=''};
+$('code').oninput=()=>{if(lastU())return;$('pwrow').style.display='none';$('lpw').value=''};
 $('lpw').onkeydown=e=>{if(e.key==='Enter')$('lgin').click()};
 $('out').onclick=()=>{store.removeItem(TK);showLogin('')};
 async function boot(){
@@ -372,7 +370,7 @@ const setPref=(k,v)=>{try{localStorage.setItem('diaoban_'+k,v)}catch(e){}};
 function applyPrefs(){document.documentElement.style.zoom=pref('fs','0')==='1'?'1.15':'';document.documentElement.classList.toggle('big',pref('fs','0')==='1');
   document.querySelectorAll('#sfs button').forEach(b=>b.classList.toggle('on',b.dataset.v===pref('fs','0')));
   }
-function renderPwRow(){const h=S.me&&S.me.hasPw;$('spw').textContent=h?'修改密碼':'設定登入密碼';$('spwn').textContent=h?'已設定：登入時要輸入密碼':'未設定：只用員工代號登入'}
+function renderPwRow(){const h=S.me&&S.me.hasPw;$('spwn').textContent=h?'已設定':'未設定'}
 function pwModal(force){
   const h=S.me.hasPw;$('pmt').textContent=force?'請先設定密碼':h?'修改密碼':'設定登入密碼';
   $('pmn').textContent=force?'管理者帳號需要密碼保護。之後登入時，代號之外還要輸入這組密碼。':h?'':'設定後，登入時除了員工代號，還要輸入這組密碼。';$('pmn').style.display=$('pmn').textContent?'':'none';
@@ -380,7 +378,7 @@ function pwModal(force){
   $('pmc').style.display=force?'none':'';$('pmf').innerHTML=force?'<a href="#" id="pmo2" style="color:var(--mut)">登出</a>':(h?'忘記密碼請找管理者重置':'');
   $('pm').dataset.force=force?'1':'';$('pm').style.display='flex';setTimeout(()=>$(h?'pm0':'pm1').focus(),50);
   const o=$('pmo2');if(o)o.onclick=e=>{e.preventDefault();$('out').click()}}
-$('spw').onclick=()=>{$('sm').style.display='none';pwModal(false)};
+$('spw').onclick=()=>pwModal(false);
 $('pmc').onclick=()=>{$('pm').style.display='none'};
 $('pmg').onclick=async()=>{const o=$('pm0').value,a=$('pm1').value,b=$('pm2').value;
   if($('pmo').style.display!=='none'&&!o){$('pme').textContent='請輸入目前的密碼';return}
@@ -389,8 +387,7 @@ $('pmg').onclick=async()=>{const o=$('pm0').value,a=$('pm1').value,b=$('pm2').va
   $('pmg').disabled=true;try{const r=await call('setPw',{old:o,pw:a});S.token=r.token;store.setItem(TK,r.token);S.me=r.me;const f=$('pm').dataset.force==='1';$('pm').style.display='none';renderPwRow();toast('密碼已設定');S.lockAt=Date.now();if(f)enter()}
   catch(e){$('pme').textContent=e.message}$('pmg').disabled=false};
 ['pm0','pm1','pm2'].forEach(i=>$(i).onkeydown=e=>{if(e.key==='Enter')$('pmg').click()});
-$('gear').onclick=()=>{applyPrefs();renderPwRow();$('sm').style.display='flex'};
-$('sclose').onclick=()=>{$('sm').style.display='none'};
+$('gear').onclick=()=>{applyPrefs();renderPwRow();switchTab('set')};
 $('sfs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setPref('fs',b.dataset.v);applyPrefs()};
 /* ---- 大班表（本單位） ---- */
 const RSM={};
@@ -423,7 +420,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.23.4';
+const APPV='2026.10.24.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -483,21 +480,21 @@ function renderBanner(){
 }
 /* ---- 管理者後台：維護模式、公告 ---- */
 function renderSys(){
-  ['sys94','sys90'].forEach(id=>{const el=$(id);if(!el)return;
-    if(!isAdmin()){el.innerHTML='';return}
-    const old=el.querySelectorAll('details'),o1=old[0]?old[0].open:null,o2=old[1]?old[1].open:false,o3=old[2]?old[2].open:false;
-    const m=S.maint||{},on=m.on&&m.active,
-      def=new Date(Date.now()+8*36e5+36e5).toISOString().slice(0,16),
-      d7=new Date(Date.now()+8*36e5+7*864e5).toISOString().slice(0,10);
-    el.innerHTML=`<div class="card sys"><details${(o1===null?on:(o1||on))?' open':''}><summary>維護模式${on?'（開啟中）':''}</summary>`+(on
-      ?`<p class="note" style="margin:0 0 10px">開啟中，一般人員暫時無法使用。管理者不受影響。${m.until?'<br>預計 <b>'+esc(untilTxt(m.until))+'</b> 自動恢復。':'<br>沒有設定時間，要手動關閉。'}</p><button type="button" class="go" data-sys="moff" style="margin-top:0">立即關閉</button>`
-      :`<p class="note" style="margin:0 0 6px">更新前先開啟，同事會看到「系統更新中」。到了預計時間會自動關閉。</p><label>預計恢復時間</label><select class="mq"><option value="">不設定（要手動關閉）</option><option value="30">30 分鐘後自動恢復</option><option value="60">1 小時後自動恢復</option><option value="120">2 小時後自動恢復</option><option value="c">自訂時間…</option></select><input type="datetime-local" class="mu" value="${def}" style="display:none"><label>給同事看的說明（選填）</label><input class="mn" maxlength="100" placeholder="例如：更新功能中"><button type="button" class="go" data-sys="mon">開啟維護模式</button>`)
-      +`</details></div><div class="card sys"><details${o2?' open':''}><summary>公告</summary><label style="margin-top:0">標題</label><input class="nt1" maxlength="60"><label>內容（選填）</label><input class="nb1" maxlength="300"><label>顯示到</label><input type="date" class="nu" value="${d7}"><button type="button" class="go" data-sys="npub">發布</button>`
-      +((S.notices||[]).length?'<div style="margin-top:14px"><div class="note" style="margin:0 0 4px">已發布</div>'+S.notices.map(x=>`<div class="nitem" style="align-items:center"><div style="flex:1"><b style="font-size:14px">${esc(x.title)}</b><br><small>顯示到 ${esc(x.until||'')}${x.by==='系統'?'　（自動）':''}</small></div><button type="button" class="x" style="border:1px solid var(--bd)" data-sys="ndel" data-id="${esc(x.id)}">刪除</button></div>`).join('')+'</div>':'')
-      +`</details></div>`
-      +`<div class="card sys"><details${o3?' open':''}><summary>重置密碼</summary>`+((S.pwList||[]).filter(x=>x.hasPw).length
-        ?`<p class="note" style="margin:0 0 6px">同事忘記密碼時使用。重置後，他只用員工代號就能登入，再自己重新設定。</p><label>人員</label><select class="rp">${S.pwList.filter(x=>x.hasPw).map(x=>`<option value="${esc(x.code)}">${esc(x.name)}　${esc(x.code)}</option>`).join('')}</select><button type="button" class="go" data-sys="rpw" style="background:var(--danger)">重置密碼</button>`
-        :`<p class="note" style="margin:0">目前沒有人設定密碼。</p>`)+`</details></div>`});
+  if(!$('sysM'))return;
+  if(!isAdmin()){['sysM','sysN','sysR'].forEach(id=>$(id).innerHTML='');return}
+  const m=S.maint||{},on=m.on&&m.active,
+    def=new Date(Date.now()+8*36e5+36e5).toISOString().slice(0,16),
+    d7=new Date(Date.now()+8*36e5+7*864e5).toISOString().slice(0,10);
+  $('vMaint').textContent=on?'開啟中':'關閉';$('vMaint').className='sv'+(on?' warn':'');
+  $('vNotice').textContent=(S.notices||[]).length?(S.notices.length+' 則'):'';
+  $('sysM').innerHTML=`<div class="card sys">`+(on
+    ?`<p class="note" style="margin:0 0 10px">開啟中，一般人員暫時無法使用。管理者不受影響。${m.until?'<br>預計 <b>'+esc(untilTxt(m.until))+'</b> 自動恢復。':'<br>沒有設定時間，要手動關閉。'}</p><button type="button" class="go" data-sys="moff" style="margin-top:0">立即關閉</button>`
+    :`<p class="note" style="margin:0 0 6px">更新前先開啟，同事會看到「系統更新中」。到了預計時間會自動關閉。</p><label>預計恢復時間</label><select class="mq"><option value="">不設定（要手動關閉）</option><option value="30">30 分鐘後自動恢復</option><option value="60">1 小時後自動恢復</option><option value="120">2 小時後自動恢復</option><option value="c">自訂時間…</option></select><input type="datetime-local" class="mu" value="${def}" style="display:none"><label>給同事看的說明（選填）</label><input class="mn" maxlength="100"><button type="button" class="go" data-sys="mon">開啟維護模式</button>`)+`</div>`;
+  $('sysN').innerHTML=`<div class="card sys"><label style="margin-top:0">標題</label><input class="nt1" maxlength="60"><label>內容（選填）</label><input class="nb1" maxlength="300"><label>顯示到</label><input type="date" class="nu" value="${d7}"><button type="button" class="go" data-sys="npub">發布</button>`
+    +((S.notices||[]).length?'<div style="margin-top:14px"><div class="note" style="margin:0 0 4px">已發布</div>'+S.notices.map(x=>`<div class="nitem" style="align-items:center"><div style="flex:1"><b style="font-size:14px">${esc(x.title)}</b><br><small>顯示到 ${esc(x.until||'')}${x.by==='系統'?'　（自動）':''}</small></div><button type="button" class="x" style="border:1px solid var(--bd)" data-sys="ndel" data-id="${esc(x.id)}">刪除</button></div>`).join('')+'</div>':'')+`</div>`;
+  $('sysR').innerHTML=`<div class="card sys">`+((S.pwList||[]).filter(x=>x.hasPw).length
+    ?`<p class="note" style="margin:0 0 6px">同事忘記密碼時使用。重置後，他只用員工代號就能登入，再自己重新設定。</p><label>人員</label><select class="rp">${S.pwList.filter(x=>x.hasPw).map(x=>`<option value="${esc(x.code)}">${esc(x.name)}　${esc(x.code)}</option>`).join('')}</select><button type="button" class="go" data-sys="rpw" style="background:var(--danger)">重置密碼</button>`
+    :`<p class="note" style="margin:0">目前沒有人設定密碼。</p>`)+`</div>`;
 }
 document.addEventListener('change',e=>{const q=e.target.closest&&e.target.closest('.mq');if(q){const i=q.parentNode.querySelector('.mu');if(i)i.style.display=q.value==='c'?'':'none'}});
 document.addEventListener('click',async e=>{
@@ -525,7 +522,7 @@ function enter(){
   const us=myUnits();let u=null;try{u=store.getItem('diaoban_unit')}catch(e){}
   S.unit=us.indexOf(u)>=0?u:(us.indexOf('D2694')>=0?'D2694':us[0]);
   $('units').style.display=us.length>1?'':'none';
-  $('units').innerHTML=['D2690','D2694'].filter(x=>us.indexOf(x)>=0).map(x=>`<button type="button" data-u="${x}">${x==='D2690'?'西藥局':'中藥局'}</button>`).join('');
+  $('units').innerHTML=['D2690','D2694'].filter(x=>us.indexOf(x)>=0).map(x=>`<button type="button" data-u="${x}">${x}</button>`).join('');
   applyPrefs();$('ver').textContent='最後更新：'+APPV.slice(0,10).replace(/\./g,'/');chkVer();renderBell();renderBanner();renderSys();initForm();fillPeople();if(S.cfg90)initForm9();switchTab(isAdmin()?'back':S.tab);
 }
 $('units').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.u===S.unit)return;S.unit=b.dataset.u;try{store.setItem('diaoban_unit',S.unit)}catch(er){}switchTab(S.tab)};
@@ -536,7 +533,9 @@ function fillPeople(){
   $('fp').innerHTML='<option value="">全部</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');
 }
 function switchTab(t){
-  S.tab=t;const adm=isAdmin(),u=S.unit;
+  const adm=isAdmin(),u=S.unit;
+  if(t==='set'){S.prev=S.tab==='set'?S.prev:S.tab;openSettings();return}
+  S.tab=t;$('setSec').style.display='none';$('units').style.display=myUnits().length>1?'':'none';
   document.querySelectorAll('#units button').forEach(b=>b.className=b.dataset.u===u?'on':'');
   $('fill').style.display=(t==='fill'&&u==='D2694')?'':'none';$('back').style.display=(t==='back'&&adm&&u==='D2694')?'':'none';
   $('fill90').style.display=(t==='fill'&&u==='D2690')?'':'none';$('back90').style.display=(t==='back'&&adm&&u==='D2690')?'':'none';
@@ -548,6 +547,37 @@ function switchTab(t){
   if(u==='D2690'){if(t==='fill')loadFill90();else loadBack90();return}
   if(t==='fill')loadFill();else loadBack();
 }
+/* ---- 設定整頁 ---- */
+const SPT={maint:'維護模式',notice:'公告',reset:'重置密碼',export:'匯出資料',roster:'班表檔（D2690）',logins:'登入紀錄',edits:'修改紀錄',trash:'已刪除'};
+const SPU=['export','logins','edits','trash'];
+function openSettings(){
+  ['fill','back','fill90','back90','rosterSec'].forEach(id=>$(id).style.display='none');$('pbtns').style.display='none';$('units').style.display='none';
+  ['tabP','tabB','tabR'].forEach(id=>{$(id).className='';$(id).style.margin='0'});
+  $('setSec').style.display='';$('setAdm').style.display=isAdmin()?'':'none';
+  document.querySelector('[data-sp=roster]').style.display=S.cfg90?'':'none';
+  applyPrefs();renderPwRow();renderSys();backSet();window.scrollTo(0,0);
+}
+function backSet(){S.sp=null;$('setMain').style.display='';$('setSub').style.display='none';$('stitle').textContent='設定';$('sbt').textContent='返回'}
+function openSub(k){
+  S.sp=k;$('setMain').style.display='none';$('setSub').style.display='';$('stitle').textContent=SPT[k];$('sbt').textContent='設定';
+  document.querySelectorAll('#setSub .sp').forEach(e=>e.style.display=(e.id==='sp_'+k)?'':'none');
+  const us=myUnits();if(!S.su||us.indexOf(S.su)<0)S.su=(us.indexOf(S.unit)>=0?S.unit:us[0]);
+  $('suChips').style.display=(SPU.indexOf(k)>=0&&us.length>1)?'':'none';
+  if(k==='export')showM('xm');
+  if(k==='roster')opn('dRs9',loadRoster9);
+  window.scrollTo(0,0);suApply();
+}
+const opn=(id,fn)=>{const d=$(id),w=d.open;d.open=true;if(w)fn(id)};
+function suApply(){
+  const u=S.su;document.querySelectorAll('#suChips button').forEach(b=>b.className=b.dataset.su===u?'on':'');
+  document.querySelectorAll('#setSub .u94').forEach(e=>e.style.display=u==='D2694'?'':'none');
+  document.querySelectorAll('#setSub .u90').forEach(e=>e.style.display=u==='D2690'?'':'none');
+  const k=S.sp,n=u==='D2690'?'9':'';
+  if(k==='logins')opn('dLogins'+n,n?loadExtra9:loadExtra);if(k==='edits')opn('dEdits'+n,n?loadExtra9:loadExtra);if(k==='trash')opn('dTrash'+n,n?loadExtra9:loadExtra);
+}
+$('setMain').onclick=e=>{const r=e.target.closest('[data-sp]');if(r)openSub(r.dataset.sp)};
+$('suChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.su=b.dataset.su;suApply()};
+$('sback').onclick=()=>{if(S.sp)backSet();else switchTab(S.prev||S.tab)};
 $('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');$('tabR').onclick=()=>switchTab('roster');
 
 /* ---- 填寫表單 ---- */
@@ -715,16 +745,17 @@ $('go').onclick=async()=>{
 };
 
 /* ---- 後台 ---- */
-const showM=id=>{$(id).value=S.month;$(id+'l').textContent=S.month.slice(0,4)+'年'+(+S.month.slice(5,7))+'月'};
+const reM=id=>id==='bm'?loadBack():id==='bm9'?loadBack90():showM(id);
+const showM=id=>{$(id).value=S.month;$(id+'p').value=S.month;$(id+'l').textContent=S.month.slice(0,4)+' 年 '+(+S.month.slice(5,7))+' 月'};
 const shiftM=d=>{let y=+S.month.slice(0,4),m=+S.month.slice(5,7)+d;if(m<1){m=12;y--}if(m>12){m=1;y++}S.month=y+'-'+String(m).padStart(2,'0')};
-document.addEventListener('click',e=>{const b=e.target.closest('.mnav button');if(!b)return;shiftM(+b.dataset.d);b.dataset.id==='bm'?loadBack():loadBack90()});
+document.addEventListener('click',e=>{const b=e.target.closest('.mnav button');if(!b)return;shiftM(+b.dataset.d);reM(b.dataset.id)});
 showM('bm');
+['bm','bm9','xm'].forEach(id=>$(id+'p').onchange=e=>{if(!e.target.value)return;S.month=e.target.value;reM(id)});
 $('dpb').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.dp=b.dataset.dp;renderBack()};
 $('fp').onchange=$('ft').onchange=()=>renderBack();
 async function loadBack(){
   showM('bm');
   try{S.bv=await call('view',{month:S.month,person:''});renderBack()}catch(e){msg(e.message)}
-  ['dTrash','dEdits','dLogins'].forEach(id=>{if($(id).open)loadExtra(id)});
 }
 function renderBack(){
   const v=S.bv;if(!v)return;
@@ -817,14 +848,19 @@ let idle=null;
 function armIdle(){
   if(touch)return;
   ['click','keydown','mousemove','scroll'].forEach(ev=>document.addEventListener(ev,()=>{S.lockAt=Date.now()},{passive:true}));
-  setInterval(()=>{if(S.me&&$('lockm').style.display!=='flex'&&Date.now()-S.lockAt>((S.cfg&&S.cfg.lockSec)||120)*1000){$('lockm').style.display='flex';$('lcode').value='';$('lpw2').value='';$('lpwr').style.display='none';$('lerr2').textContent='';setTimeout(()=>$('lcode').focus(),50)}},5000);
+  setInterval(()=>{if(S.me&&$('lockm').style.display!=='flex'&&Date.now()-S.lockAt>((S.cfg&&S.cfg.lockSec)||120)*1000)openLock()},5000);
 }
+function openLock(){const u=lastU();$('lockm').style.display='flex';$('lcode').value='';$('lpw2').value='';$('lpwr').style.display='none';$('lerr2').textContent='';
+  const po=!!(u&&S.me&&S.me.hasPw&&u.n===S.me.name);$('lcode').style.display=po?'none':'';$('lsw2').style.display=po?'':'none';
+  $('lnote').textContent=po?'已鎖定，請輸入密碼解鎖':'請輸入員工代號解鎖，或登入其他使用者。';
+  if(po){$('lcode').value=u.c;$('lpwr').style.display='';setTimeout(()=>$('lpw2').focus(),50)}else setTimeout(()=>$('lcode').focus(),50)}
+$('lsw2').onclick=()=>{$('lcode').style.display='';$('lcode').value='';$('lpw2').value='';$('lpwr').style.display='none';$('lsw2').style.display='none';$('lnote').textContent='請輸入員工代號解鎖，或登入其他使用者。';$('lcode').focus()};
 $('lgo').onclick=async()=>{
   const c=$('lcode').value.trim();if(!c)return;
   try{
     const pw=$('lpw2').value,r=await doLogin(c,true,pw);
     if(r.me.name===S.me.name){S.token=r.token;store.setItem(TK,r.token);S.lockAt=Date.now();$('lockm').style.display='none'}
-    else{const r2=await doLogin(c,false,pw);$('lockm').style.display='none';S.lockAt=Date.now();await afterLogin(r2)}
+    else{const r2=await doLogin(c,false,pw);$('lockm').style.display='none';S.lockAt=Date.now();await afterLogin(r2,c)}
   }catch(e){
     if(e.needPw){const first=$('lpwr').style.display==='none';$('lpwr').style.display='';$('lerr2').textContent=first?'':'請輸入密碼';$('lpw2').focus()}
     else $('lerr2').textContent=e.message}
@@ -1096,13 +1132,17 @@ async function loadBack90(){
   showM('bm9');
   $('fp9').innerHTML='<option value="">全部</option>'+staff9().map(n=>`<option>${esc(n)}</option>`).join('');
   try{S.bv9=await call('view90',{month:S.month});renderBack90()}catch(e){msg(e.message)}
-  ['dTrash9','dEdits9','dLogins9'].forEach(id=>{if($(id).open)loadExtra9(id)});
 }
 function renderBack90(){
   const v=S.bv9;if(!v)return;
   $('pend9').innerHTML=v.pending.map(pendRow9).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
   $('bStat9').innerHTML='<tr><th>姓名</th><th>上月未休分鐘</th><th>本月總加班分鐘</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）</th><th>結轉下月</th><th>本月小時假</th></tr>'+
     v.stats.slice().sort((p,q)=>by9(p.name,q.name)).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.lv?hm(s.lv):''}</td></tr>`).join('');
+  const man9=[];(v.entries||[]).forEach(e=>{if(e.ty==='請假'&&e.kind==='LV'){const w=hw9(e,v.entries);if(w&&!w.auto)man9.push([e.date,e.a,'小時假 '+esc(e.t1)+'–'+esc(e.t2)+'：Word 標示時數請人工計算（'+esc(e.sa)+'）'])}
+    if(e.ty==='請假'&&e.b)man9.push([e.date,e.b,'貼班：'+esc(e.a)+' 請 '+(KIND9[e.kind]||'')+'，班別 '+esc(e.sb)]);
+    if(e.ty==='其他')man9.push([e.date,e.a||'',esc(e.note||'其他')])});
+  man9.sort((p,q)=>p[0]<q[0]?-1:p[0]>q[0]?1:0);
+  $('bMan9').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(man9.map(m=>`<tr><td>${esc(m[0])}</td><td>${esc(m[1])}</td><td>${m[2]}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
   $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
   const p=$('fp9').value,ty=$('ft9').value,list=v.entries.filter(e=>(!p||e.a===p||e.b===p)&&(!ty||e.ty===ty));
   $('fcnt9').textContent='共 '+list.length+' 筆';$('bList9').innerHTML=(list.length?L9H:'')+list.map(e=>card9(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
