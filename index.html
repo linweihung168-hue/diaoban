@@ -256,7 +256,7 @@ details.e9r>summary::after{display:none}
 </section>
 
 <section id="back" style="display:none">
-<div class="card"><h2>待處理</h2><p class="note" style="margin:0 0 8px">改好大班表或輸入完成後，按「已處理」。</p><div id="pend94"></div></div>
+<div class="card"><h2>待處理</h2><div id="pend94"></div></div>
 <div class="mnav"><button type="button" data-id="bm" data-d="-1" aria-label="上個月">‹</button><label class="mmid"><span id="bml"></span><i aria-hidden="true">⌄</i><input type="month" id="bmp" aria-label="選擇月份"></label><button type="button" data-id="bm" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm">
 <div class="card"><details><summary>每日彙總</summary><div id="dpb" class="seg" style="margin-bottom:10px"></div><div class="scroll"><table id="bDays"></table></div></details></div>
 <div class="card"><details><summary>月結</summary><div class="scroll" style="margin-top:8px"><table id="bStat"></table></div></details></div>
@@ -277,7 +277,7 @@ details.e9r>summary::after{display:none}
 </section>
 
 <section id="back90" style="display:none">
-<div class="card"><h2>待處理</h2><p class="note" style="margin:0 0 8px">改好 Word 大班表或輸入完成後，按「已處理」。</p><div id="pend9"></div></div>
+<div class="card"><h2>待處理</h2><div id="pend9"></div></div>
 <div class="mnav"><button type="button" data-id="bm9" data-d="-1" aria-label="上個月">‹</button><label class="mmid"><span id="bm9l"></span><i aria-hidden="true">⌄</i><input type="month" id="bm9p" aria-label="選擇月份"></label><button type="button" data-id="bm9" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="bm9">
 <div class="card"><details><summary>每日彙總</summary><div class="scroll" style="margin-top:8px"><table id="bDays9"></table></div></details></div>
 <div class="card"><details><summary>月結</summary><div class="scroll" style="margin-top:8px"><table id="bStat9"></table></div></details></div>
@@ -429,7 +429,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.24.5';
+const APPV='2026.10.24.6';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
