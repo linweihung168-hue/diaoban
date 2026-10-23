@@ -183,6 +183,24 @@ select:disabled{color:var(--mut)!important;opacity:1}
 input::-webkit-calendar-picker-indicator{filter:invert(.7)}
 }
 
+/* 清單列（所有登記）：字小一點、不要箭頭 */
+details.e9r>summary{font-size:13px;padding:10px 6px}
+details.e9r>summary::after{display:none}
+.e9r .dt{font-size:12.5px}
+.l9h{font-size:11.5px}
+/* 日期欄位在 iPhone 上靠右對齊 */
+.frm input[type=date],#f9body input[type=date],#e9body input[type=date],#e9body input[type=date]{display:flex;align-items:center;justify-content:flex-end;-webkit-appearance:none;appearance:none;padding:0 2px;min-width:0}
+.frm input[type=date]::-webkit-date-and-time-value,#f9body input[type=date]::-webkit-date-and-time-value,#e9body input[type=date]::-webkit-date-and-time-value,#e9body input[type=date]::-webkit-date-and-time-value{text-align:right;margin:0;min-height:1.2em}
+.frm input[type=date]::-webkit-datetime-edit,#f9body input[type=date]::-webkit-datetime-edit,#e9body input[type=date]::-webkit-datetime-edit{padding:0}
+/* 電腦版：版面不要拉太寬，下拉選單貼著欄位、不要整排展開 */
+@media (hover:hover) and (pointer:fine){
+ main{max-width:560px}
+ .frm #dk>label,.frm #edk>label{flex:1 1 auto}
+ #tabs{max-width:560px;left:50%;right:auto;width:100%;transform:translateX(-50%);border-radius:0}
+
+ .frm select,#f9body select,#e9body select,.frm #dk>select,.frm #edk>select,#e9body select{width:auto!important;min-width:150px;max-width:70%;margin-left:auto;text-align:left;text-align-last:left;padding-left:10px}
+}
+
 </style></head><body><main>
 
 <section id="login" class="card" style="display:none"><h1>調班表</h1>
@@ -204,7 +222,7 @@ input::-webkit-calendar-picker-indicator{filter:invert(.7)}
 <div id="shW"><label>班別</label><select id="s"></select><div class="note" id="sh94" style="margin:3px 0 0"></div></div>
 <div id="lvk" style="display:none"><label>請假種類</label><div class="seg"><button type="button" data-k="AM">AM</button><button type="button" data-k="PM">PM</button><button type="button" data-k="LV">小時假</button><button type="button" data-k="DAY">整天</button></div></div>
 <div class="row" id="ab"><div id="aW"><label id="aL">原下班時間</label><input id="a" inputmode="numeric" maxlength="5" autocomplete="off"></div><div><label id="bL">實際下班時間</label><input id="b" inputmode="numeric" maxlength="5" autocomplete="off"></div></div>
-<div id="dk"><label>醫師</label><select id="doc"></select><div class="row"><div><label>最後一張領藥號</label><input id="k" autocomplete="off"></div><div><label>處方時間</label><input id="kt" inputmode="numeric" maxlength="5" autocomplete="off"></div></div><p class="note" style="margin:6px 0 0">處方簽上的號碼與時間，紙本請留存</p></div>
+<div id="dk"><label>醫師</label><select id="doc"></select><div class="row"><div><label>最後一張領藥號</label><input id="k" autocomplete="off"></div><div><label>處方時間</label><input id="kt" inputmode="numeric" maxlength="5" autocomplete="off"></div></div><p class="note" style="margin:6px 0 0">紙本請留存</p></div>
 <label id="nL">備註（選填）</label><input id="nt" maxlength="200" autocomplete="off">
 <div class="calc" id="c" style="display:none"></div>
 <button type="button" class="go" id="go">送出</button></div>
@@ -269,6 +287,7 @@ input::-webkit-calendar-picker-indicator{filter:invert(.7)}
 <div id="mt"><div style="text-align:center;width:100%;max-width:320px"><div style="width:88px;height:88px;border-radius:22px;background:linear-gradient(145deg,#4c93ff,#1f6feb);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(31,111,235,.27)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div><h2 style="font-size:26px;margin:20px 0 6px">系統更新中</h2><div id="mtn" style="font-size:16px;margin:0 0 26px;opacity:.85"></div><div id="mtt" style="font-size:20px;font-weight:600"></div><p class="note" id="mth" style="margin:6px 0 28px"></p><button type="button" id="mtr" class="go" style="margin-top:0">重新整理</button></div></div>
 <div id="sm" class="mask"><div class="card"><h2>設定</h2>
 <label>字體大小</label><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>顯示大班表</span><button type="button" id="srv" class="x" style="border:1px solid var(--bd);min-width:64px"></button></div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>大班表預設展開</span><button type="button" id="sro" class="x" style="border:1px solid var(--bd);min-width:64px"></button></div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>登入密碼</span><button type="button" id="spw" class="x" style="border:1px solid var(--bd)"></button></div><p class="note" style="margin:6px 0 0" id="spwn"></p>
 <p class="note" style="margin:12px 0 0" id="ver"></p>
@@ -346,6 +365,7 @@ const pref=(k,d)=>{try{const v=localStorage.getItem('diaoban_'+k);return v==null
 const setPref=(k,v)=>{try{localStorage.setItem('diaoban_'+k,v)}catch(e){}};
 function applyPrefs(){document.documentElement.style.zoom=pref('fs','0')==='1'?'1.15':'';document.documentElement.classList.toggle('big',pref('fs','0')==='1');
   document.querySelectorAll('#sfs button').forEach(b=>b.classList.toggle('on',b.dataset.v===pref('fs','0')));
+  $('srv').textContent=pref('rv','1')==='1'?'開':'關';$('srv').style.background=pref('rv','1')==='1'?'var(--ac)':'';$('srv').style.color=pref('rv','1')==='1'?'#fff':'';
   $('sro').textContent=pref('ro','0')==='1'?'開':'關';$('sro').style.background=pref('ro','0')==='1'?'var(--ac)':'';$('sro').style.color=pref('ro','0')==='1'?'#fff':''}
 function renderPwRow(){const h=S.me&&S.me.hasPw;$('spw').textContent=h?'修改密碼':'設定登入密碼';$('spwn').textContent=h?'已設定：登入時要輸入密碼':'未設定：只用員工代號登入'}
 function pwModal(force){
@@ -368,6 +388,7 @@ $('gear').onclick=()=>{applyPrefs();renderPwRow();$('sm').style.display='flex'};
 $('sclose').onclick=()=>{$('sm').style.display='none'};
 $('sfs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setPref('fs',b.dataset.v);applyPrefs()};
 $('sro').onclick=()=>{setPref('ro',pref('ro','0')==='1'?'0':'1');applyPrefs()};
+$('srv').onclick=()=>{setPref('rv',pref('rv','1')==='1'?'0':'1');applyPrefs();try{renderRoster('D2694');renderRoster('D2690')}catch(e){}};
 /* ---- 大班表（本單位） ---- */
 const RSM={};
 const ICON_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4"/><path d="M5.5 22v-4h4"/></svg>';
@@ -375,6 +396,7 @@ const ICON_C='<svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentCol
 function rosterSrc(u){return u==='D2694'?{map:S.roster94||{},names:(S.cfg&&S.cfg.staff)||[]}:{map:(S.cfg90&&S.cfg90.roster)||{},names:S.cfg90?staff9():[]}}
 function renderRoster(u){
   const box=$(u==='D2694'?'rc94':'rc90');if(!box)return;
+  box.style.display=pref('rv','1')==='1'?'':'none';if(pref('rv','1')!=='1')return;
   const old=box.querySelector('details'),{map,names}=rosterSrc(u),avail=Object.keys(map).sort();
   const open=old?old.open:pref('ro','0')==='1';
   let ym=RSM[u];if(!ym||avail.indexOf(ym)<0)ym=avail.indexOf(ymNow())>=0?ymNow():avail[avail.length-1];RSM[u]=ym;
@@ -399,7 +421,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.23.1';
+const APPV='2026.10.23.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -531,8 +553,7 @@ function typeSeg(id){const s=$(id);if(!s||s.dataset.seg)return;s.dataset.seg='1'
   const sync=()=>sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.value));
   sg.onclick=e=>{const b=e.target.closest('button');if(!b)return;s.value=b.dataset.v;s.dispatchEvent(new Event('change'));sync()};
   s.addEventListener('change',sync);setInterval(sync,250);sync()}
-function phIos(){const P={nt:'選填',ent:'選填',f9nt:'選填',a:'例 17:30',b:'例 19:00',x1:'例 17:30',f9x1:'例 17:30',f9x2:'例 19:00',k:'例 0852',kt:'例 18:35',sws:'例 FA',swbs:'例 N',f9sws:'例 FA',f9swbs:'例 N',f9psh:'例 FA'};
-  Object.keys(P).forEach(k=>{const e=$(k);if(e&&!e.placeholder)e.placeholder=P[k]});const x2=$('x2');if(x2&&!x2.placeholder)x2.placeholder='例 19:00'}
+function phIos(){}
 function initForm(){
   $('s').innerHTML='<option value="">請選擇</option>'+S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
   $('doc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
@@ -628,13 +649,27 @@ function renderFill(){
   const v=S.fv,st=v.stats[0]||{carryIn:0,total:0,extra:0,unused:0,can:0},adm=isAdmin();
   $('mineH').textContent=adm?S.target+' 的未休分鐘（含上月）':'我的未休分鐘（含上月）';
   $('mine').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">本月總加班 ${st.total} 分鐘（含上月 ${st.total+st.carryIn}）；未休＝上月 ${st.carryIn} ＋ 本月多出 ${st.extra}。滿 30 分鐘可換算 0.5 小時，目前可換算 ${st.can} h。</div>`;
-  $('myList').innerHTML=v.entries.map(e=>entryCard(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
+  $('myList').innerHTML=(v.entries.length?L94H:'')+v.entries.map(e=>entryRow94(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
   $('myDays').innerHTML=daysTable(v.days,false);
 }
 function whenOf(e){return e.ty==='OT'?(shiftOf(e.shift)&&shiftOf(e.shift).type==='N+'?'至 '+e.b:e.a+'–'+e.b):e.ty==='LV'?e.a+'–'+e.b+'（'+hm(tm(e.b)-tm(e.a))+'）':e.ty==='AM'?'14:00 上班':e.ty==='PM'?'12:30 下班':e.ty==='DAY'?'整天':(e.a?e.a+'–'+e.b:'')}
 function pendRow94(e){
   const ex=[e.shift&&e.shift!=='—'?dn(e.shift):'',e.doc?e.doc+(e.k?' '+e.k+(e.kt?' '+e.kt:''):''):'',e.note?'備註：'+e.note:'',e.proxy?'由'+e.proxy+'代填':''].filter(Boolean);
   return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(md9(e.date))}　${esc(e.name)}　${TY[e.ty]}</b>${whenOf(e)?'　'+esc(whenOf(e)):''}${ex.length?'<br><span style="color:var(--mut)">'+ex.map(esc).join('　')+'</span>':''}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-act="done" data-id="${esc(e.id)}">已處理</button></div>`;
+}
+const L94H='<div class="l9h"><span>日期</span><span>人員</span><span>類型</span><span>內容</span><span></span></div>';
+function entryRow94(e,adm){
+  const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span><br>`:'', ed=e.edited?`<span class="warn">（已修改）</span><br>`:'';
+  const dn1=e.doneAt?`<span class="ok">✓ 已處理${adm&&e.doneBy?'（'+esc(e.doneBy)+'）':''}${adm?'':'，不能再修改'}</span><br>`:'';
+  const ID=esc(e.id),B=(a,t)=>`<button type="button" data-act="${a}" data-id="${ID}">${t}</button>`;
+  const bt=adm?`<div class="bt">${(e.doneAt?B('undone','取消已處理'):B('done','已處理'))+B('edit','編輯')+B('del','刪除')}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${B('edit','修改')+B('del','刪除')}</div>`:'');
+  const R=['類型：'+TY[e.ty]];
+  if(e.shift&&e.shift!=='—')R.push('班別：'+esc(dn(e.shift)));
+  if(e.doc)R.push('醫師：'+esc(e.doc)+(e.k?'　'+esc(e.k)+(e.kt?'　'+esc(e.kt):''):''));
+  if(e.note)R.push('備註：'+esc(e.note));
+  const ty=e.ty==='OT'?'加班':e.ty==='OTH'?'其他':'請假';
+  const c=e.ty==='OTH'?esc(e.note||'其他'):esc(whenOf(e));
+  return `<details class="e9r"><summary class="r9"><span>${esc(md9(e.date))}</span><span>${esc(e.name||'')}</span><span>${ty}</span><span>${c}</span><span class="ok">${e.doneAt?'✓':''}</span></summary><div class="dt">${R.join('<br>')}<br>${mark}${ed}${dn1}${bt}</div></details>`;
 }
 function entryCard(e,adm){
   const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span>`:'', ed=e.edited?`<span class="warn">（已修改）</span>`:'';
@@ -696,7 +731,7 @@ function renderBack(){
   $('bStat').innerHTML='<tr><th>姓名</th><th>上月未休分鐘</th><th>本月總加班分鐘</th><th>本月總加班分鐘（含上月）</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）</th><th>結轉下月</th></tr>'+
     v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.total+s.carryIn}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td></tr>`).join('');
   const p=$('fp').value,ty=$('ft').value,list=v.entries.filter(e=>(!p||e.name===p)&&(!ty||e.ty===ty));
-  $('fcnt').textContent='共 '+list.length+' 筆';$('bList').innerHTML=list.map(e=>entryCard(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
+  $('fcnt').textContent='共 '+list.length+' 筆';$('bList').innerHTML=(list.length?L94H:'')+list.map(e=>entryRow94(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
 }
 $('bStat').onchange=async e=>{const i=e.target.closest('input');if(!i)return;
   const n=i.dataset.n,row=[...$('bStat').querySelectorAll('input')].filter(x=>x.dataset.n===n),cin=row.find(x=>x.dataset.f==='in'),off=row.find(x=>x.dataset.f==='off');
