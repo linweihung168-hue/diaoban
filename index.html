@@ -68,6 +68,14 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 .srow{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:48px;cursor:pointer}.srow+.srow{border-top:1px solid var(--bd)}.srow.nc{cursor:default}
 .srow .si{width:22px;height:22px;flex:none;color:var(--mut)}.srow .sn{flex:1;font-size:16px}.srow .sv{font-size:15px;color:var(--mut)}.srow .sv.warn{color:var(--warn);font-weight:600}.srow .ch2{width:16px;height:16px;flex:none;color:var(--mut);opacity:.7}
 .sp .card>h2{display:none}.sp .card details>summary{display:none}.sp .card details{margin:0}
+.sw{position:relative;overflow:hidden}.sw .acts{position:absolute;top:0;bottom:0;right:0;display:flex}
+.sw .acts button{width:76px;border:0;border-radius:0;color:#fff;font-size:15px;font-weight:600;height:auto;margin:0;padding:0}
+.sw .acts .a-e{background:#8e8e93}.sw .acts .a-d{background:var(--danger)}.sw .acts .a-u{background:var(--warn)}
+.sw .row2{position:relative;background:var(--card);transition:transform .25s cubic-bezier(.2,.8,.2,1);touch-action:pan-y;-webkit-user-select:none;user-select:none}.sw .row2.drag{transition:none}
+.pc{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid var(--bd);font-size:14px}.pc .mid{flex:1;min-width:0}.pc.done .mid{opacity:.68}
+.ck{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid var(--mut);background:none;padding:0;display:grid;place-items:center;color:#fff;transition:.15s;cursor:pointer}.ck svg{width:16px;height:16px;opacity:0;transform:scale(.5);transition:.15s}.pc.done .ck{background:var(--ok);border-color:var(--ok)}.pc.done .ck svg{opacity:1;transform:none}
+.pill{flex:none;font-style:normal;font-size:12px;color:var(--mut);background:var(--bg);border:1px solid var(--bd);border-radius:999px;padding:1px 9px;white-space:nowrap}
+@media (hover:none),(pointer:coarse){.e9r .bt{display:none}}
 #bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:18px}
 .ic{width:18px;height:18px;vertical-align:middle}
 /* ===== iOS 風格外觀（只改樣式，不改功能） ===== */
@@ -420,7 +428,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.24.1';
+const APPV='2026.10.24.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -535,7 +543,7 @@ function fillPeople(){
 function switchTab(t){
   const adm=isAdmin(),u=S.unit;
   if(t==='set'){S.prev=S.tab==='set'?S.prev:S.tab;openSettings();return}
-  S.tab=t;$('setSec').style.display='none';$('units').style.display=myUnits().length>1?'':'none';
+  S.tab=t;S.kd94={};S.kd90={};S.hd=0;$('setSec').style.display='none';$('units').style.display=myUnits().length>1?'':'none';
   document.querySelectorAll('#units button').forEach(b=>b.className=b.dataset.u===u?'on':'');
   $('fill').style.display=(t==='fill'&&u==='D2694')?'':'none';$('back').style.display=(t==='back'&&adm&&u==='D2694')?'':'none';
   $('fill90').style.display=(t==='fill'&&u==='D2690')?'':'none';$('back90').style.display=(t==='back'&&adm&&u==='D2690')?'':'none';
@@ -547,18 +555,45 @@ function switchTab(t){
   if(u==='D2690'){if(t==='fill')loadFill90();else loadBack90();return}
   if(t==='fill')loadFill();else loadBack();
 }
+
+/* ---- 左滑露出編輯／刪除 ---- */
+(function(){
+  let row=null,pid=null,sx=0,sy=0,base=0,dx=0,mode=null,W=0,swallow=false;
+  const setX=v=>row.style.transform='translateX('+v+'px)';
+  const closeOthers=keep=>document.querySelectorAll('.sw .row2[data-open="1"]').forEach(o=>{if(o!==keep){o.dataset.open='0';o.style.transform=''}});
+  document.addEventListener('pointerdown',e=>{
+    if(e.button>0||e.target.closest('.acts'))return;const r=e.target.closest('.sw .row2');
+    if(!r){closeOthers(null);return}
+    closeOthers(r);const ac=r.parentNode.querySelector('.acts');if(!ac||e.target.closest('.ck'))return;
+    row=r;pid=e.pointerId;sx=e.clientX;sy=e.clientY;W=ac.offsetWidth;base=r.dataset.open==='1'?-W:0;mode=null;dx=base;swallow=false;
+  },true);
+  document.addEventListener('pointermove',e=>{
+    if(!row||e.pointerId!==pid)return;const mx=e.clientX-sx,my=e.clientY-sy;
+    if(!mode){if(Math.abs(mx)>8&&Math.abs(mx)>Math.abs(my)*1.2){mode='h';row.classList.add('drag');try{row.setPointerCapture(pid)}catch(er){}}else if(Math.abs(my)>8){mode='v';row=null;return}else return}
+    let v=base+mx;if(v>0)v=v/4;if(v<-W)v=-W+(v+W)/4;dx=v;setX(v);e.preventDefault()},{passive:false});
+  const end=e=>{if(!row||e.pointerId!==pid)return;const r=row;row=null;pid=null;if(mode!=='h')return;swallow=true;setTimeout(()=>swallow=false,350);
+    r.classList.remove('drag');const open=dx<-W/2.2;r.dataset.open=open?'1':'0';r.style.transform=open?'translateX('+(-W)+'px)':''};
+  document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);
+  document.addEventListener('click',e=>{if(swallow){e.preventDefault();e.stopPropagation();swallow=false;return}
+    const r=e.target.closest('.sw .row2');if(r&&r.dataset.open==='1'&&!e.target.closest('.ck')){e.preventDefault();e.stopPropagation();r.dataset.open='0';r.style.transform=''}
+    else if(e.target.closest('.acts button')){const o=e.target.closest('.sw').querySelector('.row2');if(o){o.dataset.open='0';o.style.transform=''}}},true);
+})();
 /* ---- 設定整頁 ---- */
 const SPT={maint:'維護模式',notice:'公告',reset:'重置密碼',export:'匯出資料',roster:'班表檔（D2690）',logins:'登入紀錄',edits:'修改紀錄',trash:'已刪除'};
 const SPU=['export','logins','edits','trash'];
+S.hd=0;
+function goBack(){if(S.hd>0)history.back();else if(S.sp)backSet();else switchTab(S.prev||S.tab)}
+window.addEventListener('popstate',()=>{if($('setSec').style.display==='none')return;const d=(history.state&&history.state.s)||0;S.hd=d;if(d>=2)return;if(d===1)backSet();else switchTab(S.prev||S.tab)});
 function openSettings(){
   ['fill','back','fill90','back90','rosterSec'].forEach(id=>$(id).style.display='none');$('pbtns').style.display='none';$('units').style.display='none';
   ['tabP','tabB','tabR'].forEach(id=>{$(id).className='';$(id).style.margin='0'});
   $('setSec').style.display='';$('setAdm').style.display=isAdmin()?'':'none';
   document.querySelector('[data-sp=roster]').style.display=S.cfg90?'':'none';
-  applyPrefs();renderPwRow();renderSys();backSet();window.scrollTo(0,0);
+  applyPrefs();renderPwRow();renderSys();backSet();if(!S.hd){try{history.pushState({s:1},'');S.hd=1}catch(e){}}window.scrollTo(0,0);
 }
 function backSet(){S.sp=null;$('setMain').style.display='';$('setSub').style.display='none';$('stitle').textContent='設定';$('sbt').textContent='返回'}
 function openSub(k){
+  try{history.pushState({s:2},'');S.hd=2}catch(e){}
   S.sp=k;$('setMain').style.display='none';$('setSub').style.display='';$('stitle').textContent=SPT[k];$('sbt').textContent='設定';
   document.querySelectorAll('#setSub .sp').forEach(e=>e.style.display=(e.id==='sp_'+k)?'':'none');
   const us=myUnits();if(!S.su||us.indexOf(S.su)<0)S.su=(us.indexOf(S.unit)>=0?S.unit:us[0]);
@@ -577,7 +612,26 @@ function suApply(){
 }
 $('setMain').onclick=e=>{const r=e.target.closest('[data-sp]');if(r)openSub(r.dataset.sp)};
 $('suChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.su=b.dataset.su;suApply()};
-$('sback').onclick=()=>{if(S.sp)backSet();else switchTab(S.prev||S.tab)};
+$('sback').onclick=goBack;
+
+/* ---- 從左邊緣右滑：返回 ---- */
+(function(){
+  const MODALS=[['em','ecancel'],['em9','ecancel9'],['nm','nclose'],['pm','pmc']];
+  const topModal=()=>{for(const [m,b] of MODALS){const el=$(m);if(el&&el.style.display==='flex'&&!(m==='pm'&&el.dataset.force==='1'))return {el:el.querySelector('.card'),btn:$(b)}}return null};
+  const target=()=>{const m=topModal();if(m)return {el:m.el,go:()=>m.btn.click()};
+    if($('setSec').style.display!=='none')return {el:$('setSec'),go:goBack};return null};
+  let t=null,sx=0,sy=0,mode=null,dx=0,id=null;
+  document.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;const p=e.touches[0];if(p.clientX>22){t=null;return}
+    t=target();if(!t)return;sx=p.clientX;sy=p.clientY;mode=null;dx=0;id=e.touches[0].identifier},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!t)return;const p=e.touches[0],mx=p.clientX-sx,my=p.clientY-sy;
+    if(!mode){if(mx>8&&mx>Math.abs(my)*1.2){mode='h';t.el.style.transition='none'}else if(Math.abs(my)>10){t=null;return}else return}
+    dx=Math.max(0,mx);t.el.style.transform='translateX('+dx+'px)';t.el.style.opacity=String(1-Math.min(.35,dx/innerWidth*.5));e.preventDefault()},{passive:false});
+  const fin=()=>{if(!t||mode!=='h'){t=null;return}const x=t.el,go=t.go,ok=dx>innerWidth*.28;t=null;
+    x.style.transition='transform .22s cubic-bezier(.2,.8,.2,1),opacity .22s';
+    if(ok){x.style.transform='translateX(100%)';x.style.opacity='0';setTimeout(()=>{x.style.transition='none';x.style.transform='';x.style.opacity='';go()},200)}
+    else{x.style.transform='';x.style.opacity='';setTimeout(()=>x.style.transition='',230)}};
+  document.addEventListener('touchend',fin);document.addEventListener('touchcancel',fin);
+})();
 $('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');$('tabR').onclick=()=>switchTab('roster');
 
 /* ---- 填寫表單 ---- */
@@ -687,23 +741,31 @@ function renderFill(){
   $('myDays').innerHTML=daysTable(v.days,false);
 }
 function whenOf(e){return e.ty==='OT'?(shiftOf(e.shift)&&shiftOf(e.shift).type==='N+'?'至 '+e.b:e.a+'–'+e.b):e.ty==='LV'?e.a+'–'+e.b+'（'+hm(tm(e.b)-tm(e.a))+'）':e.ty==='AM'?'14:00 上班':e.ty==='PM'?'12:30 下班':e.ty==='DAY'?'整天':(e.a?e.a+'–'+e.b:'')}
+const CKS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const actB=(fam,a,id,t,c)=>`<button type="button" class="${c}" data-${fam}="${a}" data-id="${esc(id)}">${t}</button>`;
+const swWrap=(inner,acts)=>`<div class="sw">${acts?`<div class="acts">${acts}</div>`:''}${inner}</div>`;
+S.kd94={};S.kd90={};
+function mergeKept(list,kd){const pl=(list||[]).slice();Object.keys(kd).forEach(k=>{if(!pl.some(p=>p.id===k))pl.push(Object.assign({},kd[k],{_d:1}))});
+  return pl.sort((a,b)=>(String(a.date)+String(a.at||''))<(String(b.date)+String(b.at||''))?-1:1)}
 function pendRow94(e){
   const ex=[e.shift&&e.shift!=='—'?dn(e.shift):'',e.doc?e.doc+(e.k?' '+e.k+(e.kt?' '+e.kt:''):''):'',e.note?'備註：'+e.note:'',e.proxy?'由'+e.proxy+'代填':''].filter(Boolean);
-  return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(md9(e.date))}　${esc(e.name)}　${TY[e.ty]}</b>${whenOf(e)?'　'+esc(whenOf(e)):''}${ex.length?'<br><span style="color:var(--mut)">'+ex.map(esc).join('　')+'</span>':''}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-act="done" data-id="${esc(e.id)}">已處理</button></div>`;
+  const dn=!!e._d;
+  return swWrap(`<div class="row2 pc${dn?' done':''}"><button type="button" class="ck" aria-label="${dn?'取消已處理':'已處理'}" data-act="${dn?'undone':'done'}" data-id="${esc(e.id)}">${CKS}</button><div class="mid"><b>${esc(md9(e.date))}　${esc(e.name)}　${TY[e.ty]}</b>${whenOf(e)?'　'+esc(whenOf(e)):''}${ex.length?'<br><span style="color:var(--mut)">'+ex.map(esc).join('　')+'</span>':''}</div>${dn?'<span class="pill">已處理</span>':''}</div>`,actB('act','edit',e.id,'編輯','a-e')+actB('act','del',e.id,'刪除','a-d'));
 }
 const L94H='<div class="l9h"><span>日期</span><span>人員</span><span>類型</span><span>內容</span><span></span></div>';
 function entryRow94(e,adm){
   const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span><br>`:'', ed=e.edited?`<span class="warn">（已修改）</span><br>`:'';
-  const dn1=e.doneAt?`<span class="ok">✓ 已處理${adm&&e.doneBy?'（'+esc(e.doneBy)+'）':''}${adm?'':'，不能再修改'}</span><br>`:'';
+  const dn1=(e.doneAt&&!adm)?`<span class="note">已處理，不能再修改</span><br>`:'';
   const ID=esc(e.id),B=(a,t)=>`<button type="button" data-act="${a}" data-id="${ID}">${t}</button>`;
   const bt=adm?`<div class="bt">${(e.doneAt?B('undone','取消已處理'):B('done','已處理'))+B('edit','編輯')+B('del','刪除')}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${B('edit','修改')+B('del','刪除')}</div>`:'');
+  const acts=adm?(e.doneAt?actB('act','undone',e.id,'取消處理','a-u'):'')+actB('act','edit',e.id,'編輯','a-e')+actB('act','del',e.id,'刪除','a-d'):((e.mine&&!e.doneAt)?actB('act','edit',e.id,'編輯','a-e')+actB('act','del',e.id,'刪除','a-d'):'');
   const R=['類型：'+TY[e.ty]];
   if(e.shift&&e.shift!=='—')R.push('班別：'+esc(dn(e.shift)));
   if(e.doc)R.push('醫師：'+esc(e.doc)+(e.k?'　'+esc(e.k)+(e.kt?'　'+esc(e.kt):''):''));
   if(e.note)R.push('備註：'+esc(e.note));
   const ty=e.ty==='OT'?'加班':e.ty==='OTH'?'其他':'請假';
   const c=e.ty==='OTH'?esc(e.note||'其他'):esc(whenOf(e));
-  return `<details class="e9r"><summary class="r9"><span>${esc(md9(e.date))}</span><span>${esc(e.name||'')}</span><span>${ty}</span><span>${c}</span><span class="ok">${e.doneAt?'✓':''}</span></summary><div class="dt">${R.join('<br>')}<br>${mark}${ed}${dn1}${bt}</div></details>`;
+  return swWrap(`<details class="e9r row2"><summary class="r9"><span>${esc(md9(e.date))}</span><span>${esc(e.name||'')}</span><span>${ty}</span><span>${c}</span><span>${e.doneAt?'<i class="pill">已處理</i>':''}</span></summary><div class="dt">${R.join('<br>')}<br>${mark}${ed}${dn1}${bt}</div></details>`,acts);
 }
 function entryCard(e,adm){
   const mark=adm&&e.proxy?`<span class="warn">（由${esc(e.proxy)}代填）</span>`:'', ed=e.edited?`<span class="warn">（已修改）</span>`:'';
@@ -759,7 +821,7 @@ async function loadBack(){
 }
 function renderBack(){
   const v=S.bv;if(!v)return;
-  $('pend94').innerHTML=(v.pending||[]).map(pendRow94).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
+  $('pend94').innerHTML=mergeKept(v.pending,S.kd94).map(pendRow94).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
   document.querySelectorAll('#dpb button').forEach(b=>b.className=(b.dataset.dp===S.dp)?'on':'');
   $('bDays').innerHTML=daysTable(v.days.filter(d=>!S.dp||d.name===S.dp),true);
   $('bMan').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(v.manual.map(m=>`<tr><td>${esc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
@@ -816,12 +878,12 @@ document.addEventListener('click',async ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;const id=b.dataset.id,act=b.dataset.act;
   if(act==='restore'){try{await call('restore',{id});toast('已還原');loadBack()}catch(e){msg(e.message)}return}
   const reload=()=>isAdmin()?loadBack():loadFill();
-  if(act==='done'||act==='undone'){try{await call('done',{id,undo:act==='undone'});toast(act==='done'?'已處理':'已取消');loadBack()}catch(er){msg(er.message)}return}
-  const e=(S.bv&&S.bv.entries.find(x=>x.id===id))||(S.fv&&S.fv.entries.find(x=>x.id===id));if(!e)return;
+  if(act==='done'||act==='undone'){try{const pe=S.bv&&(S.bv.pending||[]).find(x=>x.id===id);if(act==='done'&&pe)S.kd94[id]=pe;if(act==='undone')delete S.kd94[id];await call('done',{id,undo:act==='undone'});toast(act==='done'?'已處理':'已取消');loadBack()}catch(er){msg(er.message)}return}
+  const e=(S.bv&&(S.bv.entries.find(x=>x.id===id)||(S.bv.pending||[]).find(x=>x.id===id)))||S.kd94[id]||(S.fv&&S.fv.entries.find(x=>x.id===id));if(!e)return;
   if(act==='del'){
     const body=[e.date,TY[e.ty],e.shift==='—'?'':e.shift,whenOf(e),e.doc,e.k,e.kt,e.note?'備註：'+e.note:''].filter(Boolean).map(esc).join('<br>');
     if(!await ask('確定要刪除這筆資料嗎？',body+(e.doneAt&&isAdmin()?'<br><span class="warn">這筆已處理過，刪除後不會自動從醫院系統移除。</span>':''),'確定刪除',true))return;
-    try{await call('del',{id});toast('已刪除');reload()}catch(er){msg(er.message)}
+    try{await call('del',{id});delete S.kd94[id];toast('已刪除');reload()}catch(er){msg(er.message)}
   }else if(act==='edit'){
     if(e.doneAt&&isAdmin()&&!await ask('這筆已處理','<p style="margin:0">修改後會變回「未處理」，需要重新處理一次。<br>確定要編輯嗎？</p>','編輯',false))return;
     EID=id;$('es').innerHTML=S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
@@ -1104,14 +1166,16 @@ function card9(e,adm){
   if(e.ty==='請假'&&e.kind==='LV'){R.push('請假時間：'+hm(tm(e.t2)-tm(e.t1)));const w=hw9(e,hwList9());if(w)R.push(w.t)}
   if(e.note)R.push('備註：'+esc(e.note));
   R.push('登記日期：'+esc(String(e.at||'').slice(0,10))+(adm?'　登記人：'+esc(e.by):''));
-  const done=e.doneAt?`<span class="ok">✓ 已處理${adm?'（'+esc(e.doneBy)+'　'+esc(md9(e.doneAt)+' '+String(e.doneAt).slice(11,16))+'）':'，不能再修改'}</span><br>`:'';
+  const done=(e.doneAt&&!adm)?`<span class="note">已處理，不能再修改</span><br>`:'';
+  const acts=adm?(e.doneAt?actB('a9','undone',e.id,'取消處理','a-u'):'')+actB('a9','edit',e.id,'編輯','a-e')+actB('a9','del',e.id,'刪除','a-d'):((e.mine&&!e.doneAt)?actB('a9','edit',e.id,'編輯','a-e')+actB('a9','del',e.id,'刪除','a-d'):'');
   const EB=`<button type="button" data-a9="edit" data-id="${esc(e.id)}">${adm?'編輯':'修改'}</button><button type="button" data-a9="del" data-id="${esc(e.id)}">刪除</button>`;
   const btn=adm?`<div class="bt">${(e.doneAt?`<button type="button" data-a9="undone" data-id="${esc(e.id)}">取消已處理</button>`:`<button type="button" data-a9="done" data-id="${esc(e.id)}">已處理</button>`)+EB}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${EB}</div>`:'');
-  return `<details class="e9r"><summary class="r9"><span>${esc(md9(e.date))}</span><span>${esc(e.a||'—')}</span><span>${esc(e.sa||'')}</span><span>${c4_9(e)}</span><span class="ok">${e.doneAt?'✓':''}</span></summary><div class="dt">${R.join('<br>')}<br>${done}${ed}${btn}</div></details>`;
+  return swWrap(`<details class="e9r row2"><summary class="r9"><span>${esc(md9(e.date))}</span><span>${esc(e.a||'—')}</span><span>${esc(e.sa||'')}</span><span>${c4_9(e)}</span><span>${e.doneAt?'<i class="pill">已處理</i>':''}</span></summary><div class="dt">${R.join('<br>')}<br>${done}${ed}${btn}</div></details>`,acts);
 }
 function pendRow9(e){
   const d=desc9(e);
-  return `<div class="ec" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div><b>${esc(md9(e.date))}　${tyN9(e.ty)}</b>　${d.h}${d.r.length?'<br><span style="color:var(--mut)">'+d.r.join('　')+'</span>':''}${e.note?'<br><span style="color:var(--mut)">備註：'+esc(e.note)+'</span>':''}${(()=>{const w=hw9(e,hwList9());return w?'<br><span style="color:var(--mut)">'+w.t+'</span>':''})()}</div><button type="button" class="x" style="border:1px solid var(--bd);flex:none" data-a9="done" data-id="${esc(e.id)}">已處理</button></div>`;
+  const dn=!!e._d;
+  return swWrap(`<div class="row2 pc${dn?' done':''}"><button type="button" class="ck" aria-label="${dn?'取消已處理':'已處理'}" data-a9="${dn?'undone':'done'}" data-id="${esc(e.id)}">${CKS}</button><div class="mid"><b>${esc(md9(e.date))}　${tyN9(e.ty)}</b>　${d.h}${d.r.length?'<br><span style="color:var(--mut)">'+d.r.join('　')+'</span>':''}${e.note?'<br><span style="color:var(--mut)">備註：'+esc(e.note)+'</span>':''}${(()=>{const w=hw9(e,hwList9());return w?'<br><span style="color:var(--mut)">'+w.t+'</span>':''})()}</div>${dn?'<span class="pill">已處理</span>':''}</div>`,actB('a9','edit',e.id,'編輯','a-e')+actB('a9','del',e.id,'刪除','a-d'));
 }
 
 /* ---- 一般人員頁面 ---- */
@@ -1135,7 +1199,7 @@ async function loadBack90(){
 }
 function renderBack90(){
   const v=S.bv9;if(!v)return;
-  $('pend9').innerHTML=v.pending.map(pendRow9).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
+  $('pend9').innerHTML=mergeKept(v.pending,S.kd90).map(pendRow9).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
   $('bStat9').innerHTML='<tr><th>姓名</th><th>上月未休分鐘</th><th>本月總加班分鐘</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）</th><th>結轉下月</th><th>本月小時假</th></tr>'+
     v.stats.slice().sort((p,q)=>by9(p.name,q.name)).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.lv?hm(s.lv):''}</td></tr>`).join('');
   const man9=[];(v.entries||[]).forEach(e=>{if(e.ty==='請假'&&e.kind==='LV'){const w=hw9(e,v.entries);if(w&&!w.auto)man9.push([e.date,e.a,'小時假 '+esc(e.t1)+'–'+esc(e.t2)+'：Word 標示時數請人工計算（'+esc(e.sa)+'）'])}
@@ -1171,13 +1235,13 @@ let EID9=null;
 document.addEventListener('click',async ev=>{
   const b=ev.target.closest('[data-a9]');if(!b)return;const id=b.dataset.id,act=b.dataset.a9;
   try{
-    if(act==='done'||act==='undone'){await call('done90',{id:id,undo:act==='undone'});toast(act==='done'?'已處理':'已取消');loadBack90();return}
+    if(act==='done'||act==='undone'){const pe=S.bv9&&S.bv9.pending.find(x=>x.id===id);if(act==='done'&&pe)S.kd90[id]=pe;if(act==='undone')delete S.kd90[id];await call('done90',{id:id,undo:act==='undone'});toast(act==='done'?'已處理':'已取消');loadBack90();return}
     if(act==='restore'){await call('restore90',{id:id});toast('已還原');loadBack90();return}
     const e=(S.bv9&&S.bv9.entries.find(x=>x.id===id))||(S.bv9&&S.bv9.pending.find(x=>x.id===id))||(S.v9&&S.v9.entries.find(x=>x.id===id));if(!e)return;
     const rl9=()=>isAdmin()?loadBack90():loadFill90();
     if(act==='del'){const d=desc9(e);
       if(!await ask('確定要刪除這筆資料嗎？',esc(e.date)+'　'+tyN9(e.ty)+'<br>'+d.h+(d.r.length?'<br>'+d.r.join('<br>'):'')+(e.note?'<br>備註：'+esc(e.note):'')+(e.doneAt&&isAdmin()?'<br><span class="warn">這筆已處理過，刪除後不會自動從醫院系統移除。</span>':''),'確定刪除',true))return;
-      await call('del90',{id:id});toast('已刪除');rl9();
+      await call('del90',{id:id});delete S.kd90[id];toast('已刪除');rl9();
     }else if(act==='edit'){
       if(e.doneAt&&isAdmin()&&!await ask('這筆已處理','<p style="margin:0">修改後會變回「未處理」，需要重新處理一次。<br>確定要編輯嗎？</p>','編輯',false))return;
       EID9=id;$('e9body').innerHTML=form9('e9');fill9('e9');wire9('e9');
