@@ -68,8 +68,8 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 .srow{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:48px;cursor:pointer}.srow+.srow{border-top:1px solid var(--bd)}.srow.nc{cursor:default}
 .srow .si{width:22px;height:22px;flex:none;color:var(--mut)}.srow .sn{flex:1;font-size:16px}.srow .sv{font-size:15px;color:var(--mut)}.srow .sv.warn{color:var(--warn);font-weight:600}.srow .ch2{width:16px;height:16px;flex:none;color:var(--mut);opacity:.7}
 .sp .card>h2{display:none}.sp .card details>summary{display:none}.sp .card details{margin:0}
-.sw{position:relative;overflow:hidden}.sw .acts{position:absolute;top:0;bottom:0;right:0;display:flex}
-.sw .acts button{width:76px;border:0;border-radius:0;color:#fff;font-size:15px;font-weight:600;height:auto;margin:0;padding:0}
+.sw{position:relative;overflow:hidden}.sw .acts{position:absolute;top:0;bottom:0;right:0;display:flex;gap:6px;padding:6px 6px 6px 4px;align-items:stretch}
+.sw .acts button{width:66px;border:0;border-radius:14px;color:#fff;font-size:15px;font-weight:600;height:auto;margin:0;padding:0;box-shadow:none}
 .sw .acts .a-e{background:#8e8e93}.sw .acts .a-d{background:var(--danger)}.sw .acts .a-u{background:var(--warn)}
 .sw .row2{position:relative;background:var(--card);transition:transform .25s cubic-bezier(.2,.8,.2,1);touch-action:pan-y;-webkit-user-select:none;user-select:none}.sw .row2.drag{transition:none}
 .pc{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid var(--bd);font-size:14px}.pc .mid{flex:1;min-width:0}.pc.done .mid{opacity:.68}
@@ -428,7 +428,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.24.2';
+const APPV='2026.10.24.3';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
