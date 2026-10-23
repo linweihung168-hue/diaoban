@@ -201,6 +201,15 @@ details.e9r>summary::after{display:none}
  .frm select,#f9body select,#e9body select,.frm #dk>select,.frm #edk>select,#e9body select{width:auto!important;min-width:150px;max-width:70%;margin-left:auto;text-align:left;text-align-last:left;padding-left:10px}
 }
 
+/* 底部分頁列：三個 */
+#tabs.row{grid-template-columns:repeat(auto-fit,minmax(0,1fr));padding-left:12px;padding-right:12px}
+#tabR{--ti:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2.5a1 1 0 011 1V5h8V3.5a1 1 0 112 0V5h.5A2.5 2.5 0 0121 7.5v11a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 18.5v-11A2.5 2.5 0 015.5 5H6V3.5a1 1 0 011-1zM5 10v8.5a.5.5 0 00.5.5h13a.5.5 0 00.5-.5V10z'/%3E%3C/svg%3E")}
+#tabs button::before{width:28px;height:28px}
+#tabs button,#tabs button.go{font-size:11.5px;padding-top:7px}
+/* 大班表分頁：不能收合 */
+.rsum{pointer-events:none}.rsum .ib{pointer-events:auto}.rsum .ch{display:none}
+#rosterSec .card{padding:14px 12px}
+
 </style></head><body><main>
 
 <section id="login" class="card" style="display:none"><h1>調班表</h1>
@@ -212,7 +221,7 @@ details.e9r>summary::after{display:none}
 <div id="bar" class="hbar"><b id="who"></b><button type="button" id="bell" class="ib" aria-label="通知"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="bdg" id="bdg"></span></button><button type="button" id="gear" class="ib" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button type="button" id="out" class="x">登出</button></div>
 <div id="mbn" class="mtb"></div>
 <div id="units" class="chips" style="margin-bottom:10px;display:none"></div>
-<div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">填寫</button><button type="button" id="tabB">後台管理</button></div>
+<div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">填寫</button><button type="button" id="tabR">大班表</button><button type="button" id="tabB">後台管理</button></div>
 
 <section id="fill">
 <div id="pbtns" class="seg" style="margin-bottom:14px;display:none"></div>
@@ -226,7 +235,6 @@ details.e9r>summary::after{display:none}
 <label id="nL">備註（選填）</label><input id="nt" maxlength="200" autocomplete="off">
 <div class="calc" id="c" style="display:none"></div>
 <button type="button" class="go" id="go">送出</button></div>
-<div class="card" id="rc94"></div>
 <div class="card"><h2 id="mineH">我的未休分鐘</h2><div id="mine"></div></div>
 <div class="card"><details><summary>本月登記查詢</summary><div id="myList"></div></details></div>
 <div class="card"><details><summary>本月每日明細</summary><div class="scroll"><table id="myDays"></table></div></details></div>
@@ -250,9 +258,9 @@ details.e9r>summary::after{display:none}
 <div class="scroll"><table id="bLogins"></table></div></details></div>
 </section>
 
+<section id="rosterSec" style="display:none"><div class="card" id="rc94"></div><div class="card" id="rc90"></div></section>
 <section id="fill90" style="display:none">
 <div class="card"><div id="f9body"></div><button type="button" class="go" id="go9">送出</button></div>
-<div class="card" id="rc90"></div>
 <div class="card" id="c9mine"><h2>我的未休分鐘（含上月）</h2><div id="mine9"></div></div>
 <div class="card" id="c9list"><details><summary>本月登記查詢</summary><div id="list9"></div></details></div>
 </section>
@@ -287,8 +295,6 @@ details.e9r>summary::after{display:none}
 <div id="mt"><div style="text-align:center;width:100%;max-width:320px"><div style="width:88px;height:88px;border-radius:22px;background:linear-gradient(145deg,#4c93ff,#1f6feb);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(31,111,235,.27)"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div><h2 style="font-size:26px;margin:20px 0 6px">系統更新中</h2><div id="mtn" style="font-size:16px;margin:0 0 26px;opacity:.85"></div><div id="mtt" style="font-size:20px;font-weight:600"></div><p class="note" id="mth" style="margin:6px 0 28px"></p><button type="button" id="mtr" class="go" style="margin-top:0">重新整理</button></div></div>
 <div id="sm" class="mask"><div class="card"><h2>設定</h2>
 <label>字體大小</label><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div>
-<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>顯示大班表</span><button type="button" id="srv" class="x" style="border:1px solid var(--bd);min-width:64px"></button></div>
-<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>大班表預設展開</span><button type="button" id="sro" class="x" style="border:1px solid var(--bd);min-width:64px"></button></div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><span>登入密碼</span><button type="button" id="spw" class="x" style="border:1px solid var(--bd)"></button></div><p class="note" style="margin:6px 0 0" id="spwn"></p>
 <p class="note" style="margin:12px 0 0" id="ver"></p>
 <button type="button" class="go" id="sclose">完成</button></div></div>
@@ -365,8 +371,7 @@ const pref=(k,d)=>{try{const v=localStorage.getItem('diaoban_'+k);return v==null
 const setPref=(k,v)=>{try{localStorage.setItem('diaoban_'+k,v)}catch(e){}};
 function applyPrefs(){document.documentElement.style.zoom=pref('fs','0')==='1'?'1.15':'';document.documentElement.classList.toggle('big',pref('fs','0')==='1');
   document.querySelectorAll('#sfs button').forEach(b=>b.classList.toggle('on',b.dataset.v===pref('fs','0')));
-  $('srv').textContent=pref('rv','1')==='1'?'開':'關';$('srv').style.background=pref('rv','1')==='1'?'var(--ac)':'';$('srv').style.color=pref('rv','1')==='1'?'#fff':'';
-  $('sro').textContent=pref('ro','0')==='1'?'開':'關';$('sro').style.background=pref('ro','0')==='1'?'var(--ac)':'';$('sro').style.color=pref('ro','0')==='1'?'#fff':''}
+  }
 function renderPwRow(){const h=S.me&&S.me.hasPw;$('spw').textContent=h?'修改密碼':'設定登入密碼';$('spwn').textContent=h?'已設定：登入時要輸入密碼':'未設定：只用員工代號登入'}
 function pwModal(force){
   const h=S.me.hasPw;$('pmt').textContent=force?'請先設定密碼':h?'修改密碼':'設定登入密碼';
@@ -387,8 +392,6 @@ $('pmg').onclick=async()=>{const o=$('pm0').value,a=$('pm1').value,b=$('pm2').va
 $('gear').onclick=()=>{applyPrefs();renderPwRow();$('sm').style.display='flex'};
 $('sclose').onclick=()=>{$('sm').style.display='none'};
 $('sfs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setPref('fs',b.dataset.v);applyPrefs()};
-$('sro').onclick=()=>{setPref('ro',pref('ro','0')==='1'?'0':'1');applyPrefs()};
-$('srv').onclick=()=>{setPref('rv',pref('rv','1')==='1'?'0':'1');applyPrefs();try{renderRoster('D2694');renderRoster('D2690')}catch(e){}};
 /* ---- 大班表（本單位） ---- */
 const RSM={};
 const ICON_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4"/><path d="M5.5 22v-4h4"/></svg>';
@@ -396,9 +399,8 @@ const ICON_C='<svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentCol
 function rosterSrc(u){return u==='D2694'?{map:S.roster94||{},names:(S.cfg&&S.cfg.staff)||[]}:{map:(S.cfg90&&S.cfg90.roster)||{},names:S.cfg90?staff9():[]}}
 function renderRoster(u){
   const box=$(u==='D2694'?'rc94':'rc90');if(!box)return;
-  box.style.display=pref('rv','1')==='1'?'':'none';if(pref('rv','1')!=='1')return;
   const old=box.querySelector('details'),{map,names}=rosterSrc(u),avail=Object.keys(map).sort();
-  const open=old?old.open:pref('ro','0')==='1';
+  const open=true;
   let ym=RSM[u];if(!ym||avail.indexOf(ym)<0)ym=avail.indexOf(ymNow())>=0?ymNow():avail[avail.length-1];RSM[u]=ym;
   let body='';
   if(!ym)body='<p class="note" style="margin:0">這個單位的班表還沒有上傳。</p>';
@@ -421,7 +423,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.23.3';
+const APPV='2026.10.23.4';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -519,7 +521,7 @@ const myUnits=()=>((S.me&&S.me.units&&S.me.units.length)?S.me.units:['D2694']).f
 function enter(){
   $('login').style.display='none';$('app').style.display='';$('who').textContent=S.me.name;
   if(S.me.mustPw){pwModal(true);return}
-  $('tabs').style.display=isAdmin()?'':'none';
+  $('tabs').style.display='';$('tabB').style.display=isAdmin()?'':'none';
   const us=myUnits();let u=null;try{u=store.getItem('diaoban_unit')}catch(e){}
   S.unit=us.indexOf(u)>=0?u:(us.indexOf('D2694')>=0?'D2694':us[0]);
   $('units').style.display=us.length>1?'':'none';
@@ -540,11 +542,13 @@ function switchTab(t){
   $('fill90').style.display=(t==='fill'&&u==='D2690')?'':'none';$('back90').style.display=(t==='back'&&adm&&u==='D2690')?'':'none';
   $('pbtns').style.display=(adm&&t==='fill'&&u==='D2694')?'':'none';
   $('tabP').className=t==='fill'?'go':'';$('tabP').style.margin='0';$('tabB').className=t==='back'?'go':'';$('tabB').style.margin='0';
-  if(t==='fill')renderRoster(u);
+  $('rosterSec').style.display=t==='roster'?'':'none';$('rc94').style.display=(t==='roster'&&u==='D2694')?'':'none';$('rc90').style.display=(t==='roster'&&u==='D2690')?'':'none';
+  $('tabR').className=t==='roster'?'go':'';$('tabR').style.margin='0';
+  if(t==='roster'){renderRoster(u);window.scrollTo(0,0);return}
   if(u==='D2690'){if(t==='fill')loadFill90();else loadBack90();return}
   if(t==='fill')loadFill();else loadBack();
 }
-$('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');
+$('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');$('tabR').onclick=()=>switchTab('roster');
 
 /* ---- 填寫表單 ---- */
 function typeSeg(id){const s=$(id);if(!s||s.dataset.seg)return;s.dataset.seg='1';const w=s.closest('div');w.classList.add('tyhid');
