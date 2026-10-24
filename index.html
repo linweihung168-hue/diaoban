@@ -224,6 +224,18 @@ details.e9r>summary::after{display:none}
 .rsum{pointer-events:none}.rsum .ib{pointer-events:auto}.rsum .ch{display:none}
 #rosterSec .card{padding:14px 12px}
 
+/* 表單：名稱在左、內容全部靠左，從同一條線開始 */
+.frm label,#f9body label,.frm #dk>label,.frm #edk>label,#f9body #f9cvW>label,#e9body label,#e9body #e9cvW>label{flex:0 0 104px!important;font-size:16px;line-height:1.3}
+.frm input,.frm select,#f9body input,#f9body select,.frm #dk>select,.frm #edk>select,#e9body input,#e9body select{width:calc(100% - 104px)!important;max-width:none!important;min-width:0!important;margin-left:0!important;text-align:left!important;text-align-last:left!important;padding-left:8px!important;background-position:right 2px center}
+.frm input[type=date],#f9body input[type=date],#e9body input[type=date]{justify-content:flex-start!important;text-align:left!important}
+.frm input[type=date]::-webkit-date-and-time-value,#f9body input[type=date]::-webkit-date-and-time-value,#e9body input[type=date]::-webkit-date-and-time-value{text-align:left!important}
+.frm .note,.frm .ferr,#f9body .ferr,#e9body .ferr{text-align:left!important;padding-left:104px;margin:-6px 0 8px}
+.frm>label,#f9body>label,#e9body>label{border-bottom:.5px solid var(--bd)!important}
+
+input[type=date]{-webkit-appearance:none;appearance:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;min-height:48px;line-height:1.2}
+input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0;min-height:1.2em}
+input[type=date]::-webkit-datetime-edit{padding:0}
+
 </style></head><body><main>
 
 <section id="login" class="card" style="display:none"><h1>調班表</h1>
@@ -430,7 +442,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.24.7';
+const APPV='2026.10.25.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -485,7 +497,7 @@ async function checkMaint(manual){
 $('mtr').onclick=()=>checkMaint(true);
 function renderBanner(){
   const b=$('mbn'),m=S.maint;
-  if(isAdmin()&&m&&m.active){b.style.display='flex';b.innerHTML='<span>維護模式開啟中，同事暫時無法使用'+(m.until?'（預計 '+esc(untilTxt(m.until))+' 自動恢復）':'')+'</span><button type="button" data-sys="moff">立即關閉</button>'}
+  if(isAdmin()&&m&&m.active){b.style.display='flex';b.innerHTML='<span>維護模式開啟中'+(m.until?'（預計 '+esc(untilTxt(m.until))+' 自動恢復）':'')+'</span><button type="button" data-sys="moff">立即關閉</button>'}
   else{b.style.display='none';b.innerHTML=''}
 }
 /* ---- 管理者後台：維護模式、公告 ---- */
@@ -800,8 +812,7 @@ $('go').onclick=async()=>{
   else if(o.a||o.b)L.push('時間：<b>'+esc(o.a)+'–'+esc(o.b)+'</b>');
   if(o.note)L.push('備註：<b>'+esc(o.note)+'</b>');
   if(dup)L.push('<span class="warn">已有相同的登記，請確認是否重複</span>');
-  if(t==='OT'&&!sh0hol)L.push('<span class="warn">請把「最後一張處方」紙本留存，附在紙本調班表。</span>');
-  L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
+  if(t==='OT'&&!sh0hol)L.push('<span class="warn">請把「最後一張處方」紙本留存。</span>');
   if(!await ask('請確認內容',L.join('<br>'),'確認送出'))return;
   $('go').disabled=true;
   try{const r=await call('submit',Object.assign({target:S.target,ty:t},o));toast('已送出');$('k').value='';$('kt').value='';$('nt').value='';$('s').dataset.manual='';if(S.roster94)$('s').selectedIndex=0;onForm(true);auto94();await loadFill();if(S.fv&&r.id&&String(o.date).slice(0,7)===ymNow()&&!S.fv.entries.some(e=>e.id===r.id))msg('資料已送出，但畫面上讀不到這筆。請把這個代碼告訴林偉弘：'+r.id)}catch(err){msg(err.message)}
@@ -1103,7 +1114,6 @@ function summary9(o,adm){
     L.push(o.kind+'：<b>'+o.t1+' → '+o.t2+'</b>');L.push('加班：<b>'+hm(min9(o))+'</b>');
   }else if(o.a)L.push('人員：<b>'+esc(o.a)+'</b>');
   if(o.note)L.push('備註：<b>'+esc(o.note)+'</b>');
-  L.push('<span class="warn">請確認填寫內容正確，送出後不可更改、刪除。</span>');
   return L.join('<br>');
 }
 /* 登記成功後，告訴管理者「紙本大班表要怎麼改」 */
