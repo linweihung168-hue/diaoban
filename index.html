@@ -62,6 +62,8 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 .rt{width:auto;min-width:100%;font-size:13px}.rt th,.rt td{text-align:center;padding:6px 5px;min-width:30px}
 .rt .nm{position:sticky;left:0;background:var(--card);text-align:left;min-width:62px;border-right:1px solid var(--bd);z-index:1;font-weight:600;color:var(--fg)}
 .rt .we{background:var(--we)}.rt .td{background:var(--tdc);font-weight:700}.rt tr.me td:not(.we):not(.td),.rt tr.me .nm{background:var(--me);font-weight:700}
+.rt td.chg{background:#fde8e6!important;line-height:1.15;color:#b3261e}.rt td.chg small{display:block;font-size:10px;color:#a0a0a0;text-decoration:line-through}.rt td.chg b{font-weight:700}.chgk{display:inline-block;width:14px;height:10px;border-radius:3px;background:#fde8e6;vertical-align:middle}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .rt td.chg,:root:not([data-theme=light]) .chgk{background:#4a2321!important}:root:not([data-theme=light]) .rt td.chg{color:#ff9b93}}
 .rt thead th{color:var(--mut);font-weight:600}
 .shd{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}.shd b{font-size:17px;flex:1;text-align:center;white-space:nowrap}.shd button{background:none;border:0;color:var(--ac);font-size:17px;padding:6px 0;min-width:64px;text-align:left}.shd span{min-width:64px}
 .sgl{font-size:13px;color:var(--mut);margin:18px 14px 6px}.sgrp{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
@@ -376,7 +378,7 @@ $('lsw').onclick=()=>{try{store.removeItem(LK)}catch(e){};$('code').value='';$('
 async function doLogin(code,unlock,pw){return call0('login',{code:code,pw:pw||'',dev:dev(),unlock:!!unlock})}
 async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;if(r&&r.error==='MAINT')throw new Error('系統更新中');if(r&&r.error==='NEEDPW'){const e=new Error('請輸入密碼');e.needPw=true;throw e}throw new Error((r&&r.error)||'登入失敗')}
 async function afterLogin(r,c){try{if(c&&r.me.hasPw)store.setItem(LK,JSON.stringify({c:c,n:r.me.name}));else if(c)store.removeItem(LK)}catch(e){}
-  S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;applySys(r);enter()}
+  S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;applySys(r);enter()}
 $('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
   $('lgin').disabled=true;try{await afterLogin(await doLogin(c,false,$('lpw').value),c)}catch(e){
     if(e.needPw){const first=$('pwrow').style.display==='none';$('pwrow').style.display='';$('lerr').textContent=first?'':'請輸入密碼';$('lpw').focus()}
@@ -389,7 +391,7 @@ const doOut=()=>{store.removeItem(TK);showLogin('')};
 $('out').onclick=async()=>{if(!await ask('確定要登出嗎？','','登出',true))return;doOut()};
 async function boot(){
   const t=store.getItem(TK);
-  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;S.last=null;S.pre=r.view||null;applySys(r);enter();return}catch(e){if(e.maint)return;store.removeItem(TK)}}
+  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.last=null;S.pre=r.view||null;applySys(r);enter();return}catch(e){if(e.maint)return;store.removeItem(TK)}}
   showLogin('');
 }
 
@@ -423,6 +425,12 @@ const RSM={};
 const ICON_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4"/><path d="M5.5 22v-4h4"/></svg>';
 const ICON_C='<svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 function rosterSrc(u){return u==='D2694'?{map:S.roster94||{},names:(S.cfg&&S.cfg.staff)||[]}:{map:(S.cfg90&&S.cfg90.roster)||{},names:S.cfg90?staff9():[]}}
+function ovMap(ym,n){const out={},R=(S.cfg90&&S.cfg90.roster&&S.cfg90.roster[ym])||{};
+  const put=(nm,dd,v)=>{if(!R[nm])return;const k=+dd.slice(8)-1;if(k<0||k>=n)return;const o=(out[nm]=out[nm]||{});o[k]=o[k]?{old:o[k].old,v}:{old:R[nm][k],v}};
+  (S.ov90||[]).forEach(e=>{if(String(e.d).slice(0,7)!==ym)return;
+    if(e.ty==='換班'){put(e.a,e.d,e.sb);put(e.b,e.d,e.sa)}
+    else if(e.ty==='請假')put(e.a,e.d,e.k==='DAY'?'X':e.k)});
+  return out}
 function renderRoster(u){
   const box=$(u==='D2694'?'rc94':'rc90');if(!box)return;
   const old=box.querySelector('details'),{map,names}=rosterSrc(u),avail=Object.keys(map).sort();
@@ -435,21 +443,23 @@ function renderRoster(u){
     const wk=d=>{const w=new Date(y,m-1,d).getDay();return w===0||w===6?'we':''};
     const shown=Object.keys(rows);   // 順序＝班表檔（Word）的順序
     const cell=c=>{c=String(c||'');return esc(c.slice(0,2)==='?:'?c.slice(2):c)};
+    const ov=u==='D2690'?ovMap(ym,n):{};
+    const cellO=(x,k)=>{const o=(ov[x]||{})[k];return o?{c:' chg',h:`<small>${cell(o.old)}</small><b>${esc(o.v)}</b>`}:{c:'',h:cell(rows[x][k])}};
     body=`<div class="rmn"><button type="button" data-rs="${u}" data-d="-1"${i<=0?' disabled':''}>‹</button><span>${y} / ${String(m).padStart(2,'0')}</span><button type="button" data-rs="${u}" data-d="1"${i>=avail.length-1?' disabled':''}>›</button></div>
-<div class="scroll"><table class="rt"><thead><tr><th class="nm">姓名</th>${Array.from({length:n},(_,k)=>`<th class="${wk(k+1)}${k+1===today?' td':''}">${k+1}</th>`).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:n},(_,k)=>`<td class="${wk(k+1)}${k+1===today?' td':''}">${cell(rows[x][k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+${Object.keys(ov).length?'<div class="note" style="margin:0 0 8px"><i class="chgk"></i> 紅底＝已處理的調班／請假（小字是原本的班）</div>':''}<div class="scroll"><table class="rt"><thead><tr><th class="nm">姓名</th>${Array.from({length:n},(_,k)=>`<th class="${wk(k+1)}${k+1===today?' td':''}">${k+1}</th>`).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:n},(_,k)=>`${(q=>`<td class="${wk(k+1)}${k+1===today?' td':''}${q.c}">${q.h}</td>`)(cellO(x,k))}`).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
   box.innerHTML=`<details${open?' open':''}><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
 }
 document.addEventListener('click',async e=>{
   const rs=e.target.closest('[data-rs]');if(rs){RSM[rs.dataset.rs]=shiftYm(RSM[rs.dataset.rs],+rs.dataset.d,rs.dataset.rs);renderRoster(rs.dataset.rs);return}
   const rf=e.target.closest('[data-rf]');if(rf){e.preventDefault();e.stopPropagation();rf.classList.add('spin');
-    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.roster94=r.roster94||null;S.rl0=twNow();applySys(r);renderRoster('D2694');renderRoster('D2690');toast('已更新')}catch(er){msg(er.message)}
+    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.rl0=twNow();applySys(r);renderRoster('D2694');renderRoster('D2690');toast('已更新')}catch(er){msg(er.message)}
     rf.classList.remove('spin')}
 });
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.26.3';
+const APPV='2026.10.26.4';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
