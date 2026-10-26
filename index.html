@@ -424,14 +424,15 @@ $('sfs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setPref('fs
 const RSM={};
 const ICON_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4"/><path d="M5.5 22v-4h4"/></svg>';
 const ICON_C='<svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
-function rosterSrc(u){return u==='D2694'?{map:S.roster94||{},names:(S.cfg&&S.cfg.staff)||[]}:{map:(S.cfg90&&S.cfg90.roster)||{},names:S.cfg90?staff9():[]}}
-function ovMap(ym,n){const out={},R=(S.cfg90&&S.cfg90.roster&&S.cfg90.roster[ym])||{};
+function rosterSrc(u){return {map:S.roster94||(S.cfg90&&S.cfg90.roster)||{},names:[]}}
+function ovMap(ym,n){const out={},R=((S.roster94||(S.cfg90&&S.cfg90.roster)||{})[ym])||{};
   const put=(nm,dd,v)=>{if(!R[nm])return;const k=+dd.slice(8)-1;if(k<0||k>=n)return;const o=(out[nm]=out[nm]||{});o[k]=o[k]?{old:o[k].old,v}:{old:R[nm][k],v}};
   (S.ov90||[]).forEach(e=>{if(String(e.d).slice(0,7)!==ym)return;
     if(e.ty==='換班'){put(e.a,e.d,e.sb);put(e.b,e.d,e.sa)}
     else if(e.ty==='請假')put(e.a,e.d,e.k==='DAY'?'X':e.k)});
   return out}
 function renderRoster(u){
+  u='D2694';   // 兩個單位共用同一張大班表
   const box=$(u==='D2694'?'rc94':'rc90');if(!box)return;
   const old=box.querySelector('details'),{map,names}=rosterSrc(u),avail=Object.keys(map).sort();
   const open=true;
@@ -443,7 +444,7 @@ function renderRoster(u){
     const wk=d=>{const w=new Date(y,m-1,d).getDay();return w===0||w===6?'we':''};
     const shown=Object.keys(rows);   // 順序＝班表檔（Word）的順序
     const cell=c=>{c=String(c||'');return esc(c.slice(0,2)==='?:'?c.slice(2):c)};
-    const ov=u==='D2690'?ovMap(ym,n):{};
+    const ov=ovMap(ym,n);
     const cellO=(x,k)=>{const o=(ov[x]||{})[k];return o?{c:' chg',h:`<small>${cell(o.old)}</small><b>${esc(o.v)}</b>`}:{c:'',h:cell(rows[x][k])}};
     body=`<div class="rmn"><button type="button" data-rs="${u}" data-d="-1"${i<=0?' disabled':''}>‹</button><span>${y} / ${String(m).padStart(2,'0')}</span><button type="button" data-rs="${u}" data-d="1"${i>=avail.length-1?' disabled':''}>›</button></div>
 ${Object.keys(ov).length?'<div class="note" style="margin:0 0 8px"><i class="chgk"></i> 紅底＝已處理的調班／請假（小字是原本的班）</div>':''}<div class="scroll"><table class="rt"><thead><tr><th class="nm">姓名</th>${Array.from({length:n},(_,k)=>`<th class="${wk(k+1)}${k+1===today?' td':''}">${k+1}</th>`).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:n},(_,k)=>`${(q=>`<td class="${wk(k+1)}${k+1===today?' td':''}${q.c}">${q.h}</td>`)(cellO(x,k))}`).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -453,13 +454,13 @@ ${Object.keys(ov).length?'<div class="note" style="margin:0 0 8px"><i class="chg
 document.addEventListener('click',async e=>{
   const rs=e.target.closest('[data-rs]');if(rs){RSM[rs.dataset.rs]=shiftYm(RSM[rs.dataset.rs],+rs.dataset.d,rs.dataset.rs);renderRoster(rs.dataset.rs);return}
   const rf=e.target.closest('[data-rf]');if(rf){e.preventDefault();e.stopPropagation();rf.classList.add('spin');
-    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.rl0=twNow();applySys(r);renderRoster('D2694');renderRoster('D2690');toast('已更新')}catch(er){msg(er.message)}
+    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.rl0=twNow();applySys(r);renderRoster('D2694');toast('已更新')}catch(er){msg(er.message)}
     rf.classList.remove('spin')}
 });
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.26.4';
+const APPV='2026.10.27.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -574,16 +575,16 @@ function fillPeople(){
 function switchTab(t){
   const adm=isAdmin(),u=S.unit;
   if(t==='set'){S.prev=S.tab==='set'?S.prev:S.tab;openSettings();return}
-  S.tab=t;S.kd94={};S.kd90={};S.hd=0;$('setSec').style.display='none';$('units').style.display=myUnits().length>1?'':'none';
+  S.tab=t;S.kd94={};S.kd90={};S.hd=0;$('setSec').style.display='none';$('units').style.display=(myUnits().length>1&&t!=='roster')?'':'none';
   document.querySelectorAll('#units button').forEach(b=>b.className=b.dataset.u===u?'on':'');
   $('fill').style.display=(t==='fill'&&u==='D2694')?'':'none';$('back').style.display=(t==='back'&&adm&&u==='D2694')?'':'none';
   $('fill90').style.display=(t==='fill'&&u==='D2690')?'':'none';$('back90').style.display=(t==='back'&&adm&&u==='D2690')?'':'none';
   $('pbtns').style.display=(adm&&t==='fill'&&u==='D2694')?'':'none';
   $('tabP').className=t==='fill'?'go':'';$('tabP').style.margin='0';$('tabB').className=t==='back'?'go':'';$('tabB').style.margin='0';
   $('recSec').style.display=t==='rec'?'':'none';$('r94').style.display=u==='D2694'?'':'none';$('r90').style.display=u==='D2690'?'':'none';$('tabK').className=t==='rec'?'go':'';$('tabK').style.margin='0';
-  $('rosterSec').style.display=t==='roster'?'':'none';$('rc94').style.display=(t==='roster'&&u==='D2694')?'':'none';$('rc90').style.display=(t==='roster'&&u==='D2690')?'':'none';
+  $('rosterSec').style.display=t==='roster'?'':'none';$('rc94').style.display=t==='roster'?'':'none';$('rc90').style.display='none';
   $('tabR').className=t==='roster'?'go':'';$('tabR').style.margin='0';
-  if(t==='roster'){renderRoster(u);window.scrollTo(0,0);return}
+  if(t==='roster'){renderRoster('D2694');window.scrollTo(0,0);return}
   if(t==='rec'){recPick();window.scrollTo(0,0);if(u==='D2690')loadFill90();else loadFill();return}
   if(u==='D2690'){if(t==='fill')loadFill90();else loadBack90();return}
   if(t==='fill')loadFill();else loadBack();
