@@ -3,8 +3,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>調班表</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=2">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#2f8f6b">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -77,6 +77,8 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 .pill{flex:none;font-style:normal;font-size:12px;color:var(--mut);background:var(--bg);border:1px solid var(--bd);border-radius:999px;padding:1px 9px;white-space:nowrap}
 @media (hover:none),(pointer:coarse){.e9r .dt .bt{display:none!important}}
 .r9 .pill{justify-self:end}
+details.how{margin-top:6px}details.how>summary{font-size:13px;color:var(--ac);padding:4px 0;font-weight:400}
+.sumline{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--card);border-radius:14px;margin:0 0 12px;cursor:pointer;font-size:15px;color:var(--mut)}.sumline b{color:var(--fg)}.sumline span{color:var(--ac)}
 #bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:18px}
 .ic{width:18px;height:18px;vertical-align:middle}
 /* ===== iOS 風格外觀（只改樣式，不改功能） ===== */
@@ -225,16 +227,19 @@ details.e9r>summary::after{display:none}
 #rosterSec .card{padding:14px 12px}
 
 /* 表單：名稱在左、內容全部靠左，從同一條線開始 */
-.frm label,#f9body label,.frm #dk>label,.frm #edk>label,#f9body #f9cvW>label,#e9body label,#e9body #e9cvW>label{flex:0 0 104px!important;font-size:16px;line-height:1.3}
-.frm input,.frm select,#f9body input,#f9body select,.frm #dk>select,.frm #edk>select,#e9body input,#e9body select{width:calc(100% - 104px)!important;max-width:none!important;min-width:0!important;margin-left:0!important;text-align:left!important;text-align-last:left!important;padding-left:8px!important;background-position:right 2px center}
+.frm label,#f9body label,.frm #dk>label,.frm #edk>label,#f9body #f9cvW>label,#e9body label,#e9body #e9cvW>label{flex:0 0 122px!important;font-size:16px;line-height:1.3}
+.frm input,.frm select,#f9body input,#f9body select,.frm #dk>select,.frm #edk>select,#e9body input,#e9body select{width:calc(100% - 122px)!important;max-width:none!important;min-width:0!important;margin-left:0!important;text-align:left!important;text-align-last:left!important;padding-left:8px!important;background-position:right 2px center}
 .frm input[type=date],#f9body input[type=date],#e9body input[type=date]{justify-content:flex-start!important;text-align:left!important}
 .frm input[type=date]::-webkit-date-and-time-value,#f9body input[type=date]::-webkit-date-and-time-value,#e9body input[type=date]::-webkit-date-and-time-value{text-align:left!important}
-.frm .note,.frm .ferr,#f9body .ferr,#e9body .ferr{text-align:left!important;padding-left:104px;margin:-6px 0 8px}
+.frm .note,.frm .ferr,#f9body .ferr,#e9body .ferr{text-align:left!important;padding-left:122px;margin:-6px 0 8px}
 .frm>label,#f9body>label,#e9body>label{border-bottom:.5px solid var(--bd)!important}
 
 input[type=date]{-webkit-appearance:none;appearance:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;min-height:48px;line-height:1.2}
 input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0;min-height:1.2em}
 input[type=date]::-webkit-datetime-edit{padding:0}
+
+#tabK{--ti:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 5h16v2.6H4zM4 10.7h16v2.6H4zM4 16.4h10v2.6H4z'/%3E%3C/svg%3E")}
+.sumline{border-radius:14px;box-shadow:none}
 
 </style></head><body><main>
 
@@ -248,7 +253,7 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 <div id="bar" class="hbar"><b id="who"></b><button type="button" id="bell" class="ib" aria-label="通知"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="bdg" id="bdg"></span></button><button type="button" id="gear" class="ib" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
 <div id="mbn" class="mtb"></div>
 <div id="units" class="chips" style="margin-bottom:10px;display:none"></div>
-<div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">填寫</button><button type="button" id="tabR">大班表</button><button type="button" id="tabB">後台管理</button></div>
+<div id="tabs" class="row" style="margin-bottom:14px;display:none"><button type="button" id="tabP">填寫</button><button type="button" id="tabK">紀錄</button><button type="button" id="tabR">大班表</button><button type="button" id="tabB">後台管理</button></div>
 
 <section id="fill">
 <div id="pbtns" class="seg" style="margin-bottom:14px;display:none"></div>
@@ -262,9 +267,7 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 <label id="nL">備註（選填）</label><input id="nt" maxlength="200" autocomplete="off">
 <div class="calc" id="c" style="display:none"></div>
 <button type="button" class="go" id="go">送出</button></div>
-<div class="card"><h2 id="mineH">我的未休分鐘</h2><div id="mine"></div></div>
-<div class="card"><details><summary>本月登記查詢</summary><div id="myList"></div></details></div>
-<div class="card"><details><summary>本月每日明細</summary><div class="scroll"><table id="myDays"></table></div></details></div>
+<div class="sumline" id="sl94" data-go="rec" style="display:none"></div>
 </section>
 
 <section id="back" style="display:none">
@@ -281,11 +284,15 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 <section id="setSec" style="display:none"><div class="shd"><button type="button" id="sback" aria-label="返回">‹ <span id="sbt">返回</span></button><b id="stitle">設定</b><span></span></div><div id="setMain"><div class="sgl">一般</div><div class="sgrp"><div class="srow nc"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19L9.5 5 15 19M6.2 14h6.6M17 19h4M19 12v7"/></svg><span class="sn">字體大小</span><div class="seg" id="sfs" style="grid-template-columns:1fr 1fr;width:150px;margin:0"><button type="button" data-v="0">標準</button><button type="button" data-v="1">大</button></div></div><div class="srow" id="spw"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="sn">登入密碼</span><span class="sv" id="spwn"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div></div><div id="setAdm"><div class="sgl">管理者</div><div class="sgrp"><div class="srow" data-sp="maint"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg><span class="sn">維護模式</span><span class="sv" id="vMaint">關閉</span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="notice"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg><span class="sn">公告</span><span class="sv" id="vNotice"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="reset"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l3 3"/></svg><span class="sn">重置密碼</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="export"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><span class="sn">匯出資料</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="roster"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg><span class="sn">班表檔（D2690）</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div></div><div class="sgl">紀錄</div><div class="sgrp"><div class="srow" data-sp="logins"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span class="sn">登入紀錄</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="edits"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg><span class="sn">修改紀錄</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="srow" data-sp="trash"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg><span class="sn">已刪除</span><span class="sv"></span><svg class="ch2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div></div></div><div class="sgrp" style="margin-top:22px"><div class="srow nc" style="justify-content:center;padding:0"><button type="button" id="out" style="width:100%;height:48px;background:none;border:0;color:var(--danger);font-size:16px;font-weight:500">登出</button></div></div><p class="note" style="text-align:center;margin:18px 0 0" id="ver"></p></div><div id="setSub" style="display:none"><div id="suChips" class="chips" style="display:none;margin-bottom:12px"><button type="button" data-su="D2690">D2690</button><button type="button" data-su="D2694">D2694</button></div><div class="sp" id="sp_maint"><div id="sysM"></div></div><div class="sp" id="sp_notice"><div id="sysN"></div></div><div class="sp" id="sp_reset"><div id="sysR"></div></div><div class="sp" id="sp_export"><div class="mnav"><button type="button" data-id="xm" data-d="-1" aria-label="上個月">‹</button><label class="mmid"><span id="xml"></span><i aria-hidden="true">⌄</i><input type="month" id="xmp" aria-label="選擇月份"></label><button type="button" data-id="xm" data-d="1" aria-label="下個月">›</button></div><input type="hidden" id="xm"><div class="u94"><div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr"><option value="m">所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：每日彙總、所有登記、月結、已刪除、修改紀錄、登入紀錄</p></div></div><div class="u90"><div class="card"><h2>匯出</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select id="xr9"><option value="m">所選月份</option><option value="all">全部資料</option></select><button type="button" class="go" id="xgo9" style="margin:0">下載 Excel</button></div><p class="note" style="margin:8px 0 0">內容：班表變動、請假、加班、所有登記、每人彙總、已刪除、修改紀錄</p></div></div></div><div class="sp" id="sp_roster"><div class="card"><details id="dRs9"><summary>班表檔（登記時自動帶入班別）</summary><p class="note" style="margin:8px 0">先在 D2690 排班工具的第 3 個頁籤輸出「班表檔」，再在這裡選那個檔案上傳。同一個月重傳會整月取代。</p><div id="rs9" class="note"></div><input type="file" id="rf9" accept=".json,application/json" style="margin-top:8px"><div id="rp9" class="note" style="margin:8px 0"></div><button type="button" class="go" id="ru9" style="display:none">上傳班表</button></details></div></div><div class="sp" id="sp_logins"><div class="u94"><div class="card"><details id="dLogins"><summary>登入紀錄</summary>
 <p><button type="button" id="clrLog" class="x" title="清空登入紀錄" aria-label="清空登入紀錄" style="border:1px solid var(--bd)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></p>
 <div class="scroll"><table id="bLogins"></table></div></details></div></div><div class="u90"><div class="card"><details id="dLogins9"><summary>登入紀錄</summary><div class="scroll"><table id="bLogins9"></table></div></details></div></div></div><div class="sp" id="sp_edits"><div class="u94"><div class="card"><details id="dEdits"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits"></table></div></details></div></div><div class="u90"><div class="card"><details id="dEdits9"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits9"></table></div></details></div></div></div><div class="sp" id="sp_trash"><div class="u94"><div class="card"><details id="dTrash"><summary>已刪除</summary><div class="scroll"><table id="bTrash"></table></div></details></div></div><div class="u90"><div class="card"><details id="dTrash9"><summary>已刪除</summary><div class="scroll"><table id="bTrash9"></table></div></details></div></div></div></div></section>
+<section id="recSec" style="display:none"><div id="kpw" style="display:none;margin-bottom:12px"><select id="kp"></select></div><div id="r94"><div class="card"><h2 id="mineH">我的未休分鐘</h2><div id="mine"></div></div>
+<div class="card"><details open><summary>本月登記查詢</summary><div id="myList"></div></details></div>
+<div class="card"><details><summary>本月每日明細</summary><div class="scroll"><table id="myDays"></table></div></details></div></div><div id="r90"><div class="card" id="c9mine"><h2 id="mine9H">我的未休分鐘（含上月）</h2><div id="mine9"></div></div>
+<div class="card" id="c9list"><details open><summary>本月登記查詢</summary><div id="list9"></div></details></div>
+<div class="card" id="c9days" style="display:none"><details><summary>本月每日明細</summary><div class="scroll"><table id="myDays9"></table></div></details></div></div></section>
 <section id="rosterSec" style="display:none"><div class="card" id="rc94"></div><div class="card" id="rc90"></div></section>
 <section id="fill90" style="display:none">
 <div class="card"><div id="f9body"></div><button type="button" class="go" id="go9">送出</button></div>
-<div class="card" id="c9mine"><h2>我的未休分鐘（含上月）</h2><div id="mine9"></div></div>
-<div class="card" id="c9list"><details><summary>本月登記查詢</summary><div id="list9"></div></details></div>
+<div class="sumline" id="sl90" data-go="rec" style="display:none"></div>
 </section>
 
 <section id="back90" style="display:none">
@@ -442,7 +449,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.25.2';
+const APPV='2026.10.26.3';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -563,9 +570,11 @@ function switchTab(t){
   $('fill90').style.display=(t==='fill'&&u==='D2690')?'':'none';$('back90').style.display=(t==='back'&&adm&&u==='D2690')?'':'none';
   $('pbtns').style.display=(adm&&t==='fill'&&u==='D2694')?'':'none';
   $('tabP').className=t==='fill'?'go':'';$('tabP').style.margin='0';$('tabB').className=t==='back'?'go':'';$('tabB').style.margin='0';
+  $('recSec').style.display=t==='rec'?'':'none';$('r94').style.display=u==='D2694'?'':'none';$('r90').style.display=u==='D2690'?'':'none';$('tabK').className=t==='rec'?'go':'';$('tabK').style.margin='0';
   $('rosterSec').style.display=t==='roster'?'':'none';$('rc94').style.display=(t==='roster'&&u==='D2694')?'':'none';$('rc90').style.display=(t==='roster'&&u==='D2690')?'':'none';
   $('tabR').className=t==='roster'?'go':'';$('tabR').style.margin='0';
   if(t==='roster'){renderRoster(u);window.scrollTo(0,0);return}
+  if(t==='rec'){recPick();window.scrollTo(0,0);if(u==='D2690')loadFill90();else loadFill();return}
   if(u==='D2690'){if(t==='fill')loadFill90();else loadBack90();return}
   if(t==='fill')loadFill();else loadBack();
 }
@@ -599,8 +608,8 @@ S.hd=0;
 function goBack(){if(S.hd>0)history.back();else if(S.sp)backSet();else switchTab(S.prev||S.tab)}
 window.addEventListener('popstate',()=>{if($('setSec').style.display==='none')return;const d=(history.state&&history.state.s)||0;S.hd=d;if(d>=2)return;if(d===1)backSet();else switchTab(S.prev||S.tab)});
 function openSettings(){
-  ['fill','back','fill90','back90','rosterSec'].forEach(id=>$(id).style.display='none');$('pbtns').style.display='none';$('units').style.display='none';
-  ['tabP','tabB','tabR'].forEach(id=>{$(id).className='';$(id).style.margin='0'});
+  ['fill','back','fill90','back90','rosterSec','recSec'].forEach(id=>$(id).style.display='none');$('pbtns').style.display='none';$('units').style.display='none';
+  ['tabP','tabK','tabB','tabR'].forEach(id=>{$(id).className='';$(id).style.margin='0'});
   $('setSec').style.display='';$('setAdm').style.display=isAdmin()?'':'none';
   document.querySelector('[data-sp=roster]').style.display=S.cfg90?'':'none';
   applyPrefs();renderPwRow();renderSys();backSet();if(!S.hd){try{history.pushState({s:1},'');S.hd=1}catch(e){}}window.scrollTo(0,0);
@@ -646,7 +655,7 @@ $('sback').onclick=goBack;
     else{x.style.transform='';x.style.opacity='';setTimeout(()=>x.style.transition='',230)}};
   document.addEventListener('touchend',fin);document.addEventListener('touchcancel',fin);
 })();
-$('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');$('tabR').onclick=()=>switchTab('roster');
+$('tabK').onclick=()=>switchTab('rec');$('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');$('tabR').onclick=()=>switchTab('roster');
 
 /* ---- 填寫表單 ---- */
 function typeSeg(id){const s=$(id);if(!s||s.dataset.seg)return;s.dataset.seg='1';const w=s.closest('div');w.classList.add('tyhid');
@@ -750,9 +759,10 @@ function renderFill(){
   setTimeout(auto94,0);
   const v=S.fv,st=v.stats[0]||{carryIn:0,total:0,extra:0,unused:0,can:0},adm=isAdmin();
   $('mineH').textContent=adm?S.target+' 的未休分鐘（含上月）':'我的未休分鐘（含上月）';
-  $('mine').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">本月總加班 ${st.total} 分鐘（含上月 ${st.total+st.carryIn}）；未休＝上月 ${st.carryIn} ＋ 本月多出 ${st.extra}。滿 30 分鐘可換算 0.5 小時，目前可換算 ${st.can} h。</div>`;
+  $('mine').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">滿 30 分鐘可換 0.5 小時，目前可換 ${st.can} 小時。</div><details class="how"><summary>怎麼算的？</summary><div class="note">本月加班 ${st.total} 分鐘；未休 ＝ 上月 ${st.carryIn} ＋ 本月多出 ${st.extra} ＝ ${st.unused} 分鐘。</div></details>`;
   $('myList').innerHTML=(v.entries.length?L94H:'')+v.entries.map(e=>entryRow94(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
   $('myDays').innerHTML=daysTable(v.days,false);
+  $('sl94').style.display=adm?'none':'flex';$('sl94').innerHTML=`<div>未休 <b>${st.unused}</b> 分鐘</div><span>查看紀錄 ›</span>`;
 }
 function whenOf(e){return e.ty==='OT'?(shiftOf(e.shift)&&shiftOf(e.shift).type==='N+'?'至 '+e.b:e.a+'–'+e.b):e.ty==='LV'?e.a+'–'+e.b+'（'+hm(tm(e.b)-tm(e.a))+'）':e.ty==='AM'?'14:00 上班':e.ty==='PM'?'12:30 下班':e.ty==='DAY'?'整天':(e.a?e.a+'–'+e.b:'')}
 const CKS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -1191,15 +1201,30 @@ function pendRow9(e){
 }
 
 /* ---- 一般人員頁面 ---- */
+const person9=()=>S.kp9||'';
+function recPick(){const adm=isAdmin();$('kpw').style.display=adm?'':'none';if(!adm)return;
+  const names=S.unit==='D2690'?(S.cfg90?S.cfg90.staff:[]):S.cfg.staff;
+  $('kp').innerHTML='<option value="">請選擇人員</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');
+  $('kp').value=S.unit==='D2690'?(S.kp9||''):(S.target||'')}
+$('kp').onchange=()=>{if(S.unit==='D2690'){S.kp9=$('kp').value;if(S.v9)renderFill90()}else{S.target=$('kp').value;loadFill()}};
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-go=rec]'))switchTab('rec')});
 async function loadFill90(){
-  const adm=isAdmin();$('c9mine').style.display=adm?'none':'';$('c9list').style.display=adm?'none':'';
-  if(adm)return;
-  try{S.v9=await call('view90',{month:ymNow()});renderFill90()}catch(e){msg(e.message)}
+  const adm=isAdmin();$('c9days').style.display=adm?'':'none';
+  try{S.v9=await call('view90',{month:ymNow()});if(adm)S.bv9=S.v9;renderFill90()}catch(e){msg(e.message)}
 }
 function renderFill90(){
-  const v=S.v9,st=(v.stats&&v.stats[0])||{carryIn:0,total:0,extra:0,unused:0,can:0};
-  $('mine9').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">本月總加班 ${st.total} 分鐘；未休＝上月 ${st.carryIn} ＋ 本月多出 ${st.extra}。滿 30 分鐘可換算 0.5 小時，目前可換算 ${st.can} h。</div>`;
-  $('list9').innerHTML=(v.entries.length?L9H:'')+v.entries.map(e=>card9(e,false)).join('')||'<p class="note">本月還沒有登記</p>';
+  const v=S.v9,adm=isAdmin();let st,ents=v.entries;
+  if(adm){
+    const nm=person9();
+    if(!nm){$('mine9H').textContent='未休分鐘';$('mine9').innerHTML='<p class="note">請先在上方選擇人員</p>';$('list9').innerHTML='';$('myDays9').innerHTML='';return}
+    $('mine9H').textContent=nm+' 的未休分鐘（含上月）';
+    st=(v.stats||[]).find(x=>x.name===nm)||{carryIn:0,total:0,extra:0,unused:0,can:0};
+    ents=v.entries.filter(e=>e.a===nm||e.b===nm);
+    $('myDays9').innerHTML='<tr><th>日期</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+((v.days||[]).filter(d=>d.name===nm).sort((p,q)=>p.date<q.date?1:-1).map(d=>`<tr><td>${esc(d.date)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="5" class="note">本月沒有加班或小時假</td></tr>');
+  }else{$('mine9H').textContent='我的未休分鐘（含上月）';st=(v.stats&&v.stats[0])||{carryIn:0,total:0,extra:0,unused:0,can:0}}
+  $('mine9').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">滿 30 分鐘可換 0.5 小時，目前可換 ${st.can} 小時。</div><details class="how"><summary>怎麼算的？</summary><div class="note">本月加班 ${st.total} 分鐘；未休 ＝ 上月 ${st.carryIn} ＋ 本月多出 ${st.extra} ＝ ${st.unused} 分鐘。</div></details>`;
+  $('sl90').style.display=adm?'none':'flex';$('sl90').innerHTML=`<div>未休 <b>${st.unused}</b> 分鐘</div><span>查看紀錄 ›</span>`;
+  $('list9').innerHTML=(ents.length?L9H:'')+ents.map(e=>card9(e,adm)).join('')||'<p class="note">本月還沒有登記</p>';
 }
 
 /* ---- 後台 ---- */
@@ -1247,10 +1272,10 @@ let EID9=null;
 document.addEventListener('click',async ev=>{
   const b=ev.target.closest('[data-a9]');if(!b)return;const id=b.dataset.id,act=b.dataset.a9;
   try{
-    if(act==='done'||act==='undone'){const pe=S.bv9&&S.bv9.pending.find(x=>x.id===id);if(act==='done'&&pe)S.kd90[id]=pe;if(act==='undone')delete S.kd90[id];await call('done90',{id:id,undo:act==='undone'});toast(act==='done'?'已處理':'已取消');loadBack90();return}
-    if(act==='restore'){await call('restore90',{id:id});toast('已還原');loadBack90();return}
+    if(act==='done'||act==='undone'){const pe=S.bv9&&S.bv9.pending.find(x=>x.id===id);if(act==='done'&&pe)S.kd90[id]=pe;if(act==='undone')delete S.kd90[id];await call('done90',{id:id,undo:act==='undone'});toast(act==='done'?'已處理':'已取消');S.tab==='fill'?loadFill90():loadBack90();return}
+    if(act==='restore'){await call('restore90',{id:id});toast('已還原');S.tab==='fill'?loadFill90():loadBack90();return}
     const e=(S.bv9&&S.bv9.entries.find(x=>x.id===id))||(S.bv9&&S.bv9.pending.find(x=>x.id===id))||(S.v9&&S.v9.entries.find(x=>x.id===id));if(!e)return;
-    const rl9=()=>isAdmin()?loadBack90():loadFill90();
+    const rl9=()=>(isAdmin()&&S.tab!=='fill')?loadBack90():loadFill90();
     if(act==='del'){const d=desc9(e);
       if(!await ask('確定要刪除這筆資料嗎？',esc(e.date)+'　'+tyN9(e.ty)+'<br>'+d.h+(d.r.length?'<br>'+d.r.join('<br>'):'')+(e.note?'<br>備註：'+esc(e.note):'')+(e.doneAt&&isAdmin()?'<br><span class="warn">這筆已處理過，刪除後不會自動從醫院系統移除。</span>':''),'確定刪除',true))return;
       await call('del90',{id:id});delete S.kd90[id];toast('已刪除');rl9();
@@ -1270,7 +1295,7 @@ $('ecancel9').onclick=()=>{$('em9').style.display='none';EID9=null};
 $('esave9').onclick=async()=>{
   const o=read9('e9'),er=chk9(o);if(er){msg(er);return}
   try{const r=await raw('edit90',Object.assign({id:EID9},o));if(!r||r.ok===false)throw new Error((r&&r.error)||'儲存失敗');
-    $('em9').style.display='none';EID9=null;toast('已儲存');isAdmin()?loadBack90():loadFill90()}catch(err){msg(err.message)}
+    $('em9').style.display='none';EID9=null;toast('已儲存');(isAdmin()&&S.tab!=='fill')?loadBack90():loadFill90()}catch(err){msg(err.message)}
 };
 
 /* ---- 班表檔上傳（D2690） ---- */
