@@ -64,7 +64,20 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 .rt .we{background:var(--we)}.rt .td{background:var(--tdc);font-weight:700}.rt tr.me td:not(.we):not(.td),.rt tr.me .nm{background:var(--me);font-weight:700}
 .rt td.chg{background:#fde8e6!important;line-height:1.15;color:#b3261e}.rt td.chg small{display:block;font-size:10px;color:#a0a0a0;text-decoration:line-through}.rt td.chg b{font-weight:700}.chgk{display:inline-block;width:14px;height:10px;border-radius:3px;background:#fde8e6;vertical-align:middle}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .rt td.chg,:root:not([data-theme=light]) .chgk{background:#4a2321!important}:root:not([data-theme=light]) .rt td.chg{color:#ff9b93}}
-.rt.rw{table-layout:fixed;width:100%;min-width:0;font-size:13px}.rt.rw th,.rt.rw td{min-width:0;padding:6px 1px;overflow:hidden;white-space:nowrap}.rt.rw .nm{width:58px;font-size:12px;padding:6px 3px}.rt.rw td.lg{font-size:9px;white-space:normal;word-break:break-all;line-height:1.1}.rt.rw td small{font-size:9px}.rt.rw thead th{cursor:pointer}.rt th small{font-weight:400;font-size:11px}
+/* 大班表極簡樣式（Google 日曆風）：今天＝日期圓圈、自己＝名字前小綠線、週末＝文字變淡，不鋪整條色塊 */
+#rc94 .rt .we,#rc94 .rt .td,#rc94 .rt tr.me td:not(.we):not(.td),#rc94 .rt tr.me .nm{background:transparent}
+#rc94 .rt .nm{border-right:0;background:var(--card)}
+#rc94 .rt td,#rc94 .rt th{border-left:0;border-right:0}
+#rc94 .rt th.we{color:#bdbdc2}#rc94 .rt td.we{color:var(--mut)}
+#rc94 .rt .dn{font-style:normal;display:inline-block;min-width:24px;height:24px;line-height:24px;border-radius:12px;padding:0 3px}
+#rc94 .rt th.td .dn{background:var(--ac);color:#fff}
+#rc94 .rt tr.me .nm{box-shadow:inset 3px 0 0 var(--ac);color:var(--ac)}
+#rc94 .rt td.td{font-weight:600}
+#rc94[data-sty=b] .rt td.td,#rc94[data-sty=b] .rt tr.me td:not(.chg){background:color-mix(in srgb,var(--ac) 7%,transparent)}
+#rc94 .rt td.chg{background:#fde8e6!important}
+#rc94 .mc.we{background:var(--bg)}#rc94 .mc.we i{color:#bdbdc2}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) #rc94 .rt td.chg{background:#4a2321!important}}
+.rt.rw{table-layout:fixed;width:100%;min-width:0;font-size:13px}.rt.rw th,.rt.rw td{min-width:0;padding:6px 1px;overflow:hidden;white-space:nowrap}.rt.rw .nm{width:58px;font-size:12px;padding:6px 3px}.rt.rw td.lg{font-size:9px;white-space:normal;word-break:normal;line-height:1.1}.rt.rw td small{font-size:9px}.rt.rw thead th{cursor:pointer}.rt th small{font-weight:400;font-size:11px}
 .mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.mh{text-align:center;color:var(--mut);font-size:12px;font-weight:600;padding:2px 0}.mc{min-height:56px;border-radius:10px;background:var(--bg);padding:3px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;line-height:1.15}.mc.e{background:none}.mc i{font-style:normal;font-size:11px;color:var(--mut)}.mc b{font-size:15px;margin-top:2px}.mc small{font-size:10px;color:#a0a0a0;text-decoration:line-through}.mc.we{background:var(--we)}.mc.td{outline:2px solid var(--ac)}.mc.chg{background:#fde8e6;color:#b3261e}
 .rt thead th{color:var(--mut);font-weight:600}
 .shd{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}.shd b{font-size:17px;flex:1;text-align:center;white-space:nowrap}.shd button{background:none;border:0;color:var(--ac);font-size:17px;padding:6px 0;min-width:64px;text-align:left}.shd span{min-width:64px}
@@ -433,14 +446,14 @@ function ovMap(ym,n){const out={},R=((S.roster94||(S.cfg90&&S.cfg90.roster)||{})
     if(e.ty==='換班'){put(e.a,e.d,e.sb);put(e.b,e.d,e.sa)}
     else if(e.ty==='請假')put(e.a,e.d,e.k==='DAY'?'X':e.k)});
   return out}
-let RV=(()=>{try{return store.getItem('rv')||'w'}catch(e){return 'w'}})(),RWI=null,RP='';
+let RSTY='b';let RV=(()=>{try{return store.getItem('rv')||'w'}catch(e){return 'w'}})(),RWI=null,RP='';
 const WD=['日','一','二','三','四','五','六'];
 const addDays=(x,k)=>{const d=new Date(x+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+k);return d.toISOString().slice(0,10)};
 const monday=x=>addDays(x,-((new Date(x+'T00:00:00Z').getUTCDay()+6)%7));
 function weeksOf(ym){const y=+ym.slice(0,4),m=+ym.slice(5),n=new Date(y,m,0).getDate(),w=[];let s=1;for(let d=1;d<=n;d++){if(new Date(y,m-1,d).getDay()===0||d===n){w.push([s,d]);s=d+1}}return w}
 function rosterCtx(ym){const y=+ym.slice(0,4),m=+ym.slice(5),n=new Date(y,m,0).getDate(),rows=((S.roster94||(S.cfg90&&S.cfg90.roster)||{})[ym])||{},ov=ovMap(ym,n);
   const val=(x,k)=>{const o=(ov[x]||{})[k];return o?{v:o.v,old:o.old,chg:1}:{v:rows[x]?rows[x][k]:'',chg:0}};return {y,m,n,rows,ov,val}}
-const rraw=c=>{c=String(c||'').replace(/^~/,'');return esc(c.slice(0,2)==='?:'?c.slice(2):c)};
+const rraw=c=>{c=String(c||'').replace(/^~/,'');return esc(c.slice(0,2)==='?:'?c.slice(2):c).replace(/-/g,'-<wbr>')};
 const rcell=c=>{const t=String(c||'').trim();return (t==='N'||t==='M1'||t.charAt(0)==='~')?'':rraw(c)};   // ~R＝Word 原本是空白、匯入時補成 R：畫面上顯示空白   // 正常班 N、中藥局 M1 跟 Word 一樣顯示空白（資料仍是 N／M1，登記時自動帶入班別要用）
 function renderRoster(u){
   u='D2694';   // 兩個單位共用同一張大班表
@@ -453,9 +466,9 @@ function renderRoster(u){
     const {y,m,n,rows,ov,val}=rosterCtx(ym),today=ym===ymNow()?+dayNow().slice(8):0,i=avail.indexOf(ym),shown=Object.keys(rows);
     const wk=d=>{const w=new Date(y,m-1,d).getDay();return w===0||w===6?'we':''};
     const seg=`<div class="seg rvs">${[['w','週'],['m','月'],['p','我的']].map(a=>`<button type="button" data-rv="${a[0]}" class="${RV===a[0]?'on':''}">${a[1]}</button>`).join('')}</div>`;
-    const leg=Object.keys(ov).length?'<div class="note" style="margin:0 0 8px"><i class="chgk"></i> 紅底＝已處理的調班／請假（小字是原本的班）</div>':'';
+    const leg='';
     const mnav=`<div class="rmn"><button type="button" data-rs="${u}" data-d="-1"${i<=0?' disabled':''}>‹</button><span>${y} / ${String(m).padStart(2,'0')}</span><button type="button" data-rs="${u}" data-d="1"${i>=avail.length-1?' disabled':''}>›</button></div>`;
-    const tbl=(a,b,wide)=>`<div class="scroll"><table class="rt${wide?' rw':''}"><thead><tr><th class="nm">姓名</th>${Array.from({length:b-a+1},(_,t)=>{const d=a+t;return `<th class="${wk(d)}${d===today?' td':''}" data-ymd="${ym}-${String(d).padStart(2,'0')}">${d}${wide?`<br><small>${WD[new Date(y,m-1,d).getDay()]}</small>`:''}</th>`}).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:b-a+1},(_,t)=>{const d=a+t,q=val(x,d-1);return `<td class="${wk(d)}${d===today?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${q.chg?`<small>${rraw(q.old)}</small><b>${esc(q.v)}</b>`:rcell(q.v)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
+    const tbl=(a,b,wide)=>`<div class="scroll"><table class="rt${wide?' rw':''}"><thead><tr><th class="nm">姓名</th>${Array.from({length:b-a+1},(_,t)=>{const d=a+t;return `<th class="${wk(d)}${d===today?' td':''}" data-ymd="${ym}-${String(d).padStart(2,'0')}"><i class="dn">${d}</i>${wide?`<br><small>${WD[new Date(y,m-1,d).getDay()]}</small>`:''}</th>`}).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:b-a+1},(_,t)=>{const d=a+t,q=val(x,d-1);return `<td class="${wk(d)}${d===today?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${q.chg?`<small>${rraw(q.old)}</small><b>${esc(q.v)}</b>`:rcell(q.v)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
     if(RV==='m')body=seg+mnav+leg+tbl(1,n,false);
     else if(RV==='w'){
       if(!RWI)RWI=monday(avail.indexOf(ymNow())>=0?dayNow():ym+'-01');
@@ -463,9 +476,9 @@ function renderRoster(u){
       const fc=days.map(x=>C(x.slice(0,7))).find(Boolean),names=fc?Object.keys(fc.rows):[],td=dayNow();
       const canP=avail.indexOf(addDays(st,-1).slice(0,7))>=0,canN=avail.indexOf(addDays(st,7).slice(0,7))>=0,anyOv=days.some(x=>{const c=C(x.slice(0,7));return c&&Object.keys(c.ov).length});
       const lab=x=>(+x.slice(5,7))+'/'+(+x.slice(8));
-      const th=days.map(x=>{const w=new Date(x+'T00:00:00Z').getUTCDay();return `<th class="${w===0||w===6?'we':''}${x===td?' td':''}" data-ymd="${x}">${+x.slice(8)===1?lab(x):+x.slice(8)}<br><small>${WD[w]}</small></th>`}).join('');
+      const th=days.map(x=>{const w=new Date(x+'T00:00:00Z').getUTCDay();return `<th class="${w===0||w===6?'we':''}${x===td?' td':''}" data-ymd="${x}"><i class="dn">${+x.slice(8)===1?lab(x):+x.slice(8)}</i><br><small>${WD[w]}</small></th>`}).join('');
       const trs=names.map(nm=>`<tr class="${nm===S.me.name?'me':''}"><td class="nm">${esc(nm)}</td>${days.map(x=>{const c=C(x.slice(0,7)),w=new Date(x+'T00:00:00Z').getUTCDay(),q=c&&c.rows[nm]?c.val(nm,+x.slice(8)-1):{v:''};return `<td class="${w===0||w===6?'we':''}${x===td?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${q.chg?`<small>${rraw(q.old)}</small><b>${esc(q.v)}</b>`:rcell(q.v)}</td>`}).join('')}</tr>`).join('');
-      body=seg+`<div class="rmn"><button type="button" data-rw="-1"${canP?'':' disabled'}>‹</button><span>${lab(days[0])} – ${lab(days[6])}</span><button type="button" data-rw="1"${canN?'':' disabled'}>›</button></div>`+(anyOv?'<div class="note" style="margin:0 0 8px"><i class="chgk"></i> 紅底＝已處理的調班／請假（小字是原本的班）</div>':'')+`<div class="scroll"><table class="rt rw"><thead><tr><th class="nm">姓名</th>${th}</tr></thead><tbody>${trs}</tbody></table></div>`;
+      body=seg+`<div class="rmn"><button type="button" data-rw="-1"${canP?'':' disabled'}>‹</button><span>${lab(days[0])} – ${lab(days[6])}</span><button type="button" data-rw="1"${canN?'':' disabled'}>›</button></div>`+''+`<div class="scroll"><table class="rt rw"><thead><tr><th class="nm">姓名</th>${th}</tr></thead><tbody>${trs}</tbody></table></div>`;
     }else{
       if(!RP||!rows[RP])RP=rows[S.me.name]?S.me.name:(shown[0]||'');
       const first=(new Date(y,m-1,1).getDay()+6)%7,cells=[];for(let k=0;k<first;k++)cells.push('<div class="mc e"></div>');
@@ -473,7 +486,7 @@ function renderRoster(u){
       body=seg+mnav+`<select id="rp" style="margin:0 0 10px">${shown.map(x=>`<option${x===RP?' selected':''}>${esc(x)}</option>`).join('')}</select>`+leg+`<div class="mcal">${['一','二','三','四','五','六','日'].map(x=>`<div class="mh">${x}</div>`).join('')}${cells.join('')}</div>`;
     }
   }
-  box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
+  box.dataset.sty=RSTY;box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
 }
 document.addEventListener('click',e=>{
   const rv=e.target.closest('[data-rv]');if(rv){RV=rv.dataset.rv;try{store.setItem('rv',RV)}catch(er){}renderRoster();return}
@@ -493,7 +506,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.28.2';
+const APPV='2026.10.28.3';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
