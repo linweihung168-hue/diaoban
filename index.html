@@ -514,7 +514,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.28.6';
+const APPV='2026.10.28.7';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1196,8 +1196,8 @@ function summary9(o,adm){
 function paper9(o){
   const d=md9(o.date),L=[];
   if(o.ty==='換班'){
-    L.push(d+'　'+o.a+'　'+o.sa+' → '+o.sb+(o.lvA?'，'+o.lvA+' 請假保留（'+o.lvA+' 左上、'+o.sb+' 右下，畫斜線）':''));
-    L.push(d+'　'+o.b+'　'+o.sb+' → '+o.sa+(o.lvB?'，'+o.lvB+' 請假保留（'+o.lvB+' 左上、'+o.sa+' 右下，畫斜線）':''))}
+    L.push(d+'　'+o.a+'　'+o.sa+' → '+o.sb+(o.lvA?'，'+o.lvA+' 請假保留':''));
+    L.push(d+'　'+o.b+'　'+o.sb+' → '+o.sa+(o.lvB?'，'+o.lvB+' 請假保留':''))}
   else if(o.ty==='請假'){
     if(o.kind==='DAY')L.push(d+'　'+o.a+'　寫 X');
     else if(o.kind==='AM'||o.kind==='PM'){L.push(d+'　'+o.a+'　加註 '+o.kind);if(o.b&&o.sb)L.push(d+'　'+o.b+'　'+o.sb+'（貼班）')}
