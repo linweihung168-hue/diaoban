@@ -79,6 +79,7 @@ details summary{cursor:pointer;font-weight:600}details[open]>summary{margin-bott
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) #rc94 .rt td.chg{background:#4a2321!important}}
 .rt.rw{table-layout:fixed;width:100%;min-width:0;font-size:13px}.rt.rw th,.rt.rw td{min-width:0;padding:6px 1px;overflow:hidden;white-space:nowrap}.rt.rw .nm{width:58px;font-size:12px;padding:6px 3px}.rt.rw td.lg{font-size:9px;white-space:normal;word-break:normal;line-height:1.1}.rt.rw td small{font-size:9px}.rt.rw thead th{cursor:pointer}.rt th small{font-weight:400;font-size:11px}
 .mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.mh{text-align:center;color:var(--mut);font-size:12px;font-weight:600;padding:2px 0}.mc{min-height:56px;border-radius:10px;background:var(--bg);padding:3px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;line-height:1.15}.mc.e{background:none}.mc i{font-style:normal;font-size:11px;color:var(--mut)}.mc b{font-size:15px;margin-top:2px}.mc small{font-size:10px;color:#a0a0a0;text-decoration:line-through}.mc.we{background:var(--we)}.mc.td{outline:2px solid var(--ac)}.mc.chg{background:#fde8e6;color:#b3261e}
+.lvtg{color:var(--ac);font-weight:600;cursor:pointer;text-decoration:underline}
 .rt thead th{color:var(--mut);font-weight:600}
 .shd{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}.shd b{font-size:17px;flex:1;text-align:center;white-space:nowrap}.shd button{background:none;border:0;color:var(--ac);font-size:17px;padding:6px 0;min-width:64px;text-align:left}.shd span{min-width:64px}
 .sgl{font-size:13px;color:var(--mut);margin:18px 14px 6px}.sgrp{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
@@ -440,13 +441,18 @@ const RSM={};
 const ICON_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4"/><path d="M5.5 22v-4h4"/></svg>';
 const ICON_C='<svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 function rosterSrc(u){return {map:S.roster94||(S.cfg90&&S.cfg90.roster)||{},names:[]}}
-function ovMap(ym,n){const out={},R=((S.roster94||(S.cfg90&&S.cfg90.roster)||{})[ym])||{};
-  const put=(nm,dd,v,ov0)=>{if(!R[nm])return;const k=+dd.slice(8)-1;if(k<0||k>=n)return;const o=(out[nm]=out[nm]||{});o[k]=o[k]?{old:o[k].old,v}:{old:ov0||R[nm][k],v}};
+function ovMap(ym,n){const R=((S.roster94||(S.cfg90&&S.cfg90.roster)||{})[ym])||{},st={},out={};
+  const cell=(nm,dd,old)=>{if(!R[nm])return null;const k=+dd.slice(8)-1;if(k<0||k>=n)return null;const o=(st[nm]=st[nm]||{});const raw0=String(R[nm][k]||'').replace(/^~/,'');return o[k]=o[k]||{old:(raw0==='AM'||raw0==='PM')?raw0:(old||R[nm][k]),base:null,leave:'',raw:String(R[nm][k]||'').replace(/^~/,'')}};
   (S.ov90||[]).forEach(e=>{if(String(e.d).slice(0,7)!==ym)return;
-    if(e.ty==='換班'){put(e.a,e.d,e.sb,e.sa);put(e.b,e.d,e.sa,e.sb)}   // 小字＝登記時填的「原本的班」（Word 如果已經改過，也不會顯示成已異動後的班）
-    else if(e.ty==='請假')put(e.a,e.d,e.k==='DAY'?'X':e.k,e.sa)});
-  const nz=c=>String(c||'').replace(/^~/,'').trim();
-  Object.keys(out).forEach(nm=>{Object.keys(out[nm]).forEach(k=>{if(nz(out[nm][k].v)===nz(out[nm][k].old))delete out[nm][k]});if(!Object.keys(out[nm]).length)delete out[nm]});   // 換班前後一樣（例如兩邊都是 N）＝沒有實際異動，不標紅
+    if(e.ty==='換班'){const a=cell(e.a,e.d,e.sa),b=cell(e.b,e.d,e.sb);if(a)a.base=e.sb;if(b)b.base=e.sa}
+    else if(e.ty==='請假'){const a=cell(e.a,e.d,e.sa);if(a){a.leave=e.k==='DAY'?'X':e.k;if(a.base===null)a.base=e.sa}}});
+  const blank=c=>{c=String(c||'').trim();return c===''||c==='N'||c==='M1'};
+  Object.keys(st).forEach(nm=>Object.keys(st[nm]).forEach(k=>{const c=st[nm][k];let v=c.base===null?c.old:c.base;
+    let lv=c.leave;if(!lv&&(c.raw==='AM'||c.raw==='PM')&&c.base!==null&&v!=='AM'&&v!=='PM')lv=c.raw;   // 班表上本來就有半天請假，換班只換班別，請假留著
+    if(lv==='X')v='X';
+    else if(lv==='AM'||lv==='PM'){const b=(v===lv||v==='AM'||v==='PM')?'':v;v=blank(b)?lv:(lv==='AM'?'AM/'+b:b+'/PM')}
+    const nz=x=>String(x||'').replace(/^~/,'').trim();
+    if(nz(v)!==nz(c.old)){(out[nm]=out[nm]||{})[k]={old:c.old,v}}}));
   return out}
 let RSTY='b';let RV=(()=>{try{return store.getItem('rv')||'w'}catch(e){return 'w'}})(),RWI=null,RP='';
 const WD=['日','一','二','三','四','五','六'];
@@ -508,7 +514,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.28.5';
+const APPV='2026.10.28.6';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1112,7 +1118,8 @@ function on9(p,reset){
 }
 function read9(p){
   const ty=$(p+'ty').value,s=ST9[p],o={ty:ty,date:$(p+'d').value,note:$(p+'nt').value.trim(),a:'',sa:'',b:'',sb:'',kind:'',t1:'',t2:''};
-  if(ty==='換班'){o.a=$(p+'swa').value;o.sa=$(p+'sws').value.trim().toUpperCase();o.b=$(p+'swb').value;o.sb=$(p+'swbs').value.trim().toUpperCase()}
+  if(ty==='換班'){o.a=$(p+'swa').value;o.sa=$(p+'sws').value.trim().toUpperCase();o.b=$(p+'swb').value;o.sb=$(p+'swbs').value.trim().toUpperCase();
+    const ea=$(p+'sws'),eb=$(p+'swbs');o.lvA=(ea.dataset.lv==='1'&&ea.dataset.mv!=='1')?ea.dataset.amc:'';o.lvB=(eb.dataset.lv==='1'&&eb.dataset.mv!=='1')?eb.dataset.amc:''}
   else{o.a=$(p+'pa').value;
     if(ty==='請假'||ty==='加班')o.sa=$(p+'psh').value.trim().toUpperCase();
     if(ty==='請假'){o.kind=s.lk;if(s.lk==='LV'){o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}
@@ -1152,7 +1159,7 @@ function chk9(o){
 }
 function calc9(p){
   const o=read9(p),el=$(p+'c');let h='';
-  if(o.ty==='換班'){h=(o.a&&o.sa&&o.b&&o.sb&&o.a!==o.b&&o.sa!==o.sb)?'調班後：'+esc(o.a)+' → <b>'+esc(o.sb)+'</b>　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>':'<span style="color:var(--mut)">選好新上班者原班別後，這裡會顯示調班後的結果</span>'}
+  if(o.ty==='換班'){h=(o.a&&o.sa&&o.b&&o.sb&&o.a!==o.b&&o.sa!==o.sb)?'調班後：'+esc(o.a)+' → <b>'+esc(o.sb)+'</b>'+(o.lvA?'（保留 '+o.lvA+'）':'')+'　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>'+(o.lvB?'（保留 '+o.lvB+'）':''):'<span style="color:var(--mut)">選好新上班者原班別後，這裡會顯示調班後的結果</span>'}
   else if(o.ty==='加班'&&V(o.t1)&&V(o.t2)&&min9(o)>0)h='加班：<b>'+hm(min9(o))+'</b>';
   else if(o.ty==='請假'&&o.kind==='LV'&&V(o.t1)&&V(o.t2)&&tm(o.t2)>tm(o.t1))h='請假 <b>'+hm(tm(o.t2)-tm(o.t1))+'</b>';
   else if((o.ty==='加班'||(o.ty==='請假'&&o.kind==='LV'))&&((o.t1&&!V(o.t1))||(o.t2&&!V(o.t2))))h='<span class="warn">請用 24 小時制填入時間（例 17:30）</span>';
@@ -1173,7 +1180,7 @@ function summary9(o,adm){
   if(o.ty==='換班'){
     L.push('原上班者：<b>'+esc(o.a)+'</b>　班別：<b>'+esc(o.sa)+'</b>');
     L.push('新上班者：<b>'+esc(o.b)+'</b>　原班別：<b>'+esc(o.sb)+'</b>');
-    L.push('結果：'+esc(o.a)+' → <b>'+esc(o.sb)+'</b>　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>');
+    L.push('結果：'+esc(o.a)+' → <b>'+esc(o.sb)+'</b>'+(o.lvA?'（保留 '+o.lvA+'）':'')+'　'+esc(o.b)+' → <b>'+esc(o.sa)+'</b>'+(o.lvB?'（保留 '+o.lvB+'）':''));
   }else if(o.ty==='請假'){
     L.push('人員：<b>'+esc(o.a)+'</b>　班別：<b>'+esc(o.sa)+'</b>');
     L.push(o.kind==='LV'?'小時假：<b>'+o.t1+'–'+o.t2+'</b>（'+hm(tm(o.t2)-tm(o.t1))+'）':'請假：<b>'+(KIND9[o.kind]||o.kind)+'</b>');
@@ -1188,7 +1195,9 @@ function summary9(o,adm){
 /* 登記成功後，告訴管理者「紙本大班表要怎麼改」 */
 function paper9(o){
   const d=md9(o.date),L=[];
-  if(o.ty==='換班'){L.push(d+'　'+o.a+'　'+o.sa+' → '+o.sb);L.push(d+'　'+o.b+'　'+o.sb+' → '+o.sa)}
+  if(o.ty==='換班'){
+    L.push(d+'　'+o.a+'　'+o.sa+' → '+o.sb+(o.lvA?'，'+o.lvA+' 請假保留（'+o.lvA+' 左上、'+o.sb+' 右下，畫斜線）':''));
+    L.push(d+'　'+o.b+'　'+o.sb+' → '+o.sa+(o.lvB?'，'+o.lvB+' 請假保留（'+o.lvB+' 左上、'+o.sa+' 右下，畫斜線）':''))}
   else if(o.ty==='請假'){
     if(o.kind==='DAY')L.push(d+'　'+o.a+'　寫 X');
     else if(o.kind==='AM'||o.kind==='PM'){L.push(d+'　'+o.a+'　加註 '+o.kind);if(o.b&&o.sb)L.push(d+'　'+o.b+'　'+o.sb+'（貼班）')}
@@ -1393,10 +1402,19 @@ function rosterCode9(date,name){
 function autoSh9(p,srcId,shId,noR){
   const el=$(p+shId),name=$(p+srcId).value;let c=rosterCode9($(p+'d').value,name);if(c==='B1230')c='B';
   if(el.value&&el.dataset.auto!=='1')return;               // 使用者自己打的，不覆蓋
+  const key=name+'|'+$(p+'d').value;if(el.dataset.mvk!==key){el.dataset.mvk=key;el.dataset.mv=''}   // 換人、換日期：回到預設（請假留在原人身上）
+  if((c==='AM'||c==='PM')&&!noR){   // 班表上整格只有 AM／PM＝基本班別空白＋半天請假：預設只換班別，請假留在原人身上；也可改成「一起換」
+    const wd=new Date($(p+'d').value+'T00:00:00').getDay(),base=(wd===0||wd===6)?'R':'N',mv=el.dataset.mv==='1';
+    el.value=mv?c:base;el.dataset.auto='1';el.dataset.lv='1';el.dataset.amc=c;el.classList.remove('bad');
+    el.nextElementSibling.innerHTML=mv?(c+' 一起換　<span class="lvtg" data-for="'+el.id+'">改成留在原人身上</span>'):('當天有 '+c+' 請假，留在原人身上　<span class="lvtg" data-for="'+el.id+'">改成一起換</span>');
+    el.nextElementSibling.className='ferr hint9';return}
+  el.dataset.lv='';el.dataset.amc='';
   const ok=c&&okS9(c,noR);
   el.value=ok?c:'';el.dataset.auto=ok?'1':'';el.classList.remove('bad');
   el.nextElementSibling.textContent=ok?'依班表帶入':'';el.nextElementSibling.className=ok?'ferr hint9':'ferr';
 }
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.lvtg');if(!t)return;
+  const el=$(t.dataset.for);if(!el)return;el.dataset.mv=el.dataset.mv==='1'?'':'1';el.dataset.auto='1';autoFill9('f9')});
 function autoFill9(p){
   if(p!=='f9')return;const ty=$(p+'ty').value;
   if(ty==='調班'||ty==='換班'){autoSh9(p,'swa','sws',false);autoSh9(p,'swb','swbs',false)}
