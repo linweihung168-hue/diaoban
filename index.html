@@ -384,8 +384,14 @@ const tyFmt=d=>{const t=new Date(d+'T00:00:00Z');return d.slice(5,7)+'/'+d.slice
 const tyHr=h=>String(+h);
 function tyStaff(u){return (u==='D2690'?(S.cfg90&&S.cfg90.staff):(S.cfg&&S.cfg.staff))||[]}
 function tyCode(date,name){const R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},a=(R[date.slice(0,7)]||{})[name];return a?String(a[+date.slice(8,10)-1]||'').replace(/^~/,''):''}
-function tyDef(c){c=String(c||'').trim();if(!c||/^(R|r|--|\?:--|HS|X.*)$/.test(c)||/[^\x00-\x7f]/.test(c))return 0;if(c==='AM'||c==='PM')return 4;if(c==='M1')return 7.5;return 8}
-function tyAuto(date,u){const o=[];tyStaff(u).forEach(n=>{const c=tyCode(date,n),h=tyDef(c);if(h)o.push({n,c,h})});return o}
+const TYH={N:8,N2:7.5,M1:7.5,'N+':4,B:6.5,B1230:6.5,B4:7.5,AM:3.5,PM:4,E:8,E7:8.5,F:8,F2:8,FS:8,FA:8,G:8,A1:8,A3:8,S1:8,S2:8,S8:10,S9:6,S7:10};
+function tyDef(c,date){c=String(c||'').trim();if(!c||c==='P'||c==='P2')return 0;let h=TYH[c];
+  if(h==null){const m=c.match(/^(\d{1,2})-(\d{1,2})$/);if(m&&+m[2]>+m[1])h=+m[2]-+m[1];else h=0}
+  const wd=date?new Date(date+'T00:00:00Z').getUTCDay():1;if(wd===6&&c==='N')h=4;return h}
+function tyAuto(date,u){const o=[],pd=addDays(date,-1);tyStaff(u).forEach(n=>{const c=tyCode(date,n),pc=tyCode(pd,n);let h=tyDef(c,date),lb=c;
+  if(c==='P'||c==='P2'){h+=2}
+  if(pc==='P'||pc==='P2'){h+=8;lb=(c||'—')+'＋前晚P'}
+  if(h)o.push({n,c:lb,h})});return o}
 function renderTy(){
   const el=$('cty');if(!el)return;if(S.tab!=='rec'){el.style.display='none';return}
   el.style.display='';const adm=isAdmin(),u=S.unit;
@@ -412,7 +418,7 @@ async function tyEdit(ev,pre){
   const rowH=(n,c,hv)=>'<div class="tyrow" data-n="'+esc(n)+'"><span style="flex:1">'+esc(n)+(c?' <span class="mut">'+esc(c)+'</span>':'')+'</span><input type="number" inputmode="decimal" step="0.5" min="0" max="24" value="'+(hv||'')+'" style="width:70px;text-align:right;margin:0"> <span class="mut">H</span></div>';
   const date=ev?ev.d:(pre||twNow().slice(0,10));
   const init=ev?Object.keys(ev.h).map(n=>({n,c:tyCode(date,n),h:ev.h[n]})):tyAuto(date,u);
-  const body='<label class="mut" style="font-size:13px">日期</label><input type="date" id="tyd" value="'+date+'" style="margin:2px 0 8px"><div class="mut" style="font-size:12px;margin-bottom:6px" id="tyhint">'+(ev?'':'依當天大班表帶入，可修改；沒上班的人不會列出')+'</div><div id="tyrows">'+init.map(x=>rowH(x.n,x.c,x.h)).join('')+'</div><select id="typlus" style="margin-top:8px"><option value="">＋ 加人…</option>'+staff.map(n=>'<option>'+esc(n)+'</option>').join('')+'</select>';
+  const body='<label class="mut" style="font-size:13px">日期</label><input type="date" id="tyd" value="'+date+'" style="margin:2px 0 8px"><div class="mut" style="font-size:12px;margin-bottom:6px" id="tyhint">'+(ev?'':'依大班表帶入（大夜 P 只算當天 24 小時內），可修改；沒上班的人不會列出')+'</div><div id="tyrows">'+init.map(x=>rowH(x.n,x.c,x.h)).join('')+'</div><select id="typlus" style="margin-top:8px"><option value="">＋ 加人…</option>'+staff.map(n=>'<option>'+esc(n)+'</option>').join('')+'</select>';
   const btns=[{t:'取消',v:'c'}];if(ev)btns.push({t:'刪除整次',v:'d',go:true,danger:true});btns.push({t:'儲存',v:'s',go:true});
   const pr=modal(ev?'修改颱風假':'新增颱風假',body,btns);$('gbtn').style.gridTemplateColumns=btns.length===3?'1fr 1fr 1fr':'1fr 1fr';
   const rows=()=>$('tyrows');
@@ -578,7 +584,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.29.1';
+const APPV='2026.10.29.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
