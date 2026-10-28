@@ -441,10 +441,12 @@ const ICON_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const ICON_C='<svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 function rosterSrc(u){return {map:S.roster94||(S.cfg90&&S.cfg90.roster)||{},names:[]}}
 function ovMap(ym,n){const out={},R=((S.roster94||(S.cfg90&&S.cfg90.roster)||{})[ym])||{};
-  const put=(nm,dd,v)=>{if(!R[nm])return;const k=+dd.slice(8)-1;if(k<0||k>=n)return;const o=(out[nm]=out[nm]||{});o[k]=o[k]?{old:o[k].old,v}:{old:R[nm][k],v}};
+  const put=(nm,dd,v,ov0)=>{if(!R[nm])return;const k=+dd.slice(8)-1;if(k<0||k>=n)return;const o=(out[nm]=out[nm]||{});o[k]=o[k]?{old:o[k].old,v}:{old:ov0||R[nm][k],v}};
   (S.ov90||[]).forEach(e=>{if(String(e.d).slice(0,7)!==ym)return;
-    if(e.ty==='換班'){put(e.a,e.d,e.sb);put(e.b,e.d,e.sa)}
-    else if(e.ty==='請假')put(e.a,e.d,e.k==='DAY'?'X':e.k)});
+    if(e.ty==='換班'){put(e.a,e.d,e.sb,e.sa);put(e.b,e.d,e.sa,e.sb)}   // 小字＝登記時填的「原本的班」（Word 如果已經改過，也不會顯示成已異動後的班）
+    else if(e.ty==='請假')put(e.a,e.d,e.k==='DAY'?'X':e.k,e.sa)});
+  const nz=c=>String(c||'').replace(/^~/,'').trim();
+  Object.keys(out).forEach(nm=>{Object.keys(out[nm]).forEach(k=>{if(nz(out[nm][k].v)===nz(out[nm][k].old))delete out[nm][k]});if(!Object.keys(out[nm]).length)delete out[nm]});   // 換班前後一樣（例如兩邊都是 N）＝沒有實際異動，不標紅
   return out}
 let RSTY='b';let RV=(()=>{try{return store.getItem('rv')||'w'}catch(e){return 'w'}})(),RWI=null,RP='';
 const WD=['日','一','二','三','四','五','六'];
@@ -506,7 +508,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.28.3';
+const APPV='2026.10.28.5';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
