@@ -584,7 +584,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.29.2';
+const APPV='2026.10.29.4';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1016,7 +1016,8 @@ $('xgo').onclick=async()=>{
     const tyOf=t=>TY[t]||t;
     const sk=v=>{const m=/^(\S+) (\d\d:\d\d)$/.exec(String(v||''));return m?[m[1],m[2]]:[String(v||''),'']};
     const timeOf=(ty,sh,a,b)=>{const s=shiftOf(sh);return ty==='OT'?(s&&s.type==='N+'?'至 '+b:a+'–'+b):ty==='LV'?a+'–'+b:ty==='AM'?'14:00 上班':ty==='PM'?'12:30 下班':ty==='DAY'?'整天':(a?a+'–'+b:'')};
-    const days=[['日期','姓名','班別','總工時(h)','多出分鐘','計入工時(h)','加班分鐘','請假','班別代號','小夜h','備註']].concat(r.days.filter(d=>inM(d.date)).map(d=>[d.date,d.name,d.shift,d.total==null?'':d.total,d.extra,d.counted,d.t,d.lv?hm(d.lv):'',d.bcode||'',d.nightH||'',[d.ty,d.notes.length?'需人工核對：'+d.notes.join('；'):'',d.warn].filter(Boolean).join('　')]));
+    const endT={};r.entries.forEach(e=>{if(e[5]==='OT'&&e[8]){const k=e[4]+'|'+e[3];if(!endT[k]||e[8]>endT[k])endT[k]=e[8]}});
+    const days=[['日期','姓名','班別','下班時間','總工時(h)','多出分鐘','計入工時(h)','加班分鐘','請假','班別代號','小夜h','備註']].concat(r.days.filter(d=>inM(d.date)).map(d=>[d.date,d.name,d.shift,endT[d.date+'|'+d.name]||'',d.total==null?'':d.total,d.extra,d.counted,d.t,d.lv?hm(d.lv):'',d.bcode||'',d.nightH||'',[d.ty,d.notes.length?'需人工核對：'+d.notes.join('；'):'',d.warn].filter(Boolean).join('　')]));
     const ents=[['日期','對象','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註','代填者','已修改','登記人','登記時間']].concat(r.entries.filter(e=>inM(e[4])).sort((a,b)=>a[4]<b[4]?-1:a[4]>b[4]?1:(a[1]<b[1]?-1:1)).map(e=>[e[4],e[3],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11],e[12],e[13]==='Y'?'是':'',e[2],e[1]]));
     const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut]));
     const del=[['刪除時間','刪除者','對象','日期','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註']].concat(r.deleted.filter(e=>inM(e[4])).map(e=>[e[14],e[15],e[3],e[4],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11]]));
@@ -1026,7 +1027,7 @@ $('xgo').onclick=async()=>{
     [['每日彙總',days],['所有登記',ents],['月結',stat],['已刪除',del],['修改紀錄',edt],['登入紀錄',lgn]].forEach(([n,rows])=>{
       const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=rows[0].map((_,i)=>({wch:Math.min(40,Math.max(8,...rows.slice(0,60).map(x=>String(x[i]==null?'':x[i]).length*1.6)))}));
       XLSX.utils.book_append_sheet(wb,ws,n)});
-    XLSX.writeFile(wb,'調班表_'+(all?'全部':ym)+'.xlsx');
+    XLSX.writeFile(wb,'D2694調班表_'+(all?'全部':ym)+'.xlsx');
     toast('已下載');
   }catch(e){msg(e.message)}
   btn.disabled=false;btn.textContent='下載 Excel';
