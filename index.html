@@ -588,7 +588,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.29.6';
+const APPV='2026.10.29.7';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -912,8 +912,8 @@ function mergeKept(list,kd){const pl=(list||[]).slice();Object.keys(kd).forEach(
   return pl.sort((a,b)=>(String(a.date)+String(a.at||''))<(String(b.date)+String(b.at||''))?-1:1)}
 function pendRow94(e){
   const ex=[e.shift&&e.shift!=='—'?dn(e.shift):'',e.doc?e.doc+(e.k?' '+e.k+(e.kt?' '+e.kt:''):''):'',e.note?'備註：'+e.note:'',e.proxy?'由'+e.proxy+'代填':''].filter(Boolean);
-  const dn=!!e._d;
-  return swWrap(`<div class="row2 pc${dn?' done':''}"><button type="button" class="ck" aria-label="${dn?'取消已處理':'已處理'}" data-act="${dn?'undone':'done'}" data-id="${esc(e.id)}">${CKS}</button><div class="mid"><b>${esc(md9(e.date))}　${esc(e.name)}　${TY[e.ty]}</b>${whenOf(e)?'　'+esc(whenOf(e)):''}${ex.length?'<br><span style="color:var(--mut)">'+ex.map(esc).join('　')+'</span>':''}</div>${dn?'<span class="pill">已處理</span>':''}</div>`,actB('act','edit',e.id,'編輯','a-e')+actB('act','del',e.id,'刪除','a-d'));
+  const dd=!!e._d;
+  return swWrap(`<div class="row2 pc${dd?' done':''}"><button type="button" class="ck" aria-label="${dd?'取消已處理':'已處理'}" data-act="${dd?'undone':'done'}" data-id="${esc(e.id)}">${CKS}</button><div class="mid"><b>${esc(md9(e.date))}　${esc(e.name)}　${TY[e.ty]}</b>${whenOf(e)?'　'+esc(whenOf(e)):''}${ex.length?'<br><span style="color:var(--mut)">'+ex.map(esc).join('　')+'</span>':''}</div>${dd?'<span class="pill">已處理</span>':''}</div>`,actB('act','edit',e.id,'編輯','a-e')+actB('act','del',e.id,'刪除','a-d'));
 }
 const L94H='<div class="l9h"><span>日期</span><span>人員</span><span>類型</span><span>內容</span><span></span></div>';
 function entryRow94(e,adm){
