@@ -588,7 +588,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.29.5';
+const APPV='2026.10.29.6';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -601,7 +601,7 @@ function applySys(r){S.pwList=(r&&r.pwList)||[];S.notices=(r&&r.notices)||[];S.m
   try{localStorage.setItem('diaoban_rl',twNow())}catch(e){}
   renderBell();renderBanner();renderSys()}
 function renderBell(){
-  const rd=readSet(),n=(S.notices||[]).filter(x=>rd.indexOf(x.id)<0).length+(S.newV?1:0),b=$('bdg');
+  const rd=readSet(),n=(S.notices||[]).filter(x=>!isRoN(x)&&rd.indexOf(x.id)<0).length+(S.newV?1:0),b=$('bdg');   // 「○月班表已更新」系統公告不計入紅點，只列在鈴鐺裡
   b.textContent=n>9?'9+':String(n);b.style.display=n>0?'flex':'none';
   $('bell').setAttribute('aria-label',n>0?'通知（'+n+' 則未讀）':'通知');
 }
