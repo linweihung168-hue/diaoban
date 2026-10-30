@@ -588,7 +588,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.29.7';
+const APPV='2026.10.30.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1181,10 +1181,10 @@ function on9(p,reset){
   if(s.lk==='AM'&&cover)s.lk='';
   $(p+'lk').querySelectorAll('button').forEach(b=>{b.disabled=(b.dataset.k==='AM'&&cover);b.classList.toggle('on',s.lk===b.dataset.k)});
   $(p+'ok').querySelectorAll('button').forEach(b=>b.classList.toggle('on',s.ok===b.dataset.k));
-  const lv=ty==='請假'&&s.lk==='LV',ot=ty==='加班',hol=ot&&$(p+'psh').value.trim().toUpperCase()==='R';
-  $(p+'xr').style.display=(lv||ot)?'':'none';
-  $(p+'xl1').textContent=lv?'請假開始':hol?'開始時間':(s.ok==='提早上班'?'原上班時間':'原下班時間');
-  $(p+'xl2').textContent=lv?'請假結束':hol?'結束時間':(s.ok==='提早上班'?'實際上班時間':'實際下班時間');
+  const lv=ty==='請假'&&s.lk==='LV',ot=ty==='加班',oth=ty==='其他',hol=ot&&$(p+'psh').value.trim().toUpperCase()==='R';
+  $(p+'xr').style.display=(lv||ot||oth)?'':'none';
+  $(p+'xl1').textContent=oth?'開始時間（選填）':lv?'請假開始':hol?'開始時間':(s.ok==='提早上班'?'原上班時間':'原下班時間');
+  $(p+'xl2').textContent=oth?'結束時間（選填）':lv?'請假結束':hol?'結束時間':(s.ok==='提早上班'?'實際上班時間':'實際下班時間');
   $(p+'cvW').style.display=(ty==='請假'&&s.lk==='PM'&&cover)?'':'none';
   $(p+'nl').textContent=(ty==='其他')?'備註（必填）':hol?'事由（必填）':'備註（選填）';
   $(p+'d').max=ty==='加班'?dayNow():'';
@@ -1199,6 +1199,7 @@ function read9(p){
     if(ty==='請假'||ty==='加班')o.sa=$(p+'psh').value.trim().toUpperCase();
     if(ty==='請假'){o.kind=s.lk;if(s.lk==='LV'){o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}
       const sh=shift9(o.sa)||{};if(s.lk==='PM'&&sh.cover){o.b=$(p+'cv').value;o.sb=sh.cover}}
+    if(ty==='其他'){o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}
     if(ty==='加班'){o.kind=o.sa==='R'?'休假日加班':(s.ok==='休假日加班'?'延後下班':s.ok);o.t1=$(p+'x1').value.trim();o.t2=$(p+'x2').value.trim()}}
   return o;
 }
@@ -1215,7 +1216,7 @@ function chk9(o){
     if(o.sa===o.sb)return '兩人的班別相同，不需要調班';
     return '';
   }
-  if(o.ty==='其他')return o.note?'':'請先填寫：備註';
+  if(o.ty==='其他'){if(!o.note)return '請先填寫：備註';if(o.t1||o.t2){if(!o.t1||!o.t2)return '時間請填開始和結束，或都不填';if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(o.t1)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(o.t2))return '時間請用 24 小時制，例如 09:00';if(tm(o.t2)<=tm(o.t1))return '結束時間要晚於開始時間'}return ''}
   if(!o.a)miss.push('人員');if(!o.sa)miss.push('班別');
   if(o.ty==='請假'&&!o.kind)miss.push('請假種類');
   if(miss.length)return '請先填寫：'+miss.join('、');
@@ -1301,7 +1302,7 @@ function desc9(e){
   if(e.ty==='換班')return{h:esc(e.a)+' ⇄ '+esc(e.b),r:[esc(e.a)+'：'+esc(e.sa)+' → '+esc(e.sb),esc(e.b)+'：'+esc(e.sb)+' → '+esc(e.sa)]};
   if(e.ty==='請假')return{h:esc(e.a)+'　'+esc(e.sa)+'　'+KIND9[e.kind]+(e.kind==='LV'?' '+esc(e.t1)+'–'+esc(e.t2)+'（'+hm(tm(e.t2)-tm(e.t1))+'）':''),r:e.b?['貼班：'+esc(e.b)+'　'+esc(e.sb)]:[]};
   if(e.ty==='加班')return{h:esc(e.a)+'　'+esc(e.sa)+'　'+esc(e.kind)+' '+esc(e.t1)+'→'+esc(e.t2)+'（'+hm(min9(e))+'）',r:[]};
-  return{h:esc(e.a||''),r:[]};
+  return{h:esc(e.a||'')+(e.t1?'　'+esc(e.t1)+'–'+esc(e.t2)+'（'+hm(tm(e.t2)-tm(e.t1))+'）':''),r:[]};
 }
 /* 小時假：Word 要標的當天上班時數（平日日班才自動算：總時數 8h 扣請假；小夜、假日、其他班別需人工） */
 const DAY8_9=['N','F','F2','FA','FS','E','G'];
@@ -1319,7 +1320,7 @@ function c4_9(e){
   if(e.ty==='換班')return esc(e.b)+' <small>'+esc(e.sb)+'</small>';
   if(e.ty==='請假')return '請假 '+KIND9[e.kind]+(e.kind==='LV'?' '+esc(e.t1)+'–'+esc(e.t2):'');
   if(e.ty==='加班')return '加班 '+(e.kind==='休假日加班'?'休假日':e.kind==='提早上班'?'提早':'延後')+' '+esc(e.t1)+'→'+esc(e.t2);
-  return esc(e.note||'其他');
+  return esc(e.note||'其他')+(e.t1?' <small>'+esc(e.t1)+'–'+esc(e.t2)+'</small>':'');
 }
 function card9(e,adm){
   const ed=e.edited?`<span class="warn">（已修改）</span><br>`:'';
@@ -1329,6 +1330,7 @@ function card9(e,adm){
   if(e.ty==='請假'&&e.b)R.push('貼班：'+esc(e.b)+'　'+esc(e.sb));
   if(e.ty==='加班')R.push('加班時間：'+hm(min9(e)));
   if(e.ty==='請假'&&e.kind==='LV'){R.push('請假時間：'+hm(tm(e.t2)-tm(e.t1)));const w=hw9(e,hwList9());if(w)R.push(w.t)}
+  if(e.ty==='其他'&&e.t1)R.push('時間：'+esc(e.t1)+'–'+esc(e.t2)+'（'+hm(tm(e.t2)-tm(e.t1))+'）');
   if(e.note)R.push('備註：'+esc(e.note));
   R.push('登記日期：'+esc(String(e.at||'').slice(0,10))+(adm?'　登記人：'+esc(e.by):''));
   const done=(e.doneAt&&!adm)?`<span class="note">已處理，不能再修改</span><br>`:'';
@@ -1384,7 +1386,7 @@ function renderBack90(){
     v.stats.slice().sort((p,q)=>by9(p.name,q.name)).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.lv?hm(s.lv):''}</td></tr>`).join('');
   const man9=[];(v.entries||[]).forEach(e=>{if(e.ty==='請假'&&e.kind==='LV'){const w=hw9(e,v.entries);if(w&&!w.auto)man9.push([e.date,e.a,'小時假 '+esc(e.t1)+'–'+esc(e.t2)+'：Word 標示時數請人工計算（'+esc(e.sa)+'）'])}
     if(e.ty==='請假'&&e.b)man9.push([e.date,e.b,'貼班：'+esc(e.a)+' 請 '+(KIND9[e.kind]||'')+'，班別 '+esc(e.sb)]);
-    if(e.ty==='其他')man9.push([e.date,e.a||'',esc(e.note||'其他')])});
+    if(e.ty==='其他')man9.push([e.date,e.a||'',esc(e.note||'其他')+(e.t1?'　'+esc(e.t1)+'–'+esc(e.t2):'')])});
   man9.sort((p,q)=>p[0]<q[0]?-1:p[0]>q[0]?1:0);
   $('bMan9').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(man9.map(m=>`<tr><td>${esc(m[0])}</td><td>${esc(m[1])}</td><td>${m[2]}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
   $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
