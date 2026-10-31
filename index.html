@@ -597,7 +597,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.31.1';
+const APPV='2026.10.31.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -899,7 +899,7 @@ function calc(){
   el.innerHTML=h;el.style.display=h?'':'none';
 }
 $('ty').onchange=()=>{S.lk=null;onForm(true);auto94()};$('s').onchange=()=>{$('s').dataset.manual='1';$('sh94').textContent='';onForm(true)};
-$('d').addEventListener('change',()=>auto94());
+$('d').addEventListener('change',()=>{$('s').dataset.manual='';auto94()});   // 換日期＝重新依班表帶入（手動選的班別只管原本那一天）
 $('lvk').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;S.lk=b.dataset.k;onForm(true)};
 ['a','b'].forEach(i=>$(i).oninput=function(){fmt(this);calc()});$('kt').oninput=function(){fmt(this)};$('k').oninput=function(){this.value=this.value.toUpperCase()};
 $('pbtns').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.target=b.dataset.p;$('s').dataset.manual='';loadFill()};
