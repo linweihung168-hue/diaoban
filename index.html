@@ -384,11 +384,20 @@ const tyFmt=d=>{const t=new Date(d+'T00:00:00Z');return d.slice(5,7)+'/'+d.slice
 const tyHr=h=>String(+h);
 function tyStaff(u){return (u==='D2690'?(S.cfg90&&S.cfg90.staff):(S.cfg&&S.cfg.staff))||[]}
 function tyCode(date,name){const R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},a=(R[date.slice(0,7)]||{})[name];return a?String(a[+date.slice(8,10)-1]||'').replace(/^~/,''):''}
+/* 個人班別時數異動：只對指定人員、從指定日期起生效（舊的紀錄、其他人都不受影響）。
+   wd＝星期（1一…6六）；key＝新班別名稱要包含的字（班別表裡新增的專屬班別）；h＝上班時數（颱風假、小時假用） */
+const P94=[{name:'陳淑女',from:'2026-11-01',rules:[
+  {code:'M1',wd:[1,4],key:['M1','11月起'],h:8},
+  {code:'B',wd:[1],key:['B','11月起','小夜'],h:7}]}];
+function p94(name,date,code){
+  if(!name||!date||!code)return null;const wd=new Date(date+'T00:00:00').getDay();
+  for(const p of P94)if(p.name===name&&date>=p.from){const r=p.rules.find(r=>r.code===code&&r.wd.includes(wd));if(r)return r}
+  return null}
 const TYH={N:8,N2:7.5,M1:7.5,'N+':4,B:6.5,B1230:6.5,B4:7.5,AM:3.5,PM:4,E:8,E7:8.5,F:8,F2:8,FS:8,FA:8,G:8,A1:8,A3:8,S1:8,S2:8,S8:10,S9:6,S7:10};
-function tyDef(c,date){c=String(c||'').trim();if(!c||c==='P'||c==='P2')return 0;let h=TYH[c];
+function tyDef(c,date,name){c=String(c||'').trim();if(!c||c==='P'||c==='P2')return 0;let h=TYH[c];
   if(h==null){const m=c.match(/^(\d{1,2})-(\d{1,2})$/);if(m&&+m[2]>+m[1])h=+m[2]-+m[1];else h=0}
-  const wd=date?new Date(date+'T00:00:00Z').getUTCDay():1;if(wd===6&&c==='N')h=4;return h}
-function tyAuto(date,u){const o=[],pd=addDays(date,-1);tyStaff(u).forEach(n=>{const c=tyCode(date,n),pc=tyCode(pd,n);let h=tyDef(c,date),lb=c;
+  const wd=date?new Date(date+'T00:00:00Z').getUTCDay():1;if(wd===6&&c==='N')h=4;const pr=p94(name,date,c);if(pr)h=pr.h;return h}
+function tyAuto(date,u){const o=[],pd=addDays(date,-1);tyStaff(u).forEach(n=>{const c=tyCode(date,n),pc=tyCode(pd,n);let h=tyDef(c,date,n),lb=c;
   if(c==='P'||c==='P2'){h+=2}
   if(pc==='P'||pc==='P2'){h+=8;lb=(c||'—')+'＋前晚P'}
   if(h)o.push({n,c:lb,h})});return o}
@@ -523,7 +532,7 @@ function ovMap(ym,n){const R=((S.roster94||(S.cfg90&&S.cfg90.roster)||{})[ym])||
     if(lv==='X')v='X';
     else if(lv==='AM'||lv==='PM'){const b=(v===lv||v==='AM'||v==='PM')?'':v;v=blank(b)?lv:(lv==='AM'?'AM/'+b:b+'/PM')}
     const nz=x=>String(x||'').replace(/^~/,'').trim();
-    let h=0;if(c.hrs>0&&!lv&&!/[\/]/.test(v)&&v!=='AM'&&v!=='PM'&&v!=='X'){const full=tyDef(nz(v)||'N',ym+'-'+String(+k+1).padStart(2,'0'));if(full>0)h=Math.max(0,Math.round((full-c.hrs)*100)/100)}
+    let h=0;if(c.hrs>0&&!lv&&!/[\/]/.test(v)&&v!=='AM'&&v!=='PM'&&v!=='X'){const full=tyDef(nz(v)||'N',ym+'-'+String(+k+1).padStart(2,'0'),nm);if(full>0)h=Math.max(0,Math.round((full-c.hrs)*100)/100)}
     if(nz(v)!==nz(c.old)||h){(out[nm]=out[nm]||{})[k]={old:c.old,v,h,only:nz(v)===nz(c.old)?1:0}}}));
   return out}
 let RSTY='b';let RV=(()=>{try{return store.getItem('rv')||'w'}catch(e){return 'w'}})(),RWI=null,RP='';
@@ -588,7 +597,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.30.2';
+const APPV='2026.10.31.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -797,6 +806,11 @@ $('sback').onclick=goBack;
 $('tabK').onclick=()=>switchTab('rec');$('tabP').onclick=()=>switchTab('fill');$('tabB').onclick=()=>switchTab('back');$('tabR').onclick=()=>switchTab('roster');
 
 /* ---- 填寫表單 ---- */
+/* 專屬班別（名稱含「11月起」）只有有個人異動的人才看得到，其他人的下拉選單不會出現 */
+function fillShifts(){
+  const nm=isAdmin()?S.target:(S.me&&S.me.name),has=P94.some(p=>p.name===nm),cur=$('s').value;
+  $('s').innerHTML='<option value="">請選擇</option>'+S.cfg.shifts.filter(s=>has||!/11月起/.test(s.name)).map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
+  if(cur&&[...$('s').options].some(o=>o.value===cur))$('s').value=cur}
 function typeSeg(id){const s=$(id);if(!s||s.dataset.seg)return;s.dataset.seg='1';const w=s.closest('div');w.classList.add('tyhid');
   const sg=document.createElement('div');sg.className='seg tyseg';sg.innerHTML=[].map.call(s.options,o=>'<button type="button" data-v="'+esc(o.value)+'">'+esc(o.text)+'</button>').join('');
   const host=s.closest('.row');host.parentNode.insertBefore(sg,host);
@@ -805,7 +819,7 @@ function typeSeg(id){const s=$(id);if(!s||s.dataset.seg)return;s.dataset.seg='1'
   s.addEventListener('change',sync);setInterval(sync,250);sync()}
 function phIos(){}
 function initForm(){
-  $('s').innerHTML='<option value="">請選擇</option>'+S.cfg.shifts.map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
+  fillShifts();
   $('doc').innerHTML='<option value="">請選擇</option>'+S.cfg.doctors.map(n=>`<option>${esc(n)}</option>`).join('');
   $('d').value=dayNow();$('ty').value='OT';S.lk=null;$('nt').value='';$('k').value='';$('kt').value='';onForm(true);typeSeg('ty');phIos();
 }
@@ -831,9 +845,10 @@ function onForm(reset){
   calc();
 }
 /* 中藥局：登記時依班表帶入班別（Word 寫法＋星期幾 → 班別選項） */
-function map94(code,date){
+function map94(code,date,name){
   if(!code||!date)return null;const wd=new Date(date+'T00:00:00').getDay();
-  const f=keys=>(S.cfg?S.cfg.shifts:[]).find(s=>keys.every(k=>dn(s.name).replace(/[（(）)\s]/g,'').indexOf(k)>=0));
+  const f=keys=>(S.cfg?S.cfg.shifts:[]).find(s=>{const n=dn(s.name).replace(/[（(）)\s]/g,'');return keys.every(k=>n.indexOf(k)>=0)&&(keys.indexOf('11月起')>=0||n.indexOf('11月起')<0)});   // 一般班別不會對到「11月起」的專屬班別
+  const pr=p94(name,date,code);if(pr){const o=f(pr.key);if(o)return o}   // 個人異動（例：陳淑女 11/1 起週一、週四）
   if(code==='M1')return wd===1||wd===3||wd===4?f(['M1','一三四']):(wd===2||wd===5?f(['M1','二五']):null);
   if(code==='N2')return (wd===2||wd===5)?f(['N2','二五']):null;
   if(code==='B')return (wd===1||wd===3)?f(['B','中','小夜']):null;
@@ -843,10 +858,11 @@ function map94(code,date){
 }
 function auto94(){
   const sel=$('ty').value;if(sel==='OTH'||$('s').dataset.manual==='1')return;
+  fillShifts();
   const name=isAdmin()?S.target:S.me.name,d=$('d').value;
   const a=S.roster94&&name?((S.roster94[d.slice(0,7)]||{})[name]||[]):[];
   const c0=String(a[+d.slice(8,10)-1]||'').replace(/^~/,'');
-  const o=(c0==='R'&&sel==='OT')?(S.cfg.shifts.find(s=>s.type==='休假日')||null):map94(c0,d);
+  const o=(c0==='R'&&sel==='OT')?(S.cfg.shifts.find(s=>s.type==='休假日')||null):map94(c0,d,name);
   if(o){$('s').value=o.name;$('s').dataset.auto='1';$('sh94').textContent='依班表帶入';onForm(true)}
   else{
     const c=String(a[+d.slice(8,10)-1]||'').replace(/^~/,'');
