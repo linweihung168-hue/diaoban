@@ -404,10 +404,10 @@ function tyAuto(date,u){const o=[],pd=addDays(date,-1);tyStaff(u).forEach(n=>{co
 function renderTy(){
   const el=$('cty');if(!el)return;if(S.tab!=='rec'){el.style.display='none';return}
   el.style.display='';const adm=isAdmin(),u=S.unit;
-  const L=(S.ty||[]).filter(e=>!adm||e.u===u).slice().sort((x,y)=>x.d<y.d?-1:1);
+  const L=(S.ty||[]).filter(e=>e.u===u).slice().sort((x,y)=>x.d<y.d?-1:1);
   if(!adm){
-    el.innerHTML='<h2 style="margin:0 0 8px">我的颱風假</h2>'+(L.length?L.slice().reverse().map(e=>'<div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--bd)"><span>'+tyFmt(e.d)+'</span><b style="color:var(--ac)">'+tyHr(e.h[S.me.name])+'H</b></div>').join(''):'<p class="mut" style="margin:0">目前沒有颱風假</p>');return}
-  const v=S.tyv||'p';let h='<h2 style="margin:0 0 8px">颱風假</h2>';
+    el.innerHTML=tyWrap('我的颱風假',(L.length?L.slice().reverse().map(e=>'<div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--bd)"><span>'+tyFmt(e.d)+'</span><b style="color:var(--ac)">'+tyHr(e.h[S.me.name])+'H</b></div>').join(''):'<p class="mut" style="margin:0">目前沒有颱風假</p>'));return}
+  const v=S.tyv||'p';let h='';
   if(L.length){
     h+='<div class="tyseg"><button type="button" data-v="p" class="'+(v==='p'?'on':'')+'">依人員</button><button type="button" data-v="d" class="'+(v==='d'?'on':'')+'">依日期</button></div>';
     if(v==='p'){
@@ -420,8 +420,10 @@ function renderTy(){
     }
   }else h+='<p class="mut" style="margin:0 0 4px">目前沒有颱風假</p>';
   h+='<button type="button" class="go" id="tyadd" style="margin:12px 0 0">＋ 新增颱風假</button>';
-  el.innerHTML=h;
+  el.innerHTML=tyWrap('颱風假',h);
 }
+function tyWrap(t,b){return '<details id="tyd0"'+(S.tyOpen===false?'':' open')+'><summary>'+t+'</summary>'+b+'</details>'}
+document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='tyd0')S.tyOpen=e.target.open},true);
 async function tyEdit(ev,pre){
   const u=ev?ev.u:S.unit,staff=tyStaff(u);
   const rowH=(n,c,hv)=>'<div class="tyrow" data-n="'+esc(n)+'"><span style="flex:1">'+esc(n)+(c?' <span class="mut">'+esc(c)+'</span>':'')+'</span><input type="number" inputmode="decimal" step="0.5" min="0" max="24" value="'+(hv||'')+'" style="width:70px;text-align:right;margin:0"> <span class="mut">H</span></div>';
@@ -597,7 +599,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.10.31.2';
+const APPV='2026.11.01.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
