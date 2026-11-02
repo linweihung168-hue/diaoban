@@ -129,7 +129,7 @@ button.x{background:transparent;color:var(--ac);font-weight:500}
 .chips button.on{background:var(--card);color:var(--fg);font-weight:600;border:0;box-shadow:0 2px 6px rgba(0,0,0,.14)}
 /* 頂部 */
 #bar{margin:2px 0 10px;gap:6px}
-#who{font-size:30px;font-weight:700;letter-spacing:-.5px}
+#who{font-size:22px;font-weight:700;letter-spacing:-.5px}
 .ib{width:38px;height:38px;border:0;background:var(--card);color:var(--ac);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 #out{font-size:15px;padding:6px 8px}
 .bdg{top:-3px;right:-3px;background:#ff3b30;border:2px solid var(--bg)}
@@ -298,6 +298,7 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 <div class="card"><details><summary>需人工核對</summary><div class="scroll" style="margin-top:8px"><table id="bMan"></table></div></details></div>
 <div class="card"><details id="dAll"><summary>所有登記</summary>
 <div class="row" style="margin-top:8px"><div><label>人員</label><select id="fp"></select></div><div><label>類型</label><select id="ft"><option value="">全部</option><option value="OT">加班</option><option value="AM">請假/AM</option><option value="PM">請假/PM</option><option value="LV">小時假</option><option value="DAY">請假/整天</option><option value="OTH">其他</option></select></div></div>
+<div class="row" style="margin-top:8px"><div><label>排序</label><select class="so"><option value="n">日期：新 → 舊</option><option value="o">日期：舊 → 新</option></select></div></div>
 <p class="note" id="fcnt" style="margin:8px 0"></p><div id="bList"></div></details></div>
 </section>
 
@@ -323,6 +324,7 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 <div class="card"><details><summary>需人工核對</summary><div class="scroll" style="margin-top:8px"><table id="bMan9"></table></div></details></div>
 <div class="card"><details id="dAll9"><summary>所有登記</summary>
 <div class="row" style="margin-top:8px"><div><label>人員</label><select id="fp9"></select></div><div><label>類型</label><select id="ft9"><option value="">全部</option><option value="換班">調班</option><option>請假</option><option>加班</option><option>其他</option></select></div></div>
+<div class="row" style="margin-top:8px"><div><label>排序</label><select class="so"><option value="n">日期：新 → 舊</option><option value="o">日期：舊 → 新</option></select></div></div>
 <p class="note" id="fcnt9" style="margin:8px 0"></p><div id="bList9"></div></details></div>
 </section>
 </div>
@@ -352,7 +354,8 @@ const touch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||navigat
 const store=(()=>{try{const s=touch?localStorage:sessionStorage;s.getItem('x');return s}catch(e){const m={};return{getItem:k=>m[k]||null,setItem:(k,v)=>{m[k]=v},removeItem:k=>{delete m[k]}}}})(), TK='diaoban_tok';
 const ymNow=()=>{const t=new Date(Date.now()+8*36e5).toISOString();return t.slice(0,7)};
 const dayNow=()=>new Date(Date.now()+8*36e5).toISOString().slice(0,10);
-let S={token:null,me:null,cfg:null,tab:'fill',target:'',month:ymNow(),lk:null,fv:null,bv:null,dp:'',lockAt:Date.now()};
+function soGet(){try{return store.getItem('diaoban_so')==='o'?'o':'n'}catch(e){return 'n'}}
+let S={so:soGet(),token:null,me:null,cfg:null,tab:'fill',target:'',month:ymNow(),lk:null,fv:null,bv:null,dp:'',lockAt:Date.now()};
 const V=x=>/^([01]\d|2[0-3]):[0-5]\d$/.test(x||'');
 const tm=x=>{const p=String(x).split(':');return +p[0]*60+ +p[1]};
 const half=m=>Math.floor(m/30)/2;
@@ -599,7 +602,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.01.1';
+const APPV='2026.11.02.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -955,9 +958,12 @@ function entryCard(e,adm){
   const bt=adm?`<div class="bt">${(e.doneAt?B('undone','取消已處理'):B('done','已處理'))+B('edit','編輯')+B('del','刪除')}</div>`:((e.mine&&!e.doneAt)?`<div class="bt">${B('edit','修改')+B('del','刪除')}</div>`:'');
   return `<details class="ec"><summary>${esc(md9(e.date))}　${adm?esc(e.name)+'　':''}${TY[e.ty]}${whenOf(e)?'　'+esc(whenOf(e)):''}${e.doneAt?'　<span class="ok">✓</span>':''}</summary>${e.shift!=='—'?esc(dn(e.shift))+'<br>':''}${e.doc?esc(e.doc)+(e.k?'　'+esc(e.k)+(e.kt?'　'+esc(e.kt):''):'')+'<br>':''}${e.note?'備註：'+esc(e.note)+'<br>':''}${mark}${ed}${dn1}${bt}</details>`;
 }
+function soCmp(k1,k2){return(x,y)=>{const c=x[k1]<y[k1]?-1:x[k1]>y[k1]?1:(x[k2]<y[k2]?-1:x[k2]>y[k2]?1:0);return S.so==='o'?c:-c}}
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.classList||!t.classList.contains('so'))return;S.so=t.value;try{store.setItem('diaoban_so',S.so)}catch(er){}document.querySelectorAll('select.so').forEach(x=>x.value=S.so);if(S.bv)renderBack();if(S.bv9)renderBack90()});
+document.querySelectorAll('select.so').forEach(x=>x.value=S.so);
 function daysTable(days,adm){
   let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th><th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>班別代號</th><th>小夜h</th>':''}<th>備註</th></tr>`;
-  days.slice().sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:0).forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
+  days.slice().sort(adm?soCmp('date','name'):(x,y)=>x.date<y.date?1:x.date>y.date?-1:0).forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
     h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(dn(d.shift))}</td><td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.bcode||'')+'</td><td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
   return h;
 }
@@ -1007,7 +1013,7 @@ function renderBack(){
   $('bMan').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(v.manual.map(m=>`<tr><td>${esc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
   $('bStat').innerHTML='<tr><th>姓名</th><th>上月未休分鐘</th><th>本月總加班分鐘</th><th>本月總加班分鐘（含上月）</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）</th><th>結轉下月</th></tr>'+
     v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.total+s.carryIn}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td></tr>`).join('');
-  const p=$('fp').value,ty=$('ft').value,list=v.entries.filter(e=>(!p||e.name===p)&&(!ty||e.ty===ty));
+  const p=$('fp').value,ty=$('ft').value,list=v.entries.filter(e=>(!p||e.name===p)&&(!ty||e.ty===ty)).sort(soCmp('date','at'));
   $('fcnt').textContent='共 '+list.length+' 筆';$('bList').innerHTML=(list.length?L94H:'')+list.map(e=>entryRow94(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
 }
 $('bStat').onchange=async e=>{const i=e.target.closest('input');if(!i)return;
@@ -1407,8 +1413,8 @@ function renderBack90(){
     if(e.ty==='其他')man9.push([e.date,e.a||'',esc(e.note||'其他')+(e.t1?'　'+esc(e.t1)+'–'+esc(e.t2):'')])});
   man9.sort((p,q)=>p[0]<q[0]?-1:p[0]>q[0]?1:0);
   $('bMan9').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(man9.map(m=>`<tr><td>${esc(m[0])}</td><td>${esc(m[1])}</td><td>${m[2]}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
-  $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
-  const p=$('fp9').value,ty=$('ft9').value,list=v.entries.filter(e=>(!p||e.a===p||e.b===p)&&(!ty||e.ty===ty));
+  $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort(soCmp('date','name')).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
+  const p=$('fp9').value,ty=$('ft9').value,list=v.entries.filter(e=>(!p||e.a===p||e.b===p)&&(!ty||e.ty===ty)).sort(soCmp('date','at'));
   $('fcnt9').textContent='共 '+list.length+' 筆';$('bList9').innerHTML=(list.length?L9H:'')+list.map(e=>card9(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
 }
 $('bStat9').onchange=async e=>{const i=e.target.closest('input');if(!i)return;
