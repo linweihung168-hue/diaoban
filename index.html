@@ -275,6 +275,9 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 #tabK{--ti:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 5h16v2.6H4zM4 10.7h16v2.6H4zM4 16.4h10v2.6H4z'/%3E%3C/svg%3E")}
 .sumline{border-radius:14px;box-shadow:none}
 
+/* 大班表：藥師與助理員之間加粗線（跟 Word 一樣） */
+#rc94 .rt tr.gs td{border-top:2px solid var(--fg)}
+
 </style></head><body><main>
 
 <section id="login" class="card" style="display:none"><h1>調班表</h1>
@@ -595,7 +598,7 @@ function renderRoster(u){
     const seg=`<div class="seg rvs">${[['w','週'],['m','月'],['p','我的']].map(a=>`<button type="button" data-rv="${a[0]}" class="${RV===a[0]?'on':''}">${a[1]}</button>`).join('')}</div>`;
     const leg='';
     const mnav=`<div class="rmn"><button type="button" data-rs="${u}" data-d="-1"${i<=0?' disabled':''}>‹</button><span>${y} / ${String(m).padStart(2,'0')}</span><button type="button" data-rs="${u}" data-d="1"${i>=avail.length-1?' disabled':''}>›</button></div>`;
-    const tbl=(a,b,wide)=>`<div class="scroll"><table class="rt${wide?' rw':''}"><thead><tr><th class="nm">姓名</th>${Array.from({length:b-a+1},(_,t)=>{const d=a+t;return `<th class="${wk(d)}${d===today?' td':''}" data-ymd="${ym}-${String(d).padStart(2,'0')}"><i class="dn">${d}</i>${wide?`<br><small>${WD[new Date(y,m-1,d).getDay()]}</small>`:''}</th>`}).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:b-a+1},(_,t)=>{const d=a+t,q=val(x,d-1);return `<td class="${wk(d)}${d===today?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${cellH(q)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
+    const tbl=(a,b,wide)=>`<div class="scroll"><table class="rt${wide?' rw':''}"><thead><tr><th class="nm">姓名</th>${Array.from({length:b-a+1},(_,t)=>{const d=a+t;return `<th class="${wk(d)}${d===today?' td':''}" data-ymd="${ym}-${String(d).padStart(2,'0')}"><i class="dn">${d}</i>${wide?`<br><small>${WD[new Date(y,m-1,d).getDay()]}</small>`:''}</th>`}).join('')}</tr></thead><tbody>${shown.map((x,xi)=>`<tr class="${x===S.me.name?'me':''}${xi>0&&shown[xi-1]==='詹柔婕'?' gs':''}"><td class="nm">${esc(x)}</td>${Array.from({length:b-a+1},(_,t)=>{const d=a+t,q=val(x,d-1);return `<td class="${wk(d)}${d===today?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${cellH(q)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
     if(RV==='m')body='<div class="rtop">'+seg+mnav+'</div>'+leg+tbl(1,n,false);
     else if(RV==='w'){
       if(!RWI)RWI=monday(avail.indexOf(ymNow())>=0?dayNow():ym+'-01');
@@ -604,7 +607,7 @@ function renderRoster(u){
       const canP=avail.indexOf(addDays(st,-1).slice(0,7))>=0,canN=avail.indexOf(addDays(st,7).slice(0,7))>=0,anyOv=days.some(x=>{const c=C(x.slice(0,7));return c&&Object.keys(c.ov).length});
       const lab=x=>(+x.slice(5,7))+'/'+(+x.slice(8));
       const th=days.map(x=>{const w=new Date(x+'T00:00:00Z').getUTCDay();return `<th class="${w===0||w===6?'we':''}${x===td?' td':''}" data-ymd="${x}"><i class="dn">${+x.slice(8)===1?lab(x):+x.slice(8)}</i><br><small>${WD[w]}</small></th>`}).join('');
-      const trs=names.map(nm=>`<tr class="${nm===S.me.name?'me':''}"><td class="nm">${esc(nm)}</td>${days.map(x=>{const c=C(x.slice(0,7)),w=new Date(x+'T00:00:00Z').getUTCDay(),q=c&&c.rows[nm]?c.val(nm,+x.slice(8)-1):{v:''};return `<td class="${w===0||w===6?'we':''}${x===td?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${cellH(q)}</td>`}).join('')}</tr>`).join('');
+      const trs=names.map((nm,ni)=>`<tr class="${nm===S.me.name?'me':''}${ni>0&&names[ni-1]==='詹柔婕'?' gs':''}"><td class="nm">${esc(nm)}</td>${days.map(x=>{const c=C(x.slice(0,7)),w=new Date(x+'T00:00:00Z').getUTCDay(),q=c&&c.rows[nm]?c.val(nm,+x.slice(8)-1):{v:''};return `<td class="${w===0||w===6?'we':''}${x===td?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${cellH(q)}</td>`}).join('')}</tr>`).join('');
       body=seg+`<div class="rmn"><button type="button" data-rw="-1"${canP?'':' disabled'}>‹</button><span>${lab(days[0])} – ${lab(days[6])}</span><button type="button" data-rw="1"${canN?'':' disabled'}>›</button></div>`+''+`<div class="scroll"><table class="rt rw"><thead><tr><th class="nm">姓名</th>${th}</tr></thead><tbody>${trs}</tbody></table></div>`;
     }else{
       if(!RP||!rows[RP])RP=rows[S.me.name]?S.me.name:(shown[0]||'');
@@ -633,7 +636,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.02.5';
+const APPV='2026.11.02.6';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
