@@ -409,7 +409,9 @@ function tyCode(date,name){const R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},a=(
    wd＝星期（1一…6六）；key＝新班別名稱要包含的字（班別表裡新增的專屬班別）；h＝上班時數（颱風假、小時假用） */
 const P94=[{name:'陳淑女',from:'2026-11-01',rules:[
   {code:'M1',wd:[1,4],key:['M1','11月起'],h:8},
-  {code:'B',wd:[1],key:['B','11月起','小夜'],h:7}]}];
+  {code:'B',wd:[1],key:['B','11月起','小夜'],h:7}]},
+  {name:'王宸瑄',from:'2000-01-01',rules:[      // 西藥局固定支援：小夜一律 12:30 上班（B 西 小夜，8h），不跟中醫時段
+  {code:'B',wd:[0,1,2,3,4,5,6],key:['B','西','小夜'],h:8}]}];
 function p94(name,date,code){
   if(!name||!date||!code)return null;const wd=new Date(date+'T00:00:00').getDay();
   for(const p of P94)if(p.name===name&&date>=p.from){const r=p.rules.find(r=>r.code===code&&r.wd.includes(wd));if(r)return r}
@@ -637,7 +639,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.02.8';
+const APPV='2026.11.02.9';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -849,7 +851,7 @@ $('tabK').onclick=()=>switchTab('rec');$('tabP').onclick=()=>switchTab('fill');$
 /* ---- 填寫表單 ---- */
 /* 專屬班別（名稱含「11月起」）只有有個人異動的人才看得到，其他人的下拉選單不會出現 */
 function fillShifts(){
-  const nm=isAdmin()?S.target:(S.me&&S.me.name),has=P94.some(p=>p.name===nm),cur=$('s').value;
+  const nm=isAdmin()?S.target:(S.me&&S.me.name),has=P94.some(p=>p.name===nm&&p.rules.some(r=>r.key.includes('11月起'))),cur=$('s').value;
   $('s').innerHTML='<option value="">請選擇</option>'+S.cfg.shifts.filter(s=>has||!/11月起/.test(s.name)).map(s=>`<option value="${esc(s.name)}">${esc(dn(s.name))}</option>`).join('');
   if(cur&&[...$('s').options].some(o=>o.value===cur))$('s').value=cur}
 function typeSeg(id){const s=$(id);if(!s||s.dataset.seg)return;s.dataset.seg='1';const w=s.closest('div');w.classList.add('tyhid');
