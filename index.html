@@ -239,10 +239,22 @@ details.e9r>summary::after{display:none}
 
 /* 電腦版寬螢幕：管理者後台的大表格放寬，不用左右拉 */
 @media (hover:hover) and (pointer:fine) and (min-width:1100px){
- body.bk main{max-width:1280px}
- body.bk #tabs{max-width:1280px}
+ body.bk main,body.bk #tabs{max-width:1280px}
+ /* 大班表「月」：頂部併成一行、列距縮小、時間不換行，盡量一頁看完 */
+ body.bk.rm main,body.bk.rm #tabs{max-width:1600px}
+ #rc94[data-rv=m] .rtop{display:flex;align-items:center;gap:18px;margin:0 0 4px}
+ #rc94[data-rv=m] .rtop .seg{width:300px;margin:0}
+ #rc94[data-rv=m] .rtop .rmn{margin:0}
+ #rc94[data-rv=m] .rsum{margin:0 0 4px}
+ #rc94[data-rv=m] .rt td,#rc94[data-rv=m] .rt th{padding-top:4px;padding-bottom:4px;white-space:nowrap}
+ #rc94[data-rv=m] .rt td{font-size:12.5px;line-height:1.25}
+ #rc94[data-rv=m] .rt td wbr{display:none}
+ #rc94[data-rv=m] .rt td,#rc94[data-rv=m] .rt th{padding-left:2px;padding-right:2px}
+ #rc94[data-rv=m] .lgt{font-size:9.5px;letter-spacing:-.2px}
+ body.bk.rm main{padding-bottom:84px}
 }
 body.bk.vww main,body.bk.vww #tabs{max-width:1280px}
+body.bk.vww.rm main,body.bk.vww.rm #tabs{max-width:1600px}
 body.bk.vwm main,body.bk.vwm #tabs{max-width:560px}
 /* 底部分頁列：三個 */
 #tabs.row{grid-template-columns:repeat(auto-fit,minmax(0,1fr));padding-left:12px;padding-right:12px}
@@ -560,7 +572,8 @@ function rosterCtx(ym){const y=+ym.slice(0,4),m=+ym.slice(5),n=new Date(y,m,0).g
 const rraw=c=>{c=String(c||'').replace(/^~/,'');return esc(c.slice(0,2)==='?:'?c.slice(2):c).replace(/-/g,'-<wbr>')};
 const rcell=c=>{const t=String(c||'').trim();return (t==='N'||t==='M1'||t.charAt(0)==='~')?'':rraw(c)};   // ~R＝Word 原本是空白、匯入時補成 R：畫面上顯示空白   // 正常班 N、中藥局 M1 跟 Word 一樣顯示空白（資料仍是 N／M1，登記時自動帶入班別要用）
 const hrsH=q=>q&&q.h?`<em class="hrs">${+q.h}h</em>`:'';
-const cellH=q=>(q.chg?`<small>${rraw(q.old)}</small><b>${esc(q.v)}</b>`:(q.h?`<span class="hc">${rcell(q.v)}</span>`:rcell(q.v)))+hrsH(q);
+const lgW=(q,h)=>String(q.v||'').replace(/^~|^\?:/,'').length>=5?'<span class="lgt">'+h+'</span>':h;
+const cellH=q=>(q.chg?`<small>${rraw(q.old)}</small><b>${esc(q.v)}</b>`:(q.h?`<span class="hc">${rcell(q.v)}</span>`:lgW(q,rcell(q.v))))+hrsH(q);
 function renderRoster(u){
   u='D2694';   // 兩個單位共用同一張大班表
   const box=$('rc94');if(!box)return;
@@ -575,7 +588,7 @@ function renderRoster(u){
     const leg='';
     const mnav=`<div class="rmn"><button type="button" data-rs="${u}" data-d="-1"${i<=0?' disabled':''}>‹</button><span>${y} / ${String(m).padStart(2,'0')}</span><button type="button" data-rs="${u}" data-d="1"${i>=avail.length-1?' disabled':''}>›</button></div>`;
     const tbl=(a,b,wide)=>`<div class="scroll"><table class="rt${wide?' rw':''}"><thead><tr><th class="nm">姓名</th>${Array.from({length:b-a+1},(_,t)=>{const d=a+t;return `<th class="${wk(d)}${d===today?' td':''}" data-ymd="${ym}-${String(d).padStart(2,'0')}"><i class="dn">${d}</i>${wide?`<br><small>${WD[new Date(y,m-1,d).getDay()]}</small>`:''}</th>`}).join('')}</tr></thead><tbody>${shown.map(x=>`<tr class="${x===S.me.name?'me':''}"><td class="nm">${esc(x)}</td>${Array.from({length:b-a+1},(_,t)=>{const d=a+t,q=val(x,d-1);return `<td class="${wk(d)}${d===today?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${cellH(q)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
-    if(RV==='m')body=seg+mnav+leg+tbl(1,n,false);
+    if(RV==='m')body='<div class="rtop">'+seg+mnav+'</div>'+leg+tbl(1,n,false);
     else if(RV==='w'){
       if(!RWI)RWI=monday(avail.indexOf(ymNow())>=0?dayNow():ym+'-01');
       const st=RWI,days=Array.from({length:7},(_,k)=>addDays(st,k)),cx={},C=q=>cx[q]!==undefined?cx[q]:(cx[q]=avail.indexOf(q)>=0?rosterCtx(q):null);
@@ -592,7 +605,7 @@ function renderRoster(u){
       body=seg+mnav+`<select id="rp" style="margin:0 0 10px">${shown.map(x=>`<option${x===RP?' selected':''}>${esc(x)}</option>`).join('')}</select>`+leg+`<div class="mcal">${['一','二','三','四','五','六','日'].map(x=>`<div class="mh">${x}</div>`).join('')}${cells.join('')}</div>`;
     }
   }
-  box.dataset.sty=RSTY;box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
+  box.dataset.sty=RSTY;box.dataset.rv=RV;document.body.classList.toggle('rm',S.tab==='roster'&&RV==='m');box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
 }
 document.addEventListener('click',e=>{
   const rv=e.target.closest('[data-rv]');if(rv){RV=rv.dataset.rv;try{store.setItem('rv',RV)}catch(er){}renderRoster();return}
@@ -612,7 +625,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.02.3';
+const APPV='2026.11.02.4';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -727,7 +740,7 @@ function fillPeople(){
 function switchTab(t){
   const adm=isAdmin(),u=S.unit;
   if(t==='set'){S.prev=S.tab==='set'?S.prev:S.tab;openSettings();return}
-  document.body.classList.toggle('bk',t==='back'||t==='roster');
+  document.body.classList.toggle('bk',t==='back'||t==='roster');document.body.classList.toggle('rm',t==='roster'&&RV==='m');
   S.tab=t;S.kd94={};S.kd90={};S.hd=0;$('setSec').style.display='none';$('units').style.display=(myUnits().length>1&&t!=='roster')?'':'none';
   document.querySelectorAll('#units button').forEach(b=>b.className=b.dataset.u===u?'on':'');
   $('fill').style.display=(t==='fill'&&u==='D2694')?'':'none';$('back').style.display=(t==='back'&&adm&&u==='D2694')?'':'none';
