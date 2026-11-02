@@ -243,10 +243,10 @@ body.wd.bk.rm main,body.wd.bk.rm #tabs{max-width:1800px}
 body.wd.bk.rk main,body.wd.bk.rk #tabs{max-width:980px}
 body.wd.rm main{padding-bottom:84px}
 /* 大班表「月」：頂部併成一行、時間不換行；列高與字級由程式依視窗大小計算（--rh、--fs、--lg） */
-body.wd #rc94[data-rv=m] .rtop{display:flex;align-items:center;gap:18px;margin:0 0 4px}
-body.wd #rc94[data-rv=m] .rtop .seg{width:300px;margin:0}
-body.wd #rc94[data-rv=m] .rtop .rmn{margin:0}
-body.wd #rc94[data-rv=m] .rsum{margin:0 0 4px}
+body.wd #rc94 .rtop{display:flex;align-items:center;gap:18px;margin:0 0 4px}
+body.wd #rc94 .rtop .seg{width:300px;margin:0}
+body.wd #rc94 .rtop .rmn{margin:0}
+body.wd #rc94 .rsum{margin:0 0 4px}
 body.wd #rc94[data-rv=m] .rt td,body.wd #rc94[data-rv=m] .rt th{padding:0 2px;white-space:nowrap}
 body.wd #rc94[data-rv=m] .rt td{height:var(--rh,25px);font-size:var(--fs,12.5px);line-height:1.25}
 body.wd #rc94[data-rv=m] .rt td wbr{display:none}
@@ -608,12 +608,12 @@ function renderRoster(u){
       const lab=x=>(+x.slice(5,7))+'/'+(+x.slice(8));
       const th=days.map(x=>{const w=new Date(x+'T00:00:00Z').getUTCDay();return `<th class="${w===0||w===6?'we':''}${x===td?' td':''}" data-ymd="${x}"><i class="dn">${+x.slice(8)===1?lab(x):+x.slice(8)}</i><br><small>${WD[w]}</small></th>`}).join('');
       const trs=names.map((nm,ni)=>`<tr class="${nm===S.me.name?'me':''}${ni>0&&names[ni-1]==='詹柔婕'?' gs':''}"><td class="nm">${esc(nm)}</td>${days.map(x=>{const c=C(x.slice(0,7)),w=new Date(x+'T00:00:00Z').getUTCDay(),q=c&&c.rows[nm]?c.val(nm,+x.slice(8)-1):{v:''};return `<td class="${w===0||w===6?'we':''}${x===td?' td':''}${q.chg?' chg':''}${String(q.v||'').length>4?' lg':''}">${cellH(q)}</td>`}).join('')}</tr>`).join('');
-      body=seg+`<div class="rmn"><button type="button" data-rw="-1"${canP?'':' disabled'}>‹</button><span>${lab(days[0])} – ${lab(days[6])}</span><button type="button" data-rw="1"${canN?'':' disabled'}>›</button></div>`+''+`<div class="scroll"><table class="rt rw"><thead><tr><th class="nm">姓名</th>${th}</tr></thead><tbody>${trs}</tbody></table></div>`;
+      body='<div class="rtop">'+seg+`<div class="rmn"><button type="button" data-rw="-1"${canP?'':' disabled'}>‹</button><span>${lab(days[0])} – ${lab(days[6])}</span><button type="button" data-rw="1"${canN?'':' disabled'}>›</button></div>`+'</div>'+''+`<div class="scroll"><table class="rt rw"><thead><tr><th class="nm">姓名</th>${th}</tr></thead><tbody>${trs}</tbody></table></div>`;
     }else{
       if(!RP||!rows[RP])RP=rows[S.me.name]?S.me.name:(shown[0]||'');
       const first=(new Date(y,m-1,1).getDay()+6)%7,cells=[];for(let k=0;k<first;k++)cells.push('<div class="mc e"></div>');
       for(let d=1;d<=n;d++){const q=val(RP,d-1);cells.push(`<div class="mc ${wk(d)}${d===today?' td':''}${q.chg?' chg':''}"><i>${d}</i>${q.chg?`<small>${rraw(q.old)}</small>`:''}<b>${(q.chg?rraw(q.v):rcell(q.v))||'&nbsp;'}</b>${hrsH(q)}</div>`)}
-      body=seg+mnav+`<select id="rp" style="margin:0 0 10px">${shown.map(x=>`<option${x===RP?' selected':''}>${esc(x)}</option>`).join('')}</select>`+leg+`<div class="mcal">${['一','二','三','四','五','六','日'].map(x=>`<div class="mh">${x}</div>`).join('')}${cells.join('')}</div>`;
+      body='<div class="rtop">'+seg+mnav+'</div>'+`<select id="rp" style="margin:0 0 10px">${shown.map(x=>`<option${x===RP?' selected':''}>${esc(x)}</option>`).join('')}</select>`+leg+`<div class="mcal">${['一','二','三','四','五','六','日'].map(x=>`<div class="mh">${x}</div>`).join('')}${cells.join('')}</div>`;
     }
   }
   box.dataset.sty=RSTY;box.dataset.rv=RV;rosCls();setTimeout(fitRM,0);box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
@@ -636,7 +636,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.02.6';
+const APPV='2026.11.02.7';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
