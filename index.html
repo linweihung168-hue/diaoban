@@ -237,25 +237,20 @@ details.e9r>summary::after{display:none}
  .frm select,#f9body select,#e9body select,.frm #dk>select,.frm #edk>select,#e9body select{width:auto!important;min-width:150px;max-width:70%;margin-left:auto;text-align:left;text-align-last:left;padding-left:10px}
 }
 
-/* 電腦版寬螢幕：管理者後台的大表格放寬，不用左右拉 */
-@media (hover:hover) and (pointer:fine) and (min-width:1100px){
- body.bk main,body.bk #tabs{max-width:1280px}
- /* 大班表「月」：頂部併成一行、列距縮小、時間不換行，盡量一頁看完 */
- body.bk.rm main,body.bk.rm #tabs{max-width:1600px}
- #rc94[data-rv=m] .rtop{display:flex;align-items:center;gap:18px;margin:0 0 4px}
- #rc94[data-rv=m] .rtop .seg{width:300px;margin:0}
- #rc94[data-rv=m] .rtop .rmn{margin:0}
- #rc94[data-rv=m] .rsum{margin:0 0 4px}
- #rc94[data-rv=m] .rt td,#rc94[data-rv=m] .rt th{padding-top:4px;padding-bottom:4px;white-space:nowrap}
- #rc94[data-rv=m] .rt td{font-size:12.5px;line-height:1.25}
- #rc94[data-rv=m] .rt td wbr{display:none}
- #rc94[data-rv=m] .rt td,#rc94[data-rv=m] .rt th{padding-left:2px;padding-right:2px}
- #rc94[data-rv=m] .lgt{font-size:9.5px;letter-spacing:-.2px}
- body.bk.rm main{padding-bottom:84px}
-}
-body.bk.vww main,body.bk.vww #tabs{max-width:1280px}
-body.bk.vww.rm main,body.bk.vww.rm #tabs{max-width:1600px}
-body.bk.vwm main,body.bk.vwm #tabs{max-width:560px}
+/* 電腦版寬螢幕（body.wd 由程式依「自動／手機版／網頁版」設定判斷）：後台與大班表放寬 */
+body.wd.bk main,body.wd.bk #tabs{max-width:1280px}
+body.wd.bk.rm main,body.wd.bk.rm #tabs{max-width:1800px}
+body.wd.bk.rk main,body.wd.bk.rk #tabs{max-width:980px}
+body.wd.rm main{padding-bottom:84px}
+/* 大班表「月」：頂部併成一行、時間不換行；列高與字級由程式依視窗大小計算（--rh、--fs、--lg） */
+body.wd #rc94[data-rv=m] .rtop{display:flex;align-items:center;gap:18px;margin:0 0 4px}
+body.wd #rc94[data-rv=m] .rtop .seg{width:300px;margin:0}
+body.wd #rc94[data-rv=m] .rtop .rmn{margin:0}
+body.wd #rc94[data-rv=m] .rsum{margin:0 0 4px}
+body.wd #rc94[data-rv=m] .rt td,body.wd #rc94[data-rv=m] .rt th{padding:0 2px;white-space:nowrap}
+body.wd #rc94[data-rv=m] .rt td{height:var(--rh,25px);font-size:var(--fs,12.5px);line-height:1.25}
+body.wd #rc94[data-rv=m] .rt td wbr{display:none}
+body.wd #rc94[data-rv=m] .lgt{font-size:var(--lg,9.5px);letter-spacing:-.2px}
 /* 底部分頁列：三個 */
 #tabs.row{grid-template-columns:repeat(auto-fit,minmax(0,1fr));padding-left:12px;padding-right:12px}
 #tabR{--ti:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2.5a1 1 0 011 1V5h8V3.5a1 1 0 112 0V5h.5A2.5 2.5 0 0121 7.5v11a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 18.5v-11A2.5 2.5 0 015.5 5H6V3.5a1 1 0 011-1zM5 10v8.5a.5.5 0 00.5.5h13a.5.5 0 00.5-.5V10z'/%3E%3C/svg%3E")}
@@ -520,7 +515,7 @@ const setPref=(k,v)=>{try{localStorage.setItem('diaoban_'+k,v)}catch(e){}};
 function applyPrefs(){document.documentElement.style.zoom=pref('fs','0')==='1'?'1.15':'';document.documentElement.classList.toggle('big',pref('fs','0')==='1');
   document.querySelectorAll('#sfs button').forEach(b=>b.classList.toggle('on',b.dataset.v===pref('fs','0')));
   const vw=pref('vw','a');document.body.classList.toggle('vwm',vw==='m');document.body.classList.toggle('vww',vw==='w');
-  document.querySelectorAll('#svw button').forEach(b=>b.classList.toggle('on',b.dataset.v===vw));
+  document.querySelectorAll('#svw button').forEach(b=>b.classList.toggle('on',b.dataset.v===vw));rosCls();
   }
 function renderPwRow(){const h=S.me&&S.me.hasPw;$('spwn').textContent=h?'已設定':'未設定'}
 function pwModal(force){
@@ -574,6 +569,19 @@ const rcell=c=>{const t=String(c||'').trim();return (t==='N'||t==='M1'||t.charAt
 const hrsH=q=>q&&q.h?`<em class="hrs">${+q.h}h</em>`:'';
 const lgW=(q,h)=>String(q.v||'').replace(/^~|^\?:/,'').length>=5?'<span class="lgt">'+h+'</span>':h;
 const cellH=q=>(q.chg?`<small>${rraw(q.old)}</small><b>${esc(q.v)}</b>`:(q.h?`<span class="hc">${rcell(q.v)}</span>`:lgW(q,rcell(q.v))))+hrsH(q);
+/* 電腦寬螢幕判斷（自動／手機版／網頁版）與大班表月檢視的自動縮放 */
+const WMQ=window.matchMedia('(hover:hover) and (pointer:fine) and (min-width:1100px)');
+function wideOn(){const v=pref('vw','a');return v==='w'||(v==='a'&&WMQ.matches)}
+function rosCls(){const w=wideOn(),r=S.tab==='roster';document.body.classList.toggle('wd',w);document.body.classList.toggle('rm',r&&RV==='m');document.body.classList.toggle('rk',r&&RV!=='m')}
+function fitRM(){const box=$('rc94'),t=box&&box.querySelector('table.rt');if(!box)return;
+  ['--rh','--fs','--lg'].forEach(k=>box.style.removeProperty(k));
+  if(!t||box.dataset.rv!=='m'||S.tab!=='roster'||!document.body.classList.contains('wd'))return;
+  const sc=t.parentElement,n=t.querySelectorAll('tbody tr').length+1.4,top=t.getBoundingClientRect().top+scrollY;
+  const avail=innerHeight-top-96,rh=Math.max(25,Math.min(40,Math.floor(avail/n)));
+  let fs=Math.max(12.5,Math.min(16,rh*0.46)),lg=Math.max(9.5,Math.min(12.5,(sc.clientWidth-80)/30/4.6));
+  for(let k=0;k<12;k++){box.style.setProperty('--rh',rh+'px');box.style.setProperty('--fs',fs+'px');box.style.setProperty('--lg',lg+'px');
+    if(sc.scrollWidth<=sc.clientWidth+1)break;fs=Math.max(12.5,fs-.5);lg=Math.max(9.5,lg-.5)}}
+window.addEventListener('resize',()=>{rosCls();clearTimeout(window.__fr);window.__fr=setTimeout(fitRM,120)});
 function renderRoster(u){
   u='D2694';   // 兩個單位共用同一張大班表
   const box=$('rc94');if(!box)return;
@@ -605,7 +613,7 @@ function renderRoster(u){
       body=seg+mnav+`<select id="rp" style="margin:0 0 10px">${shown.map(x=>`<option${x===RP?' selected':''}>${esc(x)}</option>`).join('')}</select>`+leg+`<div class="mcal">${['一','二','三','四','五','六','日'].map(x=>`<div class="mh">${x}</div>`).join('')}${cells.join('')}</div>`;
     }
   }
-  box.dataset.sty=RSTY;box.dataset.rv=RV;document.body.classList.toggle('rm',S.tab==='roster'&&RV==='m');box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
+  box.dataset.sty=RSTY;box.dataset.rv=RV;rosCls();setTimeout(fitRM,0);box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
 }
 document.addEventListener('click',e=>{
   const rv=e.target.closest('[data-rv]');if(rv){RV=rv.dataset.rv;try{store.setItem('rv',RV)}catch(er){}renderRoster();return}
@@ -625,7 +633,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.02.4';
+const APPV='2026.11.02.5';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -740,7 +748,7 @@ function fillPeople(){
 function switchTab(t){
   const adm=isAdmin(),u=S.unit;
   if(t==='set'){S.prev=S.tab==='set'?S.prev:S.tab;openSettings();return}
-  document.body.classList.toggle('bk',t==='back'||t==='roster');document.body.classList.toggle('rm',t==='roster'&&RV==='m');
+  document.body.classList.toggle('bk',t==='back'||t==='roster');rosCls();
   S.tab=t;S.kd94={};S.kd90={};S.hd=0;$('setSec').style.display='none';$('units').style.display=(myUnits().length>1&&t!=='roster')?'':'none';
   document.querySelectorAll('#units button').forEach(b=>b.className=b.dataset.u===u?'on':'');
   $('fill').style.display=(t==='fill'&&u==='D2694')?'':'none';$('back').style.display=(t==='back'&&adm&&u==='D2694')?'':'none';
