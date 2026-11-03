@@ -327,9 +327,9 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 <p><button type="button" id="clrLog" class="x" title="清空登入紀錄" aria-label="清空登入紀錄" style="border:1px solid var(--bd)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></p>
 <div class="scroll"><table id="bLogins"></table></div></details></div></div><div class="u90"><div class="card"><details id="dLogins9"><summary>登入紀錄</summary><div class="scroll"><table id="bLogins9"></table></div></details></div></div></div><div class="sp" id="sp_edits"><div class="u94"><div class="card"><details id="dEdits"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits"></table></div></details></div></div><div class="u90"><div class="card"><details id="dEdits9"><summary>修改紀錄</summary><div class="scroll"><table id="bEdits9"></table></div></details></div></div></div><div class="sp" id="sp_trash"><div class="u94"><div class="card"><details id="dTrash"><summary>已刪除</summary><div class="scroll"><table id="bTrash"></table></div></details></div></div><div class="u90"><div class="card"><details id="dTrash9"><summary>已刪除</summary><div class="scroll"><table id="bTrash9"></table></div></details></div></div></div></div></section>
 <section id="recSec" style="display:none"><div id="kpw" style="display:none;margin-bottom:12px"><select id="kp"></select></div><div class="mnav" id="rmnav"><button type="button" data-id="rm" data-d="-1" id="rmprev" aria-label="上個月">‹</button><label class="mmid"><span id="rml"></span><i aria-hidden="true">⌄</i><input type="month" id="rmp" aria-label="選擇月份"></label><button type="button" data-id="rm" data-d="1" id="rmnext" aria-label="下個月">›</button></div><div id="r94"><div class="card"><h2 id="mineH">我的未休分鐘</h2><div id="mine"></div></div>
-<div class="card"><details open><summary><span><span class="rl">本月</span>登記查詢</span></summary><div id="myList"></div></details></div>
+<div class="card"><details><summary><span><span class="rl">本月</span>登記查詢</span></summary><div id="myList"></div></details></div>
 <div class="card"><details><summary><span><span class="rl">本月</span>每日明細</span></summary><div class="scroll"><table id="myDays"></table></div></details></div></div><div id="r90"><div class="card" id="c9mine"><h2 id="mine9H">我的未休分鐘（含上月）</h2><div id="mine9"></div></div>
-<div class="card" id="c9list"><details open><summary><span><span class="rl">本月</span>登記查詢</span></summary><div id="list9"></div></details></div>
+<div class="card" id="c9list"><details><summary><span><span class="rl">本月</span>登記查詢</span></summary><div id="list9"></div></details></div>
 <div class="card" id="c9days" style="display:none"><details><summary><span><span class="rl">本月</span>每日明細</span></summary><div class="scroll"><table id="myDays9"></table></div></details></div></div><div class="card" id="cty" style="display:none"></div></section>
 <section id="rosterSec" style="display:none"><div class="card" id="rc94"></div><div class="card" id="rc90"></div></section>
 <section id="fill90" style="display:none">
@@ -459,9 +459,9 @@ function renderTy(){
   if(!adm){el.innerHTML=tyWrap('我的颱風假',tyOne(S.me.name,L,false));return}
   const one=bk?$(u==='D2690'?'fp9':'fp').value:(u==='D2690'?(S.kp9||''):(S.target||''));
   if(one){el.innerHTML=tyWrap('颱風假 — '+esc(one),tyOne(one,L,true)+'<p class="mut" style="margin:8px 0 0;font-size:12px">點日期改時數；上方人員改選「'+(bk?'全部':'請選擇人員')+'」可看全部人</p>');return}
-  const v=S.tyv||'p';let h='';
+  const v=S.tyv||'d';let h='';
   if(L.length){
-    h+='<div class="tyseg"><button type="button" data-v="p" class="'+(v==='p'?'on':'')+'">依人員</button><button type="button" data-v="d" class="'+(v==='d'?'on':'')+'">依日期</button></div>';
+    h+='<div class="tyseg"><button type="button" data-v="d" class="'+(v==='d'?'on':'')+'">依日期</button><button type="button" data-v="p" class="'+(v==='p'?'on':'')+'">依人員</button></div>';
     if(v==='p'){
       const C=L.map(tyCells),ns=[];C.forEach(c=>Object.keys(c).forEach(n=>{if(ns.indexOf(n)<0)ns.push(n)}));const ok=tyOrder(L,u);ns.sort((a,b)=>ok(a)-ok(b));
       h+='<div class="scroll"><table class="tyt"><tr><th>姓名</th>'+L.map(e=>'<th class="tyd" data-id="'+e.id+'">'+e.d.slice(5).replace('-','/')+'<small>（'+WD[new Date(e.d+'T00:00:00Z').getUTCDay()]+'）</small></th>').join('')+'<th>合計</th></tr>';
@@ -477,7 +477,7 @@ function renderTy(){
   h+='<button type="button" class="go" id="tyadd" style="margin:12px 0 0">＋ 新增颱風假</button>';
   el.innerHTML=tyWrap('颱風假',h);
 }
-function tyWrap(t,b){return '<details id="tyd0"'+(S.tyOpen===false?'':' open')+'><summary>'+t+'</summary>'+b+'</details>'}
+function tyWrap(t,b){return '<details id="tyd0"'+(S.tyOpen===true?' open':'')+'><summary>'+t+'</summary>'+b+'</details>'}
 document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='tyd0')S.tyOpen=e.target.open},true);
 async function tyEdit(ev,pre){
   const u=ev?ev.u:S.unit,staff=tyStaff(u);
@@ -681,7 +681,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.03.3';
+const APPV='2026.11.03.4';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1187,7 +1187,8 @@ let idle=null;
 function armIdle(){
   if(touch)return;
   ['click','keydown','mousemove','scroll'].forEach(ev=>document.addEventListener(ev,()=>{S.lockAt=Date.now()},{passive:true}));
-  setInterval(()=>{if(S.me&&$('lockm').style.display!=='flex'&&Date.now()-S.lockAt>((S.cfg&&S.cfg.lockSec)||120)*1000)openLock()},5000);
+  /* 2026-11-03：取消閒置自動鎖定（使用者要求）。要恢復，把下一行的註解拿掉
+  setInterval(()=>{if(S.me&&$('lockm').style.display!=='flex'&&Date.now()-S.lockAt>((S.cfg&&S.cfg.lockSec)||120)*1000)openLock()},5000); */
 }
 function openLock(){const u=lastU();$('lockm').style.display='flex';$('lcode').value='';$('lpw2').value='';$('lpwr').style.display='none';$('lerr2').textContent='';
   const po=!!(u&&S.me&&S.me.hasPw&&u.n===S.me.name);$('lcode').style.display=po?'none':'';$('lsw2').style.display=po?'':'none';
