@@ -303,6 +303,19 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 :root[data-theme=dark] input::-webkit-calendar-picker-indicator{filter:invert(.7)}
 :root[data-theme=dark] .rt td.chg,:root[data-theme=dark] .chgk,:root[data-theme=dark] #rc94 .rt td.chg{background:#4a2321!important}:root[data-theme=dark] .rt td.chg{color:#ff9b93}
 
+/* ===== 電腦寬版：後台、紀錄頁的表格字放大（手機不受影響，只有 body.wd 寬版生效） ===== */
+body.wd #back table td,body.wd #back90 table td{font-size:16px;padding:9px 8px}
+body.wd #back table th,body.wd #back90 table th{font-size:14px;padding:8px 8px}
+body.wd #recSec table td{font-size:15px;padding:8px 6px}body.wd #recSec table th{font-size:13.5px;padding:7px 6px}   /* 紀錄頁比較窄（560），15px 剛好放得下 */
+body.wd #bStat input,body.wd #bStat9 input{font-size:16px;height:38px}
+body.wd #bList,body.wd #bList9,body.wd #pend94,body.wd #pend9,body.wd #myList,body.wd #list9{font-size:16px}
+/* 大螢幕（1600 以上）：後台放寬到 1500，字再大一點 */
+@media (min-width:1600px){
+ body.wd.bk:not(.rm):not(.rk) main,body.wd.bk:not(.rm):not(.rk) #tabs{max-width:1500px}
+ body.wd #back table td,body.wd #back90 table td{font-size:17px}
+ body.wd #back table th,body.wd #back90 table th{font-size:14.5px}
+}
+
 </style></head><body><main>
 
 <section id="login" class="card" style="display:none"><h1>調班表</h1>
@@ -712,7 +725,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.04.1';
+const APPV='2026.11.04.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
