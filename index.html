@@ -407,7 +407,11 @@ const TYW=['日','一','二','三','四','五','六'];
 const tyFmt=d=>{const t=new Date(d+'T00:00:00Z');return d.slice(5,7)+'/'+d.slice(8,10)+'（'+TYW[t.getUTCDay()]+'）'};
 const tyHr=h=>String(+h);
 function tyStaff(u){return (u==='D2690'?(S.cfg90&&S.cfg90.staff):(S.cfg&&S.cfg.staff))||[]}
-function tyCode(date,name){const R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},a=(R[date.slice(0,7)]||{})[name];return a?String(a[+date.slice(8,10)-1]||'').replace(/^~/,''):''}
+/* 颱風假用的班別。週六 Word 空白：班表檔記成 ~R（大班表顯示空白），但實際上是 N 班有上班 → 這裡當 N（大夜鄭光輝、柯宥騂除外，他們週六空白是休假） */
+const TY_SAT_OFF=['鄭光輝','柯宥騂'];
+function tyCode(date,name){const R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},a=(R[date.slice(0,7)]||{})[name];if(!a)return '';const raw=String(a[+date.slice(8,10)-1]||'');
+  if(raw==='~R'&&new Date(date+'T00:00:00Z').getUTCDay()===6&&!TY_SAT_OFF.includes(name))return 'N';
+  return raw.replace(/^~/,'')}
 /* 個人班別時數異動：只對指定人員、從指定日期起生效（舊的紀錄、其他人都不受影響）。
    wd＝星期（1一…6六）；key＝新班別名稱要包含的字（班別表裡新增的專屬班別）；h＝上班時數（颱風假、小時假用） */
 const P94=[{name:'陳淑女',from:'2026-11-01',rules:[
@@ -667,7 +671,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.03.1';
+const APPV='2026.11.03.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
