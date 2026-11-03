@@ -442,21 +442,23 @@ const tyShow=c=>{c=String(c||'').trim();return (c==='N'||tyTime(c))?'':c};   // 
 function tySplit(date,u){const hr=[],pay=[];tyAuto(date,u).forEach(x=>{const c=tyCode(date,x.n);if(tyPay(date,x.n,c))pay.push({n:x.n,c:tyShow(x.c),h:x.h});else hr.push({n:x.n,c:tyShow(x.c),h:x.h})});return {hr,pay}}
 /* 一次颱風假的每格內容：{v:時數|null, pay:領$, man:手動改過, c:班別} */
 function tyCells(e){const sp=tySplit(e.d,e.u),au={},py={},o={};sp.hr.forEach(x=>au[x.n]=x.h);sp.pay.forEach(x=>py[x.n]=x.c);
-  Object.keys(e.h).forEach(n=>{o[n]={v:e.h[n],pay:false,man:au[n]!==e.h[n],c:tyShow(tyCode(e.d,n))}});
+  Object.keys(e.h).forEach(n=>{const off=e.h[n]===0;o[n]={v:e.h[n],pay:false,off,man:!off&&au[n]!==e.h[n],c:tyShow(tyCode(e.d,n))}});   // 0＝不列入（例：停診跟著放假）
   Object.keys(py).forEach(n=>{if(!o[n])o[n]={v:null,pay:true,man:false,c:py[n]}});return o}
 function tyOrder(L,u){const ym=L.length?L[0].d.slice(0,7):ymNow(),R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},ord=Object.keys(R[ym]||{}),st=tyStaff(u);
   const k=n=>{const i=ord.indexOf(n);return i<0?999+st.indexOf(n):i};return k}
-function tyOne(n,L,adm){let t=0,pc=0;const rows=L.slice().reverse().map(e=>{const q=tyCells(e)[n];if(!q)return '';if(q.pay)pc++;else t+=q.v;
-    return '<div class="ty1'+(adm?' tyc':'')+(adm&&q.man?' tym':'')+'"'+(adm?' data-id="'+e.id+'" data-n="'+esc(n)+'"':'')+'><span>'+tyFmt(e.d)+(q.c?' <small class="mut">'+esc(q.c)+'</small>':'')+'</span>'+(q.pay?'<span class="typ">$ 休加</span>':'<b style="color:var(--ac)">'+tyHr(q.v)+'H</b>')+'</div>'}).join('');
+function tyOne(n,L,adm){let t=0,pc=0;const rows=L.slice().reverse().map(e=>{const q=tyCells(e)[n];if(!q||(q.off&&!adm))return '';if(q.pay)pc++;else if(!q.off)t+=q.v;
+    return '<div class="ty1'+(adm?' tyc':'')+(adm&&q.man?' tym':'')+'"'+(adm?' data-id="'+e.id+'" data-n="'+esc(n)+'"':'')+'><span>'+tyFmt(e.d)+(q.c?' <small class="mut">'+esc(q.c)+'</small>':'')+'</span>'+(q.off?'<span class="typ">休（不列入）</span>':q.pay?'<span class="typ">$ 休加</span>':'<b style="color:var(--ac)">'+tyHr(q.v)+'H</b>')+'</div>'}).join('');
   if(!rows)return '<p class="mut" style="margin:0">'+(adm?esc(n)+' ':'')+'目前沒有颱風假</p>';
   return rows+'<div class="ty1 tysum"><span>合計</span><span><b style="color:var(--ac)">'+tyHr(t)+'H</b>'+(pc?'<span class="typ" style="margin-left:10px">休加 '+pc+' 次</span>':'')+'</span></div>'}
 function renderTy(){
-  const el=$('cty');if(!el)return;if(S.tab!=='rec'){el.style.display='none';return}
-  el.style.display='';const adm=isAdmin(),u=S.unit;
+  const el=$('cty');if(!el)return;const adm=isAdmin(),u=S.unit,bk=S.tab==='back'&&adm;if(S.tab!=='rec'&&!bk){el.style.display='none';return}
+  if(bk){const sec=$(u==='D2690'?'back90':'back'),ref=$(u==='D2690'?'dAll9':'dAll').closest('.card');if(el.nextElementSibling!==ref)sec.insertBefore(el,ref)}   // 後台：放在「所有登記」上面
+  else if(el.parentNode!==$('recSec'))$('recSec').appendChild(el);
+  el.style.display='';
   const L=(S.ty||[]).filter(e=>e.u===u).slice().sort((x,y)=>x.d<y.d?-1:1);
   if(!adm){el.innerHTML=tyWrap('我的颱風假',tyOne(S.me.name,L,false));return}
-  const one=u==='D2690'?(S.kp9||''):(S.target||'');
-  if(one){el.innerHTML=tyWrap('颱風假 — '+esc(one),tyOne(one,L,true)+'<p class="mut" style="margin:8px 0 0;font-size:12px">點日期改時數；上方改選「請選擇人員」可看全部人</p>');return}
+  const one=bk?$(u==='D2690'?'fp9':'fp').value:(u==='D2690'?(S.kp9||''):(S.target||''));
+  if(one){el.innerHTML=tyWrap('颱風假 — '+esc(one),tyOne(one,L,true)+'<p class="mut" style="margin:8px 0 0;font-size:12px">點日期改時數；上方人員改選「'+(bk?'全部':'請選擇人員')+'」可看全部人</p>');return}
   const v=S.tyv||'p';let h='';
   if(L.length){
     h+='<div class="tyseg"><button type="button" data-v="p" class="'+(v==='p'?'on':'')+'">依人員</button><button type="button" data-v="d" class="'+(v==='d'?'on':'')+'">依日期</button></div>';
@@ -464,12 +466,12 @@ function renderTy(){
       const C=L.map(tyCells),ns=[];C.forEach(c=>Object.keys(c).forEach(n=>{if(ns.indexOf(n)<0)ns.push(n)}));const ok=tyOrder(L,u);ns.sort((a,b)=>ok(a)-ok(b));
       h+='<div class="scroll"><table class="tyt"><tr><th>姓名</th>'+L.map(e=>'<th class="tyd" data-id="'+e.id+'">'+e.d.slice(5).replace('-','/')+'<small>（'+WD[new Date(e.d+'T00:00:00Z').getUTCDay()]+'）</small></th>').join('')+'<th>合計</th></tr>';
       const gk=ok('詹柔婕');ns.forEach((n,i)=>{let t=0,pc=0;h+='<tr'+(i>0&&ok(ns[i-1])<=gk&&ok(n)>gk?' class="gs"':'')+'><td>'+esc(n)+'</td>'+L.map((e,j)=>{const q=C[j][n];let x='';
-          if(q&&q.pay){pc++;x='<span class="typ">$</span>'}else if(q){t+=q.v;x=tyHr(q.v)}
+          if(q&&q.off){x='<span class="typ">休</span>'}else if(q&&q.pay){pc++;x='<span class="typ">$</span>'}else if(q){t+=q.v;x=tyHr(q.v)}
           if(q&&q.c)x+='<small class="tyk">'+esc(q.c)+'</small>';
           return '<td class="tyc'+(q&&q.man?' tym':'')+'" data-id="'+e.id+'" data-n="'+esc(n)+'">'+x+'</td>'}).join('')+'<td><b style="color:var(--ac)">'+tyHr(t)+'H</b>'+(pc?'<small class="typ" style="margin-left:4px">$'+pc+'</small>':'')+'</td></tr>'});
-      h+='</table></div><p class="mut" style="margin:8px 0 0;font-size:12px">點格子改時數；點日期看整次、刪除。<span class="typ">$</span>＝週六領休加、不算時數；<span class="tym" style="padding:0 4px;border-radius:4px">淡紫</span>＝手動改過</p>';
+      h+='</table></div><p class="mut" style="margin:8px 0 0;font-size:12px">點格子改時數；點日期看整次、刪除。<span class="typ">$</span>＝週六領休加、不算時數；<span class="tym" style="padding:0 4px;border-radius:4px">淡紫</span>＝手動改過；<span class="typ">休</span>＝不列入（例：停診跟著放假）</p>';
     }else{
-      L.slice().reverse().forEach(e=>{const ks=Object.keys(e.h);h+='<div class="tycard"><div class="tych"><b>'+tyFmt(e.d)+'</b><span class="mut">'+ks.length+' 人　<a class="tyedit" data-id="'+e.id+'">修改</a></span></div>'+ks.map(n=>'<div class="tyr"><span>'+esc(n)+'</span><b>'+tyHr(e.h[n])+'H</b></div>').join('')+(()=>{const q=tyCells(e),p=Object.keys(q).filter(n=>q[n].pay);return p.length?'<div class="tyr"><span class="typ">休加（不算時數）：'+p.map(esc).join('、')+'</span></div>':''})()+'</div>'});
+      L.slice().reverse().forEach(e=>{const ks=Object.keys(e.h).filter(n=>e.h[n]>0);h+='<div class="tycard"><div class="tych"><b>'+tyFmt(e.d)+'</b><span class="mut">'+ks.length+' 人　<a class="tyedit" data-id="'+e.id+'">修改</a></span></div>'+ks.map(n=>'<div class="tyr"><span>'+esc(n)+'</span><b>'+tyHr(e.h[n])+'H</b></div>').join('')+(()=>{const q=tyCells(e),p=Object.keys(q).filter(n=>q[n].pay);const f=Object.keys(q).filter(n=>q[n].off);return (p.length?'<div class="tyr"><span class="typ">休加（不算時數）：'+p.map(esc).join('、')+'</span></div>':'')+(f.length?'<div class="tyr"><span class="typ">不列入：'+f.map(esc).join('、')+'</span></div>':'')})()+'</div>'});
     }
   }else h+='<p class="mut" style="margin:0 0 4px">目前沒有颱風假</p>';
   h+='<button type="button" class="go" id="tyadd" style="margin:12px 0 0">＋ 新增颱風假</button>';
@@ -481,19 +483,27 @@ async function tyEdit(ev,pre){
   const u=ev?ev.u:S.unit,staff=tyStaff(u);
   const rowH=(n,c,hv)=>'<div class="tyrow" data-n="'+esc(n)+'"><span style="flex:1">'+esc(n)+(tyShow(c)?' <span class="mut">'+esc(tyShow(c))+'</span>':'')+'</span><input type="number" inputmode="decimal" step="0.5" min="0" max="24" value="'+(hv||'')+'" style="width:70px;text-align:right;margin:0"> <span class="mut">H</span></div>';
   const date=ev?ev.d:(pre||twNow().slice(0,10));
-  const sp0=tySplit(date,u),init=ev?Object.keys(ev.h).map(n=>({n,c:tyCode(date,n),h:ev.h[n]})):sp0.hr;
-  const payH=(d,have)=>{const p=tySplit(d,u).pay.filter(x=>!have.includes(x.n));return p.length?'<div class="typt">以下人員為休加，不列入時數計算</div>'+p.map(x=>'<div class="tyrow typr"><span style="flex:1">'+esc(x.n)+(x.c?' <span class="mut">'+esc(x.c)+'</span>':'')+'</span><span class="typ">$ 休加</span><button type="button" class="typb" data-n="'+esc(x.n)+'" data-h="'+x.h+'">改算時數</button></div>').join(''):''};
+  const sp0=tySplit(date,u),init=ev?Object.keys(ev.h).filter(n=>ev.h[n]>0).map(n=>({n,c:tyCode(date,n),h:ev.h[n]})):sp0.hr;
+  const OFF=new Set(ev?Object.keys(ev.h).filter(n=>ev.h[n]===0):[]);   // 不列入的人（存成 0）
+  const nm=x=>esc(x.n)+(x.c?' <span class="mut">'+esc(x.c)+'</span>':'');
+  const payH=(d,have)=>{const all=tySplit(d,u).pay,p=all.filter(x=>!have.includes(x.n)&&!OFF.has(x.n)),f=[...OFF].map(n=>({n,c:tyShow(tyCode(d,n))}));
+    return (p.length?'<div class="typt">以下人員為休加，不列入時數計算</div>'+p.map(x=>'<div class="tyrow typr"><span style="flex:1">'+nm(x)+'</span><span class="typ">$ 休加</span><button type="button" class="typb" data-a="h" data-n="'+esc(x.n)+'" data-h="'+x.h+'">改算時數</button><button type="button" class="typb" data-a="o" data-n="'+esc(x.n)+'">不列入</button></div>').join(''):'')
+      +(f.length?'<div class="typt">不列入（沒有時數也沒有休加）</div>'+f.map(x=>'<div class="tyrow typr"><span style="flex:1">'+nm(x)+'</span><span class="typ">休</span><button type="button" class="typb" data-a="r" data-n="'+esc(x.n)+'">恢復</button></div>').join(''):'')};
+  const have=()=>[...$('tyrows').children].map(r=>r.dataset.n);
   const body='<label class="mut" style="font-size:13px">日期</label><input type="date" id="tyd" value="'+date+'" style="margin:2px 0 8px"><div class="mut" style="font-size:12px;margin-bottom:6px" id="tyhint">'+(ev?'':'依大班表帶入（大夜 P 只算當天 24 小時內），可修改；沒上班的人不會列出')+'</div><div id="tyrows">'+init.map(x=>rowH(x.n,x.c,x.h)).join('')+'</div><div id="typay" class="typay">'+payH(date,init.map(x=>x.n))+'</div><select id="typlus" style="margin-top:8px"><option value="">＋ 加人…</option>'+staff.map(n=>'<option>'+esc(n)+'</option>').join('')+'</select>';
   const btns=[{t:'取消',v:'c'}];if(ev)btns.push({t:'刪除整次',v:'d',go:true,danger:true});btns.push({t:'儲存',v:'s',go:true});
   const pr=modal(ev?'修改颱風假':'新增颱風假',body,btns);$('gbtn').style.gridTemplateColumns=btns.length===3?'1fr 1fr 1fr':'1fr 1fr';
   const rows=()=>$('tyrows');
   $('typlus').onchange=function(){const n=this.value;this.value='';if(!n||[...rows().children].some(r=>r.dataset.n===n))return;rows().insertAdjacentHTML('beforeend',rowH(n,tyCode($('tyd').value,n),''))};
-  if(!ev)$('tyd').onchange=function(){if(!this.value)return;const sp=tySplit(this.value,u);rows().innerHTML=sp.hr.map(x=>rowH(x.n,x.c,x.h)).join('');$('typay').innerHTML=payH(this.value,sp.hr.map(x=>x.n))};
-  $('typay').onclick=e=>{const b=e.target.closest('.typb');if(!b)return;rows().insertAdjacentHTML('beforeend',rowH(b.dataset.n,tyCode($('tyd').value,b.dataset.n),b.dataset.h));b.closest('.typr').remove();if(!$('typay').querySelector('.typb'))$('typay').innerHTML=''};
+  if(!ev)$('tyd').onchange=function(){if(!this.value)return;OFF.clear();const sp=tySplit(this.value,u);rows().innerHTML=sp.hr.map(x=>rowH(x.n,x.c,x.h)).join('');$('typay').innerHTML=payH(this.value,sp.hr.map(x=>x.n))};
+  $('typay').onclick=e=>{const b=e.target.closest('.typb');if(!b)return;const n=b.dataset.n,a=b.dataset.a;
+    if(a==='h')rows().insertAdjacentHTML('beforeend',rowH(n,tyCode($('tyd').value,n),b.dataset.h));else if(a==='o')OFF.add(n);else OFF.delete(n);
+    $('typay').innerHTML=payH($('tyd').value,have())};
   const v=await pr;if(v==='c')return;
   try{
     if(v==='d'){if(!await ask('刪除颱風假','確定刪除 '+tyFmt(ev.d)+' 這次颱風假？','刪除',true))return;const r=await call('tyDel',{id:ev.id});S.ty=r.ty;renderTy();toast('已刪除');return}
-    const h={};[...rows().children].forEach(r=>{const x=parseFloat(r.querySelector('input').value);if(x>0)h[r.dataset.n]=x});
+    const h={};[...rows().children].forEach(r=>{const x=parseFloat(r.querySelector('input').value);if(x>0)h[r.dataset.n]=x});OFF.forEach(n=>{if(!(n in h))h[n]=0});
+    if(!Object.keys(h).length&&!tySplit($('tyd').value,u).pay.length){await msg('這一天沒有任何人，請至少填一位人員的時數');return}
     const r=await call('tySave',{id:ev?ev.id:'',u,d:$('tyd').value,h});S.ty=r.ty;renderTy();toast('已儲存')
   }catch(e){await msg(e.message)}
 }
@@ -506,10 +516,10 @@ document.addEventListener('click',e=>{
   const c=t.closest('.tyc');if(c){tyCell(find(c.dataset.id),c.dataset.n)}
 });
 async function tyCell(ev,n){
-  if(!ev)return;const cur=ev.h[n];
-  const pr=modal(tyFmt(ev.d)+'　'+n,(cur==null&&tyPay(ev.d,n,tyCode(ev.d,n))?'<p class="typ" style="margin:0 0 8px">週六領休加（$），不算時數；要改成算時數請填入</p>':'')+'<label class="mut" style="font-size:13px">颱風假時數（留空＝沒有）</label><input type="number" inputmode="decimal" step="0.5" min="0" max="24" id="tyone" value="'+(cur!=null?cur:'')+'" style="margin:6px 0 0">',[{t:'取消',v:false},{t:'儲存',v:true,go:true}]);
-  if(!await pr)return;const x=parseFloat($('tyone').value),h=Object.assign({},ev.h);if(x>0)h[n]=x;else delete h[n];
-  try{if(!Object.keys(h).length){if(!await ask('刪除颱風假','這次颱風假已經沒有任何人，要整次刪除嗎？','刪除',true))return;const r=await call('tyDel',{id:ev.id});S.ty=r.ty}else{const r=await call('tySave',{id:ev.id,u:ev.u,d:ev.d,h});S.ty=r.ty}renderTy();toast('已儲存')}catch(e){await msg(e.message)}
+  if(!ev)return;const cur=ev.h[n],pay=tyPay(ev.d,n,tyCode(ev.d,n));
+  const pr=modal(tyFmt(ev.d)+'　'+n,(cur===0?'<p class="typ" style="margin:0 0 8px">目前：不列入（休）。'+(pay?'留空可恢復成 $ 休加':'')+'</p>':cur==null&&pay?'<p class="typ" style="margin:0 0 8px">週六領休加（$），不算時數；要改成算時數請填入</p>':'')+'<label class="mut" style="font-size:13px">颱風假時數（留空＝'+(pay?'依班表 $ 休加':'沒有')+'；填 0＝不列入）</label><input type="number" inputmode="decimal" step="0.5" min="0" max="24" id="tyone" value="'+(cur!=null?cur:'')+'" style="margin:6px 0 0">',[{t:'取消',v:false},{t:'儲存',v:true,go:true}]);
+  if(!await pr)return;const raw=$('tyone').value.trim(),x=parseFloat(raw),h=Object.assign({},ev.h);if(x>0)h[n]=x;else if(raw!==''&&x===0)h[n]=0;else delete h[n];
+  try{if(!Object.keys(h).length&&!tySplit(ev.d,ev.u).pay.length){if(!await ask('刪除颱風假','這次颱風假已經沒有任何人，要整次刪除嗎？','刪除',true))return;const r=await call('tyDel',{id:ev.id});S.ty=r.ty}else{const r=await call('tySave',{id:ev.id,u:ev.u,d:ev.d,h});S.ty=r.ty}renderTy();toast('已儲存')}catch(e){await msg(e.message)}
 }
 /* ---- 小視窗 ---- */
 function modal(title,body,btns){return new Promise(res=>{$('gt').textContent=title;$('gb').innerHTML=body;const w=$('gbtn');w.innerHTML='';
@@ -671,7 +681,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.03.2';
+const APPV='2026.11.03.3';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -798,6 +808,7 @@ function switchTab(t){
   $('tabR').className=t==='roster'?'go':'';$('tabR').style.margin='0';
   if(t==='roster'){renderRoster('D2694');window.scrollTo(0,0);return}
   if(t==='rec'){recPick();showRM();renderTy();window.scrollTo(0,0);if(u==='D2690')loadFill90();else loadFill();return}
+  renderTy();   // 後台也顯示颱風假（其他頁面會自動隱藏）
   if(u==='D2690'){if(t==='fill')loadFill90();else loadBack90();return}
   if(t==='fill')loadFill();else loadBack();
 }
@@ -1078,7 +1089,7 @@ $('rmp').onchange=e=>setRM(e.target.value);
 showM('bm');
 ['bm','bm9','xm'].forEach(id=>$(id+'p').onchange=e=>{if(!e.target.value)return;S.month=e.target.value;reM(id)});
 $('dpb').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.dp=b.dataset.dp;renderBack()};
-$('fp').onchange=$('ft').onchange=()=>renderBack();
+$('fp').onchange=$('ft').onchange=()=>{renderBack();renderTy()};
 async function loadBack(){
   showM('bm');
   try{S.bv=await call('view',{month:S.month,person:''});renderBack()}catch(e){msg(e.message)}
@@ -1476,7 +1487,7 @@ function renderFill90(){
 }
 
 /* ---- 後台 ---- */
-$('fp9').onchange=$('ft9').onchange=()=>renderBack90();
+$('fp9').onchange=$('ft9').onchange=()=>{renderBack90();renderTy()};
 async function loadBack90(){
   showM('bm9');
   const fpv=$('fp9').value,st9=staff9();$('fp9').innerHTML='<option value="">全部</option>'+st9.map(n=>`<option>${esc(n)}</option>`).join('');if(st9.includes(fpv))$('fp9').value=fpv;
