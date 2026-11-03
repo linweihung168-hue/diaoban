@@ -42,7 +42,7 @@ details.e9r>summary::-webkit-details-marker{display:none}.e9r small{color:var(--
 .calc{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:14px}
 .mut{color:var(--mut)}.tyseg{display:flex;background:var(--bd);border-radius:10px;padding:3px;margin:4px 0 10px}.tyseg button{flex:1;margin:0;border:0;background:transparent;border-radius:8px;padding:6px;font-size:14px;color:inherit}.tyseg button.on{background:var(--card,#fff);font-weight:600}
 .tyt td,.tyt th{text-align:center}.tyt td:first-child,.tyt th:first-child{text-align:left}.tyd,.tyc{cursor:pointer}.tyd{color:var(--ac)}.tycard{border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-top:8px}.tych{display:flex;justify-content:space-between;margin-bottom:4px}.tyr{display:flex;justify-content:space-between;padding:4px 0}.tyedit{color:var(--ac);font-weight:600;cursor:pointer;text-decoration:underline}.tyrow{display:flex;align-items:center;gap:6px;padding:4px 0}
-.typ{color:var(--mut);font-weight:500}.tyk{font-size:10.5px;color:var(--mut);margin-left:3px}.tyt td.tym,.ty1.tym,span.tym{background:color-mix(in srgb,#8e6bd8 16%,transparent)}.tyt tr.gs td{border-top:2px solid var(--fg)}.tyt th small{font-weight:400;font-size:11px}
+.typ{color:var(--mut);font-weight:500}.typ.tys{font-size:13px;font-weight:400;line-height:1.5}.tyk{font-size:10.5px;color:var(--mut);margin-left:3px}.tyt td.tym,.ty1.tym,span.tym{background:color-mix(in srgb,#8e6bd8 16%,transparent)}.tyt tr.gs td{border-top:2px solid var(--fg)}.tyt th small{font-weight:400;font-size:11px}
 .ty1{display:flex;justify-content:space-between;align-items:center;padding:9px 6px;border-top:1px solid var(--bd)}.ty1.tyc{cursor:pointer}.ty1.tysum{border-top:2px solid var(--bd);font-weight:600}
 .typay{margin-top:10px}.typt{font-size:12.5px;color:var(--mut);padding:8px 0 2px;border-top:1px dashed var(--bd)}.typr{min-height:44px}.typr>span:first-child{color:var(--mut)}.typb{border:0;background:none;color:var(--ac);font-size:13px;padding:4px 0 4px 10px;margin:0;cursor:pointer;width:auto;text-decoration:underline}
 .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:left}th{color:var(--mut)}
@@ -471,7 +471,7 @@ function renderTy(){
           return '<td class="tyc'+(q&&q.man?' tym':'')+'" data-id="'+e.id+'" data-n="'+esc(n)+'">'+x+'</td>'}).join('')+'<td><b style="color:var(--ac)">'+tyHr(t)+'H</b>'+(pc?'<small class="typ" style="margin-left:4px">$'+pc+'</small>':'')+'</td></tr>'});
       h+='</table></div><p class="mut" style="margin:8px 0 0;font-size:12px">點格子改時數；點日期看整次、刪除。<span class="typ">$</span>＝週六領休加、不算時數；<span class="tym" style="padding:0 4px;border-radius:4px">淡紫</span>＝手動改過；<span class="typ">休</span>＝不列入（例：停診跟著放假）</p>';
     }else{
-      L.slice().reverse().forEach(e=>{const ks=Object.keys(e.h).filter(n=>e.h[n]>0);h+='<div class="tycard"><div class="tych"><b>'+tyFmt(e.d)+'</b><span class="mut">'+ks.length+' 人　<a class="tyedit" data-id="'+e.id+'">修改</a></span></div>'+ks.map(n=>'<div class="tyr"><span>'+esc(n)+'</span><b>'+tyHr(e.h[n])+'H</b></div>').join('')+(()=>{const q=tyCells(e),p=Object.keys(q).filter(n=>q[n].pay);const f=Object.keys(q).filter(n=>q[n].off);return (p.length?'<div class="tyr"><span class="typ">休加（不算時數）：'+p.map(esc).join('、')+'</span></div>':'')+(f.length?'<div class="tyr"><span class="typ">不列入：'+f.map(esc).join('、')+'</span></div>':'')})()+'</div>'});
+      L.slice().reverse().forEach(e=>{const ks=Object.keys(e.h).filter(n=>e.h[n]>0);h+='<div class="tycard"><div class="tych"><b>'+tyFmt(e.d)+'</b><span class="mut">'+ks.length+' 人　<a class="tyedit" data-id="'+e.id+'">修改</a></span></div>'+ks.map(n=>'<div class="tyr"><span>'+esc(n)+'</span><b>'+tyHr(e.h[n])+'H</b></div>').join('')+(()=>{const q=tyCells(e),p=Object.keys(q).filter(n=>q[n].pay);const f=Object.keys(q).filter(n=>q[n].off);return (p.length?'<div class="tyr"><span class="typ tys">休加：'+p.map(esc).join('、')+'</span></div>':'')+(f.length?'<div class="tyr"><span class="typ tys">不列入：'+f.map(esc).join('、')+'</span></div>':'')})()+'</div>'});
     }
   }else h+='<p class="mut" style="margin:0 0 4px">目前沒有颱風假</p>';
   h+='<button type="button" class="go" id="tyadd" style="margin:12px 0 0">＋ 新增颱風假</button>';
@@ -681,7 +681,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.03.4';
+const APPV='2026.11.03.5';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
