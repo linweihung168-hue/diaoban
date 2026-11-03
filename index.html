@@ -406,7 +406,11 @@ async function call(action,payload){
 const TYW=['日','一','二','三','四','五','六'];
 const tyFmt=d=>{const t=new Date(d+'T00:00:00Z');return d.slice(5,7)+'/'+d.slice(8,10)+'（'+TYW[t.getUTCDay()]+'）'};
 const tyHr=h=>String(+h);
-function tyStaff(u){return (u==='D2690'?(S.cfg90&&S.cfg90.staff):(S.cfg&&S.cfg.staff))||[]}
+/* 兩個單位都有的人，颱風假只算在編制單位（王宸瑄：編制西藥局、支援中醫）；另一單位就算存過他的時數也忽略 */
+const TY_HOME={'王宸瑄':'D2690'};
+const tyMine=(n,u)=>!TY_HOME[n]||TY_HOME[n]===u;
+function tyStaff(u){return ((u==='D2690'?(S.cfg90&&S.cfg90.staff):(S.cfg&&S.cfg.staff))||[]).filter(n=>tyMine(n,u))}
+const tyClean=e=>{const h={};Object.keys(e.h||{}).forEach(n=>{if(tyMine(n,e.u))h[n]=e.h[n]});return Object.assign({},e,{h})};
 /* 颱風假用的班別。週六 Word 空白：班表檔記成 ~R（大班表顯示空白），但實際上是 N 班有上班 → 這裡當 N（大夜鄭光輝、柯宥騂除外，他們週六空白是休假） */
 const TY_SAT_OFF=['鄭光輝','柯宥騂'];
 function tyCode(date,name){const R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},a=(R[date.slice(0,7)]||{})[name];if(!a)return '';const raw=String(a[+date.slice(8,10)-1]||'');
@@ -455,7 +459,7 @@ function renderTy(){
   if(bk){const sec=$(u==='D2690'?'back90':'back'),ref=$(u==='D2690'?'dAll9':'dAll').closest('.card');if(el.nextElementSibling!==ref)sec.insertBefore(el,ref)}   // 後台：放在「所有登記」上面
   else if(el.parentNode!==$('recSec'))$('recSec').appendChild(el);
   el.style.display='';
-  const L=(S.ty||[]).filter(e=>e.u===u).slice().sort((x,y)=>x.d<y.d?-1:1);
+  const L=(S.ty||[]).filter(e=>e.u===u).map(tyClean).sort((x,y)=>x.d<y.d?-1:1);
   if(!adm){el.innerHTML=tyWrap('我的颱風假',tyOne(S.me.name,L,false));return}
   const one=bk?$(u==='D2690'?'fp9':'fp').value:(u==='D2690'?(S.kp9||''):(S.target||''));
   if(one){el.innerHTML=tyWrap('颱風假 — '+esc(one),tyOne(one,L,true)+'<p class="mut" style="margin:8px 0 0;font-size:12px">點日期改時數；上方人員改選「'+(bk?'全部':'請選擇人員')+'」可看全部人</p>');return}
@@ -480,7 +484,7 @@ function renderTy(){
 function tyWrap(t,b){return '<details id="tyd0"'+(S.tyOpen===true?' open':'')+'><summary>'+t+'</summary>'+b+'</details>'}
 document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='tyd0')S.tyOpen=e.target.open},true);
 async function tyEdit(ev,pre){
-  const u=ev?ev.u:S.unit,staff=tyStaff(u);
+  if(ev)ev=tyClean(ev);const u=ev?ev.u:S.unit,staff=tyStaff(u);
   const rowH=(n,c,hv)=>'<div class="tyrow" data-n="'+esc(n)+'"><span style="flex:1">'+esc(n)+(tyShow(c)?' <span class="mut">'+esc(tyShow(c))+'</span>':'')+'</span><input type="number" inputmode="decimal" step="0.5" min="0" max="24" value="'+(hv||'')+'" style="width:70px;text-align:right;margin:0"> <span class="mut">H</span></div>';
   const date=ev?ev.d:(pre||twNow().slice(0,10));
   const sp0=tySplit(date,u),init=ev?Object.keys(ev.h).filter(n=>ev.h[n]>0).map(n=>({n,c:tyCode(date,n),h:ev.h[n]})):sp0.hr;
@@ -516,7 +520,7 @@ document.addEventListener('click',e=>{
   const c=t.closest('.tyc');if(c){tyCell(find(c.dataset.id),c.dataset.n)}
 });
 async function tyCell(ev,n){
-  if(!ev)return;const cur=ev.h[n],pay=tyPay(ev.d,n,tyCode(ev.d,n));
+  if(!ev)return;ev=tyClean(ev);const cur=ev.h[n],pay=tyPay(ev.d,n,tyCode(ev.d,n));
   const pr=modal(tyFmt(ev.d)+'　'+n,(cur===0?'<p class="typ" style="margin:0 0 8px">目前：不列入（休）。'+(pay?'留空可恢復成 $ 休加':'')+'</p>':cur==null&&pay?'<p class="typ" style="margin:0 0 8px">週六領休加（$），不算時數；要改成算時數請填入</p>':'')+'<label class="mut" style="font-size:13px">颱風假時數（留空＝'+(pay?'依班表 $ 休加':'沒有')+'；填 0＝不列入）</label><input type="number" inputmode="decimal" step="0.5" min="0" max="24" id="tyone" value="'+(cur!=null?cur:'')+'" style="margin:6px 0 0">',[{t:'取消',v:false},{t:'儲存',v:true,go:true}]);
   if(!await pr)return;const raw=$('tyone').value.trim(),x=parseFloat(raw),h=Object.assign({},ev.h);if(x>0)h[n]=x;else if(raw!==''&&x===0)h[n]=0;else delete h[n];
   try{if(!Object.keys(h).length&&!tySplit(ev.d,ev.u).pay.length){if(!await ask('刪除颱風假','這次颱風假已經沒有任何人，要整次刪除嗎？','刪除',true))return;const r=await call('tyDel',{id:ev.id});S.ty=r.ty}else{const r=await call('tySave',{id:ev.id,u:ev.u,d:ev.d,h});S.ty=r.ty}renderTy();toast('已儲存')}catch(e){await msg(e.message)}
@@ -681,7 +685,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.03.5';
+const APPV='2026.11.03.6';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
