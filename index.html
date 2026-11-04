@@ -736,7 +736,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.04.5';
+const APPV='2026.11.05.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1056,7 +1056,7 @@ function renderFill(){
   setTimeout(auto94,0);
   const v=S.fv,st=v.stats[0]||{carryIn:0,total:0,extra:0,unused:0,can:0},adm=isAdmin();
   $('mineH').textContent=adm?S.target+' 的未休分鐘（含上月）':'我的未休分鐘（含上月）';
-  $('mine').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">滿 30 分鐘可換 0.5 小時，目前可換 ${st.can} 小時。</div><details class="how"><summary>怎麼算的？</summary><div class="note">${RL()}加班 ${st.total} 分鐘；未休 ＝ 上月 ${st.carryIn} ＋ ${RL()}多出 ${st.extra} ＝ ${st.unused} 分鐘。</div></details>`+(st.note?'<div class="mnote">備註：'+esc(st.note)+'</div>':'');
+  $('mine').innerHTML=`<div class="big">${st.unused} 分鐘</div><div class="note">滿 30 分鐘可換 0.5 小時，目前可換 ${st.can} 小時。</div><details class="how"><summary>怎麼算的？</summary><div class="note">${RL()}加班 ${st.total} 分鐘；未休 ＝ 上月 ${st.carryIn} ＋ ${RL()}多出 ${st.extra} ＝ ${st.unused} 分鐘。${st.pay?'週六領加班費的 '+st.pay+' 分鐘不列入。':''}</div></details>`+(st.note?'<div class="mnote">備註：'+esc(st.note)+'</div>':'');
   $('myList').innerHTML=(v.entries.length?L94H:'')+v.entries.map(e=>entryRow94(e,false)).join('')||'<p class="note">'+RL()+'還沒有登記</p>';
   $('myDays').innerHTML=daysTable(v.days,false);
   $('sl94').style.display=adm?'none':'flex';$('sl94').innerHTML=`<div>未休 <b>${st.unused}</b> 分鐘</div><span>查看紀錄 ›</span>`;
@@ -1102,7 +1102,7 @@ document.querySelectorAll('select.so').forEach(x=>x.value=S.so);
 function daysTable(days,adm,endT){endT=endT||{};
   let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th>${adm?'<th>代號</th><th>下班時間</th>':''}<th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>小夜h</th>':''}<th>備註</th></tr>`;
   days.slice().sort(adm?soCmp('date','name'):(x,y)=>x.date<y.date?1:x.date>y.date?-1:0).forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
-    h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(dn(d.shift))}</td>${adm?'<td>'+esc(d.bcode||'')+'</td><td><b>'+esc(endT[d.date+'|'+d.name]||'')+'</b></td>':''}<td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
+    h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(dn(d.shift))}</td>${adm?'<td>'+esc(d.bcode||'')+'</td><td><b>'+esc(endT[d.date+'|'+d.name]||'')+'</b></td>':''}<td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?(d.pay?'<span class="typ" title="週六領加班費，不列入月結">'+d.extra+' 分 $</span>':'<span class="warn">'+d.extra+' 分</span>'):'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
   return h;
 }
 
@@ -1158,8 +1158,8 @@ function renderBack(){
   $('bDays').innerHTML=daysTable(v.days.filter(d=>!S.dp||d.name===S.dp),true,endT);
   const fpp=$('fp').value,man=v.manual.filter(m=>!fpp||m.name===fpp);$('bManN').textContent=fpp?'（'+fpp+' '+man.length+' 筆）':'';
   $('bMan').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(man.map(m=>`<tr><td>${esc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
-  $('bStat').innerHTML='<tr><th>姓名</th><th>上月未休分鐘<span class="pen">✎</span></th><th>本月總加班分鐘</th><th>本月總加班分鐘（含上月）</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）<span class="pen">✎</span></th><th>結轉下月</th><th>備註<span class="pen">✎</span></th></tr>'+
-    v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.total+s.carryIn}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td><input type="text" class="nt" maxlength="200" value="${esc(s.note||'')}" data-n="${esc(s.name)}" data-u="D2694" aria-label="備註"></td></tr>`).join('');
+  $('bStat').innerHTML='<tr><th>姓名</th><th>上月未休分鐘<span class="pen">✎</span></th><th>本月總加班分鐘</th><th>本月總加班分鐘（含上月）</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）<span class="pen">✎</span></th><th>結轉下月</th><th>週六 $（分）</th><th>備註<span class="pen">✎</span></th></tr>'+
+    v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.total+s.carryIn}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td><b>${s.carryOut} 分</b></td><td>${s.pay?'<span class="typ">'+s.pay+'</span>':''}</td><td><input type="text" class="nt" maxlength="200" value="${esc(s.note||'')}" data-n="${esc(s.name)}" data-u="D2694" aria-label="備註"></td></tr>`).join('');
   const p=$('fp').value,ty=$('ft').value,list=v.entries.filter(e=>(!p||e.name===p)&&(!ty||e.ty===ty)).sort(soCmp('date','at'));
   $('fcnt').textContent='共 '+list.length+' 筆';$('bList').innerHTML=(list.length?L94H:'')+list.map(e=>entryRow94(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
 }
@@ -1198,7 +1198,7 @@ $('xgo').onclick=async()=>{
     const endT={};r.entries.forEach(e=>{if(e[5]==='OT'&&e[8]){const k=e[4]+'|'+e[3];if(!endT[k]||e[8]>endT[k])endT[k]=e[8]}});
     const days=[['日期','姓名','班別','下班時間','總工時(h)','多出分鐘','計入工時(h)','加班分鐘','請假','班別代號','小夜h','備註']].concat(r.days.filter(d=>inM(d.date)).map(d=>[d.date,d.name,d.shift,endT[d.date+'|'+d.name]||'',d.total==null?'':d.total,d.extra,d.counted,d.t,d.lv?hm(d.lv):'',d.bcode||'',d.nightH||'',[d.ty,d.notes.length?'需人工核對：'+d.notes.join('；'):'',d.warn].filter(Boolean).join('　')]));
     const ents=[['日期','對象','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註','代填者','已修改','登記人','登記時間']].concat(r.entries.filter(e=>inM(e[4])).sort((a,b)=>a[4]<b[4]?-1:a[4]>b[4]?1:(a[1]<b[1]?-1:1)).map(e=>[e[4],e[3],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11],e[12],e[13]==='Y'?'是':'',e[2],e[1]]));
-    const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)','備註']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut,s.note||'']));
+    const stat=[['年月','姓名','上月未休分鐘','本月總加班分鐘','本月多出分鐘','未休分鐘(含上月)','可換算(h)','本月抵消(h)','結轉下月(分)','週六$(分)','備註']].concat(r.stats.filter(s=>inM(s.ym)).map(s=>[s.ym,s.name,s.carryIn,s.total,s.extra,s.unused,s.can,s.offset,s.carryOut,s.pay||'',s.note||'']));
     const del=[['刪除時間','刪除者','對象','日期','類型','班別','時間','醫師','最後一張領藥號','處方時間','備註']].concat(r.deleted.filter(e=>inM(e[4])).map(e=>[e[14],e[15],e[3],e[4],tyOf(e[5]),e[6]==='—'?'':e[6],timeOf(e[5],e[6],e[7],e[8]),e[9],...sk(e[10]),e[11]]));
     const edt=[['時間','修改者','動作','對象','修改前','修改後']].concat(r.edits.filter(e=>inM(e[0])&&!isD90(e)));
     const lgn=[['時間','姓名','裝置']].concat(r.logins.filter(e=>inM(e[0])));
