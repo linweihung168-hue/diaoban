@@ -462,13 +462,15 @@ function tyCode(date,name){const R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},a=(
 const P94=[{name:'陳淑女',from:'2026-11-01',rules:[
   {code:'M1',wd:[1,4],key:['M1','11月起'],h:8},
   {code:'B',wd:[1],key:['B','11月起','小夜'],h:7}]},
+  {name:'陳淑女',from:'2026-10-01',rules:[   // 10/1 起星期三小夜 12:30 上班（時數不夠）：Word 寫 B 或 B1230 都帶 B 西 小夜，8h
+  {code:'B',wd:[3],key:['B','西','小夜'],h:8},{code:'B1230',wd:[3],key:['B','西','小夜'],h:8}]},
   {name:'王宸瑄',from:'2000-01-01',rules:[      // 西藥局固定支援：小夜一律 12:30 上班（B 西 小夜，8h），不跟中醫時段
   {code:'B',wd:[0,1,2,3,4,5,6],key:['B','西','小夜'],h:8}]}];
 function p94(name,date,code){
   if(!name||!date||!code)return null;const wd=new Date(date+'T00:00:00').getDay();
   for(const p of P94)if(p.name===name&&date>=p.from){const r=p.rules.find(r=>r.code===code&&r.wd.includes(wd));if(r)return r}
   return null}
-const TYH={N:8,N2:7.5,M1:7.5,'N+':4,B:6.5,B1230:6.5,B4:7.5,AM:3.5,PM:4,E:8,E7:8.5,F:8,F2:8,FS:8,FA:8,G:8,A1:8,A3:8,S1:8,S2:8,S8:10,S9:6,S7:10};
+const TYH={N:8,N2:7.5,M1:7.5,'N+':4,B:6.5,B1230:8,B4:7.5,AM:3.5,PM:4,E:8,E7:8.5,F:8,F2:8,FS:8,FA:8,G:8,A1:8,A3:8,S1:8,S2:8,S8:10,S9:6,S7:10};
 function tyDef(c,date,name){c=String(c||'').trim();if(!c||c==='P'||c==='P2')return 0;let h=TYH[c];
   if(h==null){const m=c.match(/^(\d{1,2})-(\d{1,2})$/);if(m&&+m[2]>+m[1])h=+m[2]-+m[1];else h=0}
   const wd=date?new Date(date+'T00:00:00Z').getUTCDay():1;if(wd===6&&c==='N')h=4;const pr=p94(name,date,c);if(pr)h=pr.h;return h}
@@ -480,14 +482,16 @@ function tyAuto(date,u){const o=[],pd=addDays(date,-1);tyStaff(u).forEach(n=>{co
    陳淑女、王宸瑄週六一律領 $；黃菲琳一律算時數。（週六 E 備註 UD 目前無法從班表檔分辨，先當 E 領 $，需要時手動改成時數） */
 const TY_PAY_ALL=['陳淑女','王宸瑄'],TY_PAY_NO=['黃菲琳'];
 const tyTime=c=>/^\d{1,2}-\d{1,2}$/.test(String(c||''));
-function tyPay(date,n,c){if(new Date(date+'T00:00:00Z').getUTCDay()!==6)return false;c=String(c||'').trim();
+const tyUD=(date,n)=>(((S.rud||{})[date.slice(0,7)]||{})[n]||[]).includes(+date.slice(8,10));   // 週六 E 加註 UD＝給時數（班表檔另外帶的名單）
+function tyPay(date,n,c){if(new Date(date+'T00:00:00Z').getUTCDay()!==6)return false;c=String(c||'').trim();if(c==='E'&&tyUD(date,n))return false;
   if(TY_PAY_NO.includes(n))return false;if(TY_PAY_ALL.includes(n))return true;return c==='N'||c==='E'||tyTime(c)}
-const tyShow=c=>{c=String(c||'').trim();return (c==='N'||tyTime(c))?'':c};   // N 班（含 10-14、11-15）不顯示小字
+const tyShow=c=>{c=String(c||'').trim();return (c==='N'||tyTime(c))?'':c};
+const tyLbl=(date,n,c)=>{const v=tyShow(c);return v==='E'&&tyUD(date,n)?'E UD':v};   // N 班（含 10-14、11-15）不顯示小字
 /* 這一天：誰自動算時數、誰領 $（依大班表） */
-function tySplit(date,u){const hr=[],pay=[];tyAuto(date,u).forEach(x=>{const c=tyCode(date,x.n);if(tyPay(date,x.n,c))pay.push({n:x.n,c:tyShow(x.c),h:x.h});else hr.push({n:x.n,c:tyShow(x.c),h:x.h})});return {hr,pay}}
+function tySplit(date,u){const hr=[],pay=[];tyAuto(date,u).forEach(x=>{const c=tyCode(date,x.n),lb=x.c===c?tyLbl(date,x.n,c):tyShow(x.c);if(tyPay(date,x.n,c))pay.push({n:x.n,c:lb,h:x.h});else hr.push({n:x.n,c:lb,h:x.h})});return {hr,pay}}
 /* 一次颱風假的每格內容：{v:時數|null, pay:領$, man:手動改過, c:班別} */
 function tyCells(e){const sp=tySplit(e.d,e.u),au={},py={},o={};sp.hr.forEach(x=>au[x.n]=x.h);sp.pay.forEach(x=>py[x.n]=x.c);
-  Object.keys(e.h).forEach(n=>{const off=e.h[n]===0;o[n]={v:e.h[n],pay:false,off,man:!off&&au[n]!==e.h[n],c:tyShow(tyCode(e.d,n))}});   // 0＝不列入（例：停診跟著放假）
+  Object.keys(e.h).forEach(n=>{const off=e.h[n]===0;o[n]={v:e.h[n],pay:false,off,man:!off&&au[n]!==e.h[n],c:tyLbl(e.d,n,tyCode(e.d,n))}});   // 0＝不列入（例：停診跟著放假）
   Object.keys(py).forEach(n=>{if(!o[n])o[n]={v:null,pay:true,man:false,c:py[n]}});return o}
 function tyOrder(L,u){const ym=L.length?L[0].d.slice(0,7):ymNow(),R=S.roster94||(S.cfg90&&S.cfg90.roster)||{},ord=Object.keys(R[ym]||{}),st=tyStaff(u);
   const k=n=>{const i=ord.indexOf(n);return i<0?999+st.indexOf(n):i};return k}
@@ -585,7 +589,7 @@ $('lsw').onclick=()=>{try{store.removeItem(LK)}catch(e){};$('code').value='';$('
 async function doLogin(code,unlock,pw){return call0('login',{code:code,pw:pw||'',dev:dev(),unlock:!!unlock})}
 async function call0(a,p){const r=await rpc(a,null,p);if(r&&r.ok)return r;if(r&&r.error==='MAINT')throw new Error('系統更新中');if(r&&r.error==='NEEDPW'){const e=new Error('請輸入密碼');e.needPw=true;throw e}throw new Error((r&&r.error)||'登入失敗')}
 async function afterLogin(r,c){try{if(c&&r.me.hasPw)store.setItem(LK,JSON.stringify({c:c,n:r.me.name}));else if(c)store.removeItem(LK)}catch(e){}
-  S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.rm=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.ty=r.ty||[];applySys(r);enter()}
+  S.token=r.token;S.me=r.me;S.cfg=r.cfg;store.setItem(TK,r.token);S.tab='fill';S.target='';S.lk=null;S.month=ymNow();S.rm=ymNow();S.last=r.last;S.pre=r.view||null;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.rud=r.rud||{};S.ty=r.ty||[];applySys(r);enter()}
 $('lgin').onclick=async()=>{const c=$('code').value.trim();if(!c){$('lerr').textContent='請輸入員工代號';return}
   $('lgin').disabled=true;try{await afterLogin(await doLogin(c,false,$('lpw').value),c)}catch(e){
     if(e.needPw){const first=$('pwrow').style.display==='none';$('pwrow').style.display='';$('lerr').textContent=first?'':'請輸入密碼';$('lpw').focus()}
@@ -598,7 +602,7 @@ const doOut=()=>{store.removeItem(TK);showLogin('')};
 $('out').onclick=async()=>{if(!await ask('確定要登出嗎？','','登出',true))return;doOut()};
 async function boot(){
   const t=store.getItem(TK);
-  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.ty=r.ty||[];S.last=null;S.pre=r.view||null;applySys(r);enter();return}catch(e){if(e.maint)return;store.removeItem(TK)}}
+  if(t){S.token=t;try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.rud=r.rud||{};S.ty=r.ty||[];S.last=null;S.pre=r.view||null;applySys(r);enter();return}catch(e){if(e.maint)return;store.removeItem(TK)}}
   showLogin('');
 }
 
@@ -726,13 +730,13 @@ document.addEventListener('change',e=>{if(e.target.id==='rp'){RP=e.target.value;
 document.addEventListener('click',async e=>{
   const rs=e.target.closest('[data-rs]');if(rs){RSM[rs.dataset.rs]=shiftYm(RSM[rs.dataset.rs],+rs.dataset.d,rs.dataset.rs);renderRoster(rs.dataset.rs);return}
   const rf=e.target.closest('[data-rf]');if(rf){e.preventDefault();e.stopPropagation();rf.classList.add('spin');
-    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.ty=r.ty||[];S.rl0=twNow();applySys(r);renderRoster('D2694');toast('已更新')}catch(er){msg(er.message)}
+    try{const r=await call('init');S.me=r.me;S.cfg=r.cfg;S.cfg90=r.cfg90||null;S.ov90=r.ov90||[];S.roster94=r.roster94||null;S.rud=r.rud||{};S.ty=r.ty||[];S.rl0=twNow();applySys(r);renderRoster('D2694');toast('已更新')}catch(er){msg(er.message)}
     rf.classList.remove('spin')}
 });
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.04.4';
+const APPV='2026.11.04.5';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1272,7 +1276,7 @@ const sh9=()=>S.cfg90?S.cfg90.shifts:[];
 const SG9={el:null,noR:false,idx:-1,box:null};
 function sg9Hide(){if(SG9.box)SG9.box.style.display='none';SG9.idx=-1}
 function sg9List(el,noR){const v=el.value.trim().toUpperCase();if(!v)return[];
-  const all=sh9().map(s=>s.name).filter(n=>!(noR&&n==='R'));
+  const all=sh9().map(s=>s.name).filter(n=>!(noR&&(n==='R'||n==='X')));
   let a=all.filter(n=>n.indexOf(v)===0);if(!a.length)a=all.filter(n=>n.indexOf(v)>=0);
   return (a.length===1&&a[0]===v)?[]:a}
 function sg9Place(){const el=SG9.el,b=SG9.box;if(!el||!b||b.style.display==='none')return;const r=el.getBoundingClientRect();
@@ -1291,7 +1295,7 @@ function sg9Key(e,el,noR){const b=SG9.box;if(!b||b.style.display==='none')return
   else if(e.key==='Enter'){e.preventDefault();const i=SG9.idx>=0?SG9.idx:(it.length===1?0:-1);if(i>=0)sg9Pick(it[i].dataset.v)}
   else if(e.key==='Escape')sg9Hide()}
 const noR9=p=>$(p+'ty').value==='請假';
-const okS9=(n,noR)=>!!sh9().find(s=>s.name===n)&&!(noR&&n==='R');
+const okS9=(n,noR)=>!!sh9().find(s=>s.name===n)&&!(noR&&(n==='R'||n==='X'));   // 請假不能選 R、X（整天休）
 const shift9=n=>sh9().find(s=>s.name===n);
 const ORD9='宋佰臻 洪世蓉 王宥閑 徐兆谷 施玫如 黃湯淋 曾玉屏 邱柏凱 詹柔婕 陳秋滿 謝淑釗 蔡宜璇 林偉弘 王宸瑄 鄭光輝 柯宥騂'.split(' ');
 const o9=n=>{const i=ORD9.indexOf(n);return i<0?999:i};
@@ -1641,6 +1645,7 @@ $('ru9').onclick=async()=>{
     const nd=new Date(d.year,d.month,0).getDate(),m={};
     d.people.forEach(p=>{const a=[];for(let i=1;i<=nd;i++)a.push((p.days||{})[i]||'');m[p.name]=a});
     S.cfg90.roster=S.cfg90.roster||{};S.cfg90.roster[ym]=m;
+    const ud={};d.people.forEach(p=>{if(Array.isArray(p.ud)&&p.ud.length)ud[p.name]=p.ud.map(Number)});S.rud=S.rud||{};S.rud[ym]=ud;   // 週六 E 加註 UD 名單
     RS9=null;$('rf9').value='';$('rp9').innerHTML='<span class="ok">已上傳 '+ymTxt9(ym)+'（'+r.count+' 人）。</span>';b.style.display='none';loadRoster9();
   }catch(e){msg(e.message)}finally{b.disabled=false}
 };
