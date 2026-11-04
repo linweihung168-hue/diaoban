@@ -315,6 +315,13 @@ body.wd #bList,body.wd #bList9,body.wd #pend94,body.wd #pend9,body.wd #myList,bo
  body.wd #back table td,body.wd #back90 table td{font-size:17px}
  body.wd #back table th,body.wd #back90 table th{font-size:14.5px}
 }
+/* 下拉選單的選項（瀏覽器自己畫的那一層）也跟著外觀配色 */
+:root{color-scheme:light dark}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+select option,select optgroup{background-color:var(--card);color:var(--fg)}
+/* 深色時：維護提示條、大班表「我的」換班格也改暗色（自動跟系統的深色、手動選深色／深灰都適用） */
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .mtb{background:#3a2a17;color:var(--fg)}:root:not([data-theme=light]) .mc.chg{background:#4a2321;color:#ff9b93}}
+:root[data-theme=dark] .mtb{background:#3a2a17;color:var(--fg)}:root[data-theme=dark] .mc.chg{background:#4a2321;color:#ff9b93}
 
 </style></head><body><main>
 
@@ -725,7 +732,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.04.2';
+const APPV='2026.11.04.3';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
