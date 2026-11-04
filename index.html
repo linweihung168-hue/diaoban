@@ -732,7 +732,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.04.3';
+const APPV='2026.11.04.4';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1094,10 +1094,11 @@ function entryCard(e,adm){
 function soCmp(k1,k2){return(x,y)=>{const c=x[k1]<y[k1]?-1:x[k1]>y[k1]?1:(x[k2]<y[k2]?-1:x[k2]>y[k2]?1:0);return S.so==='o'?c:-c}}
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.classList||!t.classList.contains('so'))return;S.so=t.value;try{store.setItem('diaoban_so',S.so)}catch(er){}document.querySelectorAll('select.so').forEach(x=>x.value=S.so);if(S.bv)renderBack();if(S.bv9)renderBack90()});
 document.querySelectorAll('select.so').forEach(x=>x.value=S.so);
-function daysTable(days,adm){
-  let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th><th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>班別代號</th><th>小夜h</th>':''}<th>備註</th></tr>`;
+/* 管理者：班別旁邊放「代號」與「下班時間」（當天登記加班的實際下班時間，取最晚的一筆），方便抄到大班表 */
+function daysTable(days,adm,endT){endT=endT||{};
+  let h=`<tr><th>日期</th>${adm?'<th>姓名</th>':''}<th>班別</th>${adm?'<th>代號</th><th>下班時間</th>':''}<th>總工時</th><th>多出分鐘</th><th>計入工時</th><th>分鐘</th><th>請假</th>${adm?'<th>小夜h</th>':''}<th>備註</th></tr>`;
   days.slice().sort(adm?soCmp('date','name'):(x,y)=>x.date<y.date?1:x.date>y.date?-1:0).forEach(d=>{const note=[d.ty?esc(d.ty):'',d.notes.length?'<span class="warn">需人工核對：'+esc(d.notes.join('；'))+'</span>':'',d.warn?'<span class="warn">'+esc(d.warn)+'</span>':''].filter(Boolean).join('　');
-    h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(dn(d.shift))}</td><td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.bcode||'')+'</td><td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
+    h+=`<tr><td>${esc(d.date)}</td>${adm?'<td>'+esc(d.name)+'</td>':''}<td>${esc(dn(d.shift))}</td>${adm?'<td>'+esc(d.bcode||'')+'</td><td><b>'+esc(endT[d.date+'|'+d.name]||'')+'</b></td>':''}<td><b>${d.total==null?'—':fm(d.total)+' h'}</b></td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':'0'}</td><td>${d.counted} h</td><td>${d.t}</td><td>${d.lv?hm(d.lv):''}</td>${adm?'<td>'+(d.nightH||'')+'</td>':''}<td>${note}</td></tr>`});
   return h;
 }
 
@@ -1149,7 +1150,8 @@ function renderBack(){
   const v=S.bv;if(!v)return;
   $('pend94').innerHTML=mergeKept(v.pending,S.kd94).map(pendRow94).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
   document.querySelectorAll('#dpb button').forEach(b=>b.className=(b.dataset.dp===S.dp)?'on':'');
-  $('bDays').innerHTML=daysTable(v.days.filter(d=>!S.dp||d.name===S.dp),true);
+  const endT={};(v.entries||[]).forEach(e=>{if(e.ty==='OT'&&e.b){const k=e.date+'|'+e.name;if(!endT[k]||e.b>endT[k])endT[k]=e.b}});
+  $('bDays').innerHTML=daysTable(v.days.filter(d=>!S.dp||d.name===S.dp),true,endT);
   const fpp=$('fp').value,man=v.manual.filter(m=>!fpp||m.name===fpp);$('bManN').textContent=fpp?'（'+fpp+' '+man.length+' 筆）':'';
   $('bMan').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(man.map(m=>`<tr><td>${esc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
   $('bStat').innerHTML='<tr><th>姓名</th><th>上月未休分鐘<span class="pen">✎</span></th><th>本月總加班分鐘</th><th>本月總加班分鐘（含上月）</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）<span class="pen">✎</span></th><th>結轉下月</th><th>備註<span class="pen">✎</span></th></tr>'+
