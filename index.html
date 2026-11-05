@@ -504,7 +504,7 @@ function tyOne(n,L,adm){let t=0,pc=0;const rows=L.slice().reverse().map(e=>{cons
 function gjList(u){const out=[],st=tyStaff(u);Object.keys(S.rtui||{}).sort().forEach(ym=>{const m=S.rtui[ym]||{};Object.keys(m).forEach(n=>{if(!st.includes(n))return;
   (m[n]||[]).forEach(dd=>{const d=ym+'-'+String(dd).padStart(2,'0');out.push({d,n,am:tyCode(d,n)==='AM',h:4,t:'退修會'})})})});
   const ok=tyOrder(out.length?[{d:out[0].d}]:[],u);return out.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:ok(a.n)-ok(b.n))}
-const gjAm=x=>x.am?' <small class="mut">上午請假</small>':'';
+const gjAm=x=>x.am?' <small class="mut">AM</small>':'';   // 上午請假＋下午退修會
 const GJ_NOTE='<p class="mut" style="margin:8px 0 0;font-size:12px">依大班表自動列出：Word 格子寫「退」＝退修會（下午公假 4H）。要修改請改 Word，再到設定 → 班表檔重新上傳。</p>';
 function gjOne(n,u,adm){const L=gjList(u).filter(x=>x.n===n);if(!L.length)return '<p class="mut" style="margin:0">'+(adm?esc(n)+' ':'')+'目前沒有公假</p>';
   return L.map(x=>'<div class="ty1"><span>'+tyFmt(x.d)+'　'+x.t+gjAm(x)+'</span><b style="color:var(--ac)">'+x.h+'H</b></div>').join('')+'<div class="ty1 tysum"><span>合計</span><b style="color:var(--ac)">'+L.reduce((t,x)=>t+x.h,0)+'H</b></div>'}
@@ -759,7 +759,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.05.5';
+const APPV='2026.11.05.6';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
