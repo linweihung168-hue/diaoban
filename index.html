@@ -51,7 +51,7 @@ details.e9r>summary::-webkit-details-marker{display:none}.e9r small{color:var(--
 .slg{font-size:12px;color:var(--mut);margin:8px 0 0;display:flex;gap:14px;flex-wrap:wrap;align-items:center}.slg i{display:inline-block;width:26px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:4px;border:1.5px solid var(--bd)}.slg i.d{border-style:dashed}
 .mnote{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--fill,rgba(118,118,128,.12));font-size:14px;line-height:1.5;white-space:pre-wrap}
 #sth{width:auto;min-width:150px;margin:0 0 0 auto}
-.typ{color:var(--mut);font-weight:500}.typ.tys{font-size:13px;font-weight:400;line-height:1.5}.tyk{font-size:10.5px;color:var(--mut);margin-left:3px}.tyt td.tym,.ty1.tym,span.tym{background:color-mix(in srgb,#8e6bd8 16%,transparent)}.tyt tr.gs td{border-top:2px solid var(--fg)}.tyt th small{font-weight:400;font-size:11px}
+.typ{color:var(--mut);font-weight:500}.tyn{font-weight:600;padding:2px 6px 8px}.typ.tys{font-size:13px;font-weight:400;line-height:1.5}.tyk{font-size:10.5px;color:var(--mut);margin-left:3px}.tyt td.tym,.ty1.tym,span.tym{background:color-mix(in srgb,#8e6bd8 16%,transparent)}.tyt tr.gs td{border-top:2px solid var(--fg)}.tyt th small{font-weight:400;font-size:11px}
 .ty1{display:flex;justify-content:space-between;align-items:center;padding:9px 6px;border-top:1px solid var(--bd)}.ty1.tyc{cursor:pointer}.ty1.tysum{border-top:2px solid var(--bd);font-weight:600}
 .typay{margin-top:10px}.typt{font-size:12.5px;color:var(--mut);padding:8px 0 2px;border-top:1px dashed var(--bd)}.typr{min-height:44px}.typr>span:first-child{color:var(--mut)}.typb{border:0;background:none;color:var(--ac);font-size:13px;padding:4px 0 4px 10px;margin:0;cursor:pointer;width:auto;text-decoration:underline}
 .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:left}th{color:var(--mut)}
@@ -508,7 +508,7 @@ function renderTy(){
   const L=(S.ty||[]).filter(e=>e.u===u).map(tyClean).sort((x,y)=>x.d<y.d?-1:1);
   if(!adm){el.innerHTML=tyWrap('我的颱風假',tyOne(S.me.name,L,false));return}
   const one=bk?$(u==='D2690'?'fp9':'fp').value:(u==='D2690'?(S.kp9||''):(S.target||''));
-  if(one){el.innerHTML=tyWrap('颱風假 — '+esc(one),tyOne(one,L,true)+'<p class="mut" style="margin:8px 0 0;font-size:12px">點日期改時數；上方人員改選「'+(bk?'全部':'請選擇人員')+'」可看全部人</p>');return}
+  if(one){el.innerHTML=tyWrap('颱風假','<div class="tyn">'+esc(one)+'</div>'+tyOne(one,L,true)+'<p class="mut" style="margin:8px 0 0;font-size:12px">點日期改時數；上方人員改選「'+(bk?'全部':'請選擇人員')+'」可看全部人</p>');return}
   const v=S.tyv||'d';let h='';
   if(L.length){
     h+='<div class="tyseg"><button type="button" data-v="d" class="'+(v==='d'?'on':'')+'">依日期</button><button type="button" data-v="p" class="'+(v==='p'?'on':'')+'">依人員</button></div>';
@@ -737,7 +737,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.05.2';
+const APPV='2026.11.05.3';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1149,7 +1149,8 @@ $('rmp').onchange=e=>setRM(e.target.value);
 showM('bm');
 ['bm','bm9','xm'].forEach(id=>$(id+'p').onchange=e=>{if(!e.target.value)return;S.month=e.target.value;reM(id)});
 $('dpb').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.dp=b.dataset.dp;renderBack()};
-$('fp').onchange=$('ft').onchange=()=>{renderBack();renderTy()};
+$('fp').onchange=()=>{const n=$('fp').value;S.dp=[...document.querySelectorAll('#dpb button')].some(b=>b.dataset.dp===n)?n:'';renderBack();renderTy()};   // 上方選人員：每日彙總、月結也跟著切
+$('ft').onchange=()=>renderBack();
 async function loadBack(){
   showM('bm');
   try{S.bv=await call('view',{month:S.month,person:''});renderBack()}catch(e){msg(e.message)}
@@ -1163,7 +1164,7 @@ function renderBack(){
   const fpp=$('fp').value,man=v.manual.filter(m=>!fpp||m.name===fpp);$('bManN').textContent=fpp?'（'+fpp+' '+man.length+' 筆）':'';
   $('bMan').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(man.map(m=>`<tr><td>${esc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
   $('bStat').innerHTML='<tr><th>姓名</th><th>上月未休分鐘<span class="pen">✎</span></th><th>本月總加班分鐘</th><th>本月總加班分鐘（含上月）</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）<span class="pen">✎</span></th><th>結轉下月</th><th>週六 $（分）</th><th>備註<span class="pen">✎</span></th></tr>'+
-    v.stats.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.total+s.carryIn}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td>${coH(s.carryOut)}</td><td>${s.pay?'<span class="typ">'+s.pay+'</span>':''}</td><td><input type="text" class="nt" maxlength="200" value="${esc(s.note||'')}" data-n="${esc(s.name)}" data-u="D2694" aria-label="備註"></td></tr>`).join('');
+    v.stats.filter(s=>!$('fp').value||s.name===$('fp').value).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.total+s.carryIn}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td>${coH(s.carryOut)}</td><td>${s.pay?'<span class="typ">'+s.pay+'</span>':''}</td><td><input type="text" class="nt" maxlength="200" value="${esc(s.note||'')}" data-n="${esc(s.name)}" data-u="D2694" aria-label="備註"></td></tr>`).join('');
   const p=$('fp').value,ty=$('ft').value,list=v.entries.filter(e=>(!p||e.name===p)&&(!ty||e.ty===ty)).sort(soCmp('date','at'));
   $('fcnt').textContent='共 '+list.length+' 筆';$('bList').innerHTML=(list.length?L94H:'')+list.map(e=>entryRow94(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
 }
@@ -1553,7 +1554,7 @@ function renderFill90(){
 }
 
 /* ---- 後台 ---- */
-$('fp9').onchange=$('ft9').onchange=()=>{renderBack90();renderTy()};
+$('fp9').onchange=$('ft9').onchange=()=>{renderBack90();renderTy()};   // 西藥：每日彙總、月結、人工核對、所有登記都跟著上方人員
 async function loadBack90(){
   showM('bm9');
   const fpv=$('fp9').value,st9=staff9();$('fp9').innerHTML='<option value="">全部</option>'+st9.map(n=>`<option>${esc(n)}</option>`).join('');if(st9.includes(fpv))$('fp9').value=fpv;
@@ -1563,14 +1564,14 @@ function renderBack90(){
   const v=S.bv9;if(!v)return;
   $('pend9').innerHTML=mergeKept(v.pending,S.kd90).map(pendRow9).join('')||'<p class="note" style="margin:0">目前沒有待處理的項目</p>';
   $('bStat9').innerHTML='<tr><th>姓名</th><th>上月未休分鐘<span class="pen">✎</span></th><th>本月總加班分鐘</th><th>本月多出分鐘</th><th>未休分鐘（含上月）</th><th>可換算</th><th>本月抵消（h）<span class="pen">✎</span></th><th>結轉下月</th><th>本月小時假</th><th>備註<span class="pen">✎</span></th></tr>'+
-    v.stats.slice().sort((p,q)=>by9(p.name,q.name)).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td>${coH(s.carryOut)}</td><td>${s.lv?hm(s.lv):''}</td><td><input type="text" class="nt" maxlength="200" value="${esc(s.note||'')}" data-n="${esc(s.name)}" data-u="D2690" aria-label="備註"></td></tr>`).join('');
+    v.stats.filter(s=>!$('fp9').value||s.name===$('fp9').value).sort((p,q)=>by9(p.name,q.name)).map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" step="1" class="${s.manualIn?'':'auto'}" value="${s.carryIn}" data-n="${esc(s.name)}" data-f="in"></td><td>${s.total}</td><td>${s.extra}</td><td><b>${s.unused}</b></td><td>${s.can} h</td><td><input type="number" min="0" step="0.5" class="${s.manualOff?'':'auto'}" value="${s.offset}" data-n="${esc(s.name)}" data-f="off"></td><td>${coH(s.carryOut)}</td><td>${s.lv?hm(s.lv):''}</td><td><input type="text" class="nt" maxlength="200" value="${esc(s.note||'')}" data-n="${esc(s.name)}" data-u="D2690" aria-label="備註"></td></tr>`).join('');
   const man9=[];(v.entries||[]).forEach(e=>{if(e.ty==='請假'&&e.kind==='LV'){const w=hw9(e,v.entries);if(w&&!w.auto)man9.push([e.date,e.a,'小時假 '+esc(e.t1)+'–'+esc(e.t2)+'：Word 標示時數請人工計算（'+esc(e.sa)+'）'])}
     if(e.ty==='請假'&&e.b)man9.push([e.date,e.b,'貼班：'+esc(e.a)+' 請 '+(KIND9[e.kind]||'')+'，班別 '+esc(e.sb),e.a]);
     if(e.ty==='其他')man9.push([e.date,e.a||'',esc(e.note||'其他')+(e.t1?'　'+esc(e.t1)+'–'+esc(e.t2):'')])});
   man9.sort((p,q)=>p[0]<q[0]?-1:p[0]>q[0]?1:0);
   const fpp=$('fp9').value,man9f=man9.filter(m=>!fpp||m[1]===fpp||m[3]===fpp);$('bManN9').textContent=fpp?'（'+fpp+' '+man9f.length+' 筆）':'';
   $('bMan9').innerHTML='<tr><th>日期</th><th>姓名</th><th>內容</th></tr>'+(man9f.map(m=>`<tr><td>${esc(m[0])}</td><td>${esc(m[1])}</td><td>${m[2]}</td></tr>`).join('')||'<tr><td colspan="3" class="note">目前沒有需要人工核對的項目</td></tr>');
-  $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.slice().sort(soCmp('date','name')).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
+  $('bDays9').innerHTML='<tr><th>日期</th><th>姓名</th><th>加班分鐘</th><th>計入工時</th><th>多出分鐘</th><th>小時假</th></tr>'+(v.days.filter(d=>!$('fp9').value||d.name===$('fp9').value).sort(soCmp('date','name')).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(d.name)}</td><td>${d.t||''}</td><td>${d.t?d.counted+' h':''}</td><td>${d.extra?'<span class="warn">'+d.extra+' 分</span>':''}</td><td>${d.lv?hm(d.lv):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">本月沒有加班或小時假</td></tr>');
   const p=$('fp9').value,ty=$('ft9').value,list=v.entries.filter(e=>(!p||e.a===p||e.b===p)&&(!ty||e.ty===ty)).sort(soCmp('date','at'));
   $('fcnt9').textContent='共 '+list.length+' 筆';$('bList9').innerHTML=(list.length?L9H:'')+list.map(e=>card9(e,true)).join('')||'<p class="note">沒有符合的登記</p>';
 }
