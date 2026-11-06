@@ -742,7 +742,8 @@ function renderRoster(u){
   box.dataset.sty=RSTY;box.dataset.rv=RV;rosCls();setTimeout(fitRM,0);box.innerHTML=`<details open><summary class="rsum"><span class="l"><b>大班表</b><button type="button" class="ib" data-rf="1" aria-label="更新">${ICON_R}</button></span>${ICON_C}</summary>${body}</details>`;
 }
 document.addEventListener('click',e=>{
-  const rv=e.target.closest('[data-rv]');if(rv){RV=rv.dataset.rv;try{store.setItem('rv',RV)}catch(er){}renderRoster();return}
+  const rv=e.target.closest('button[data-rv]');if(rv){   // 只認「週／月／我的」按鈕（外框 #rc94 也有 data-rv，不能被當成按鈕）
+    RV=rv.dataset.rv;try{store.setItem('rv',RV)}catch(er){}renderRoster();return}
   const rw=e.target.closest('[data-rw]');if(rw){RWI=addDays(RWI,7*+rw.dataset.rw);renderRoster();return}
   const dd=e.target.closest('[data-ymd]');if(dd&&dd.closest('#rc94')){const d=+dd.dataset.ymd.slice(8),ym=dd.dataset.ymd.slice(0,7),{m,n,rows,val}=rosterCtx(ym),g={};
     Object.keys(rows).forEach(x=>{const v=String(val(x,d-1).v||'').replace(/^~/,'').replace(/^\?:/,'');if(v&&v!=='--')(g[v]=g[v]||[]).push(x)});
@@ -759,7 +760,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.06.1';
+const APPV='2026.11.06.2';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
