@@ -760,7 +760,7 @@ document.addEventListener('click',async e=>{
 function shiftYm(ym,d,u){const a=Object.keys(rosterSrc(u).map).sort(),i=a.indexOf(ym)+d;return a[Math.max(0,Math.min(a.length-1,i))]}
 
 /* ---- 版本、通知、維護模式 ---- */
-const APPV='2026.11.06.2';
+const APPV='2026.11.11.1';
 const readSet=()=>{try{return JSON.parse(localStorage.getItem('diaoban_read')||'[]')}catch(e){return[]}};
 const saveRead=a=>{try{localStorage.setItem('diaoban_read',JSON.stringify(a.slice(-200)))}catch(e){}};
 const twNow=()=>new Date(Date.now()+8*3600e3).toISOString().slice(0,19).replace('T',' ');
@@ -1678,7 +1678,11 @@ $('ru9').onclick=async()=>{
 /* ---- 登記時依班表自動帶入班別 ---- */
 function rosterCode9(date,name){
   if(!date||!name||!S.cfg90||!S.cfg90.roster)return '';
-  const a=(S.cfg90.roster[date.slice(0,7)]||{})[name];return a?String(a[+date.slice(8,10)-1]||'').replace(/^~/,''):'';
+  const a=(S.cfg90.roster[date.slice(0,7)]||{})[name];let c=a?String(a[+date.slice(8,10)-1]||'').replace(/^~/,''):'';
+  if(!a)return c;
+  (S.ov90||[]).forEach(e=>{if(e.ty!=='換班'||String(e.d)!==date)return;   // 2026-11-11：已處理的調班也算進去（跟大班表顯示一致）
+    if(e.a===name)c=String(e.sb||'').replace(/^~/,'');else if(e.b===name)c=String(e.sa||'').replace(/^~/,'')});
+  return c;
 }
 function autoSh9(p,srcId,shId,noR){
   const el=$(p+shId),name=$(p+srcId).value;let c=rosterCode9($(p+'d').value,name);if(c==='B1230')c='B';
